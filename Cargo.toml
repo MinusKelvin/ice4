@@ -1,0 +1,14 @@
+[package]
+name = "minifier"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "minifier"
+path = "minifier/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+once_cell = "1.16.0"
+regex = "1.7.0"

@@ -1,0 +1,229 @@
+use once_cell::sync::Lazy;
+use regex::Regex;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Token {
+    Word(String),
+    Number(String),
+    String(String),
+    Ampersand,
+    AmpersandAmpersand,
+    AmpersandEqual,
+    Bang,
+    BangEqual,
+    Bar,
+    BarBar,
+    BarEqual,
+    Caret,
+    CaretEqual,
+    Colon,
+    ColonColon,
+    Comma,
+    Dot,
+    DotDotDot,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    GreaterGreater,
+    GreaterGreaterEqual,
+    LeftBrace,
+    LeftBracket,
+    LeftParen,
+    Less,
+    LessEqual,
+    LessLess,
+    LessLessEqual,
+    Minus,
+    MinusEqual,
+    MinusGreater,
+    MinusMinus,
+    Percent,
+    PercentEqual,
+    Plus,
+    PlusEqual,
+    PlusPlus,
+    Question,
+    RightBrace,
+    RightBracket,
+    RightParen,
+    Semicolon,
+    Slash,
+    SlashEqual,
+    Star,
+    StarEqual,
+    Tilde,
+}
+
+impl Token {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Token::Word(w) => w,
+            Token::Number(n) => n,
+            Token::String(s) => s,
+            Token::Ampersand => "&",
+            Token::AmpersandAmpersand => "&&",
+            Token::AmpersandEqual => "&=",
+            Token::Bang => "!",
+            Token::BangEqual => "!=",
+            Token::Bar => "|",
+            Token::BarBar => "||",
+            Token::BarEqual => "|=",
+            Token::Caret => "^",
+            Token::CaretEqual => "^=",
+            Token::Colon => ":",
+            Token::ColonColon => "::",
+            Token::Comma => ",",
+            Token::Dot => ".",
+            Token::DotDotDot => "...",
+            Token::Equal => "=",
+            Token::EqualEqual => "==",
+            Token::Greater => ">",
+            Token::GreaterEqual => ">=",
+            Token::GreaterGreater => ">>",
+            Token::GreaterGreaterEqual => ">>=",
+            Token::LeftBrace => "{",
+            Token::LeftBracket => "[",
+            Token::LeftParen => "(",
+            Token::Less => "<",
+            Token::LessEqual => "<=",
+            Token::LessLess => "<<",
+            Token::LessLessEqual => "<<=",
+            Token::Minus => "-",
+            Token::MinusEqual => "-=",
+            Token::MinusGreater => "->",
+            Token::MinusMinus => "--",
+            Token::Percent => "%",
+            Token::PercentEqual => "%=",
+            Token::Plus => "+",
+            Token::PlusEqual => "+=",
+            Token::PlusPlus => "++",
+            Token::Question => "?",
+            Token::RightBrace => "}",
+            Token::RightBracket => "]",
+            Token::RightParen => ")",
+            Token::Semicolon => ";",
+            Token::Slash => "/",
+            Token::SlashEqual => "/=",
+            Token::Star => "*",
+            Token::StarEqual => "*=",
+            Token::Tilde => "~",
+        }
+    }
+
+    pub fn requires_space(&self, other: &Token) -> bool {
+        match (self, other) {
+            (Token::Word(_) | Token::Number(_), Token::Word(_) | Token::Number(_)) => true,
+            (Token::Word(_) | Token::Number(_) | Token::String(_), _) => false,
+            (_, Token::Word(_) | Token::Number(_) | Token::String(_)) => false,
+            _ => {
+                let buf = self.as_str().to_owned() + other.as_str();
+                tokenize(&buf).get(0) != Some(self)
+            }
+        }
+    }
+}
+
+macro_rules! match_prefix {
+    ($expr:expr;
+        $($prefix:literal $(| $alt:literal)*, $tail:ident => $body:expr,)*
+        _ => $default_body:expr $(,)?
+    ) => {{
+        let s = $expr;
+        if false {
+            unreachable!()
+        } $(else if let Some($tail) = s.strip_prefix($prefix) $(.or(s.strip_prefix($alt)))* {
+            $body
+        })* else {
+            $default_body
+        }
+    }}
+}
+
+static WORD: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A[a-zA-Z_][a-zA-Z0-9_]*"#).unwrap());
+static NUMBER: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"\A[0-9][a-zA-Z0-9']*(\.[a-zA-Z0-9']+)?"#).unwrap());
+static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unwrap());
+static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
+
+pub fn tokenize(mut text: &str) -> Vec<Token> {
+    let mut result = vec![];
+    while !text.is_empty() {
+        let code = text;
+        let mut token = |token, rest| {
+            result.push(token);
+            text = rest;
+        };
+        match_prefix! { code;
+            " " | "\t" | "\n", rest => text = rest,
+            "&&", rest => token(Token::AmpersandAmpersand, rest),
+            "&=", rest => token(Token::AmpersandEqual, rest),
+            "&", rest => token(Token::Ampersand, rest),
+            "!=", rest => token(Token::BangEqual, rest),
+            "!", rest => token(Token::Bang, rest),
+            "||", rest => token(Token::BarBar, rest),
+            "|=", rest => token(Token::BarEqual, rest),
+            "|", rest => token(Token::Bar, rest),
+            "^=", rest => token(Token::CaretEqual, rest),
+            "^", rest => token(Token::Caret, rest),
+            "::", rest => token(Token::ColonColon, rest),
+            ":", rest => token(Token::Colon, rest),
+            ",", rest => token(Token::Comma, rest),
+            "...", rest => token(Token::DotDotDot, rest),
+            ".", rest => token(Token::Dot, rest),
+            "==", rest => token(Token::EqualEqual, rest),
+            "=", rest => token(Token::Equal, rest),
+            ">>=", rest => token(Token::GreaterGreaterEqual, rest),
+            ">=", rest => token(Token::GreaterEqual, rest),
+            ">>", rest => token(Token::GreaterGreater, rest),
+            ">", rest => token(Token::Greater, rest),
+            "{", rest => token(Token::LeftBrace, rest),
+            "[", rest => token(Token::LeftBracket, rest),
+            "(", rest => token(Token::LeftParen, rest),
+            "<<=", rest => token(Token::LessLessEqual, rest),
+            "<=", rest => token(Token::LessEqual, rest),
+            "<<", rest => token(Token::LessLess, rest),
+            "<", rest => token(Token::Less, rest),
+            "-=", rest => token(Token::MinusEqual, rest),
+            "->", rest => token(Token::MinusGreater, rest),
+            "--", rest => token(Token::MinusMinus, rest),
+            "-", rest => token(Token::Minus, rest),
+            "%=", rest => token(Token::PercentEqual, rest),
+            "%", rest => token(Token::Percent, rest),
+            "+=", rest => token(Token::PlusEqual, rest),
+            "++", rest => token(Token::PlusPlus, rest),
+            "+", rest => token(Token::Plus, rest),
+            "?", rest => token(Token::Question, rest),
+            "}", rest => token(Token::RightBrace, rest),
+            "]", rest => token(Token::RightBracket, rest),
+            ")", rest => token(Token::RightParen, rest),
+            ";", rest => token(Token::Semicolon, rest),
+            "//", rest => {
+                text = rest.split_once('\n').map(|(_, v)| v).unwrap_or("");
+            },
+            "/*", rest => {
+                text = rest.split_once("*/").map(|(_, v)| v).unwrap_or("");
+            },
+            "/=", rest => token(Token::SlashEqual, rest),
+            "/", rest => token(Token::Slash, rest),
+            "*", rest => token(Token::Star, rest),
+            "*=", rest => token(Token::StarEqual, rest),
+            "~", rest => token(Token::Tilde, rest),
+            _ => if let Some(m) = WORD.find(code) {
+                token(Token::Word(m.as_str().to_owned()), &code[m.end()..]);
+            } else if let Some(m) = NUMBER.find(code) {
+                token(Token::Number(m.as_str().to_owned()), &code[m.end()..]);
+            } else if let Some(m) = CHARACTER.find(code) {
+                token(Token::Number(m.as_str().to_owned()), &code[m.end()..]);
+            } else if let Some(m) = STRING.find(code) {
+                token(Token::String(m.as_str().to_owned()), &code[m.end()..]);
+            } else {
+                unreachable!(
+                    "could not parse token starting with `{}`",
+                    &code[..code.len().min(8)]
+                );
+            },
+        }
+    }
+    result
+}
