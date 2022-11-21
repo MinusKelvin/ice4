@@ -1,6 +1,6 @@
 .PHONY: ice4
 ice4:
-	./build.sh "$(EXE)"
+	sh build.sh "$(EXE)"
 
 .PHONY: check
 check:
