@@ -28,7 +28,7 @@ struct Searcher {
         return best;
     }
 
-    void iterative_deepening(int max_depth=4) {
+    void iterative_deepening(int max_depth=5) {
         nodes = 0;
         Move mv;
         for (int depth = 1; depth <= max_depth; depth++) {
