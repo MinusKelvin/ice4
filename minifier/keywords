@@ -2,11 +2,15 @@ atoi
 auto
 break
 case
+catch
 char
 class
+clock_gettime
+CLOCK_MONOTONIC
 continue
 default
 do
+double
 else
 enum
 exit
@@ -41,6 +45,11 @@ strtok
 struct
 switch
 this
+throw
+timespec
+try
+tv_nsec
+tv_sec
 uint16_t
 uint32_t
 uint64_t
