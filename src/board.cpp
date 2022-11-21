@@ -135,7 +135,7 @@ struct Board {
         halfmove++;
     }
 
-    int movegen(Move list[], int& count) {
+    int movegen(Move list[], int& count, int quiets=1) {
         count = 0;
         uint8_t other = stm ^ INVALID;
         uint8_t opponent_king = other | KING;
@@ -152,7 +152,7 @@ struct Board {
                 int dir = stm == WHITE ? 10 : -10;
                 int upsq = sq + dir;
                 int promo = board[upsq + dir] == INVALID ? stm | QUEEN : 0;
-                if (!board[upsq]) {
+                if (!board[upsq] && quiets) {
                     list[count++] = Move(sq, upsq, promo);
                     if (board[sq - dir - dir] == INVALID && !board[upsq+dir]) {
                         list[count++] = Move(sq, upsq+dir, promo);
@@ -190,8 +190,12 @@ struct Board {
                         raysq += rays[i];
                         if (board[raysq] & stm) break;
                         if (board[raysq] == opponent_king) return 0;
-                        list[count++] = Move(sq, raysq, 0);
-                        if (board[raysq] & other) break;
+                        if (board[raysq] & other) {
+                            list[count++] = Move(sq, raysq, 0);
+                            break;
+                        } else if (quiets) {
+                            list[count++] = Move(sq, raysq, 0);
+                        }
                     }
                 }
             }

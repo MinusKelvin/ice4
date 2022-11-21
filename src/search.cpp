@@ -2,12 +2,10 @@ struct Searcher {
     uint64_t nodes;
 
     int negamax(Board &board, Move *bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
-        if (depth == 0) return board.eval();
-
         Move moves[256];
         int score[256];
         int mvcount;
-        if (!board.movegen(moves, mvcount)) {
+        if (!board.movegen(moves, mvcount, depth > 0)) {
             return WON;
         }
 
@@ -19,7 +17,8 @@ struct Searcher {
             }
         }
 
-        int16_t best = LOST + ply;
+        int16_t best = depth > 0 ? LOST + ply : board.eval();
+        if (best >= beta) return best;
 
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
