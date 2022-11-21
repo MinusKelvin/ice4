@@ -65,10 +65,12 @@ void uci() {
                     wtime = atoi(strtok(0, " \n"));
                     strtok(0, " \n"); // btime
                     btime = atoi(strtok(0, " \n"));
+                } else {
+                    wtime = btime = 1 << 31;
                 }
-                // TODO search
+                double time_limit = (ROOT.stm == WHITE ? wtime : btime) * 0.00005;
                 Searcher s;
-                s.iterative_deepening();
+                s.iterative_deepening(time_limit);
         }
     }
 }
