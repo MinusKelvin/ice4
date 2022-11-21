@@ -49,14 +49,14 @@ void uci() {
 #endif
                 strtok(0, " \n"); // moves
                 while (move = strtok(0, " \n")) {
-                    Move mv {
+                    Move mv(
                         atosq(move),
                         atosq(move+2),
                         move[4] == 'q' ? QUEEN :
                         move[4] == 'r' ? ROOK :
                         move[4] == 'b' ? BISHOP :
                         move[4] == 'n' ? KNIGHT : 0
-                    };
+                    );
                     ROOT.make_move(mv);
                 }
                 break;

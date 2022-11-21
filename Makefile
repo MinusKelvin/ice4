@@ -4,4 +4,4 @@ ice4:
 
 .PHONY: check
 check:
-	g++ -DOPENBENCH -Wno-narrowing -Wall -Wextra -O -fdiagnostics-color=always -fsyntax-only src/main.cpp
+	g++ -DOPENBENCH -Wall -Wextra -O -fdiagnostics-color=always -fsyntax-only src/main.cpp

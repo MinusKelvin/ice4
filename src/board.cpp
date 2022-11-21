@@ -37,9 +37,12 @@ struct Zobrist {
 } ZOBRIST;
 
 struct Move {
-    uint8_t from;
-    uint8_t to;
-    uint8_t promo;
+    int8_t from;
+    int8_t to;
+    int8_t promo;
+
+    Move() = default;
+    Move(int8_t f, int8_t t, int8_t p) : from(f), to(t), promo(p) {}
 
     void put() {
         putchar(from%10+'a'-1);
@@ -64,7 +67,7 @@ struct Board {
     uint8_t stm;
     uint8_t halfmove;
 
-    Board() : /*castle_rights{3,3},*/ stm(WHITE), ep_square(0), halfmove(0), zobrist(0) {
+    Board() : zobrist(0), /*castle_rights{3,3},*/ ep_square(0), stm(WHITE), halfmove(0) {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
@@ -150,19 +153,19 @@ struct Board {
                 int upsq = sq + dir;
                 int promo = board[upsq + dir] == INVALID ? stm | QUEEN : 0;
                 if (!board[upsq]) {
-                    list[count++] = {sq, upsq, promo};
+                    list[count++] = Move(sq, upsq, promo);
                     if (board[sq - dir - dir] == INVALID && !board[upsq+dir]) {
-                        list[count++] = {sq, upsq+dir, promo};
+                        list[count++] = Move(sq, upsq+dir, promo);
                     }
                 }
                 if (board[upsq+1] == opponent_king || board[upsq-1] == opponent_king) {
                     return 0;
                 }
                 if (ep_square == upsq-1 || board[upsq-1] & other && ~board[upsq-1] & stm) {
-                    list[count++] = {sq, upsq-1, promo};
+                    list[count++] = Move(sq, upsq-1, promo);
                 }
                 if (ep_square == upsq+1 || board[upsq+1] & other && ~board[upsq+1] & stm) {
-                    list[count++] = {sq, upsq+1, promo};
+                    list[count++] = Move(sq, upsq+1, promo);
                 }
 
                 // copy in underpromotion moves
@@ -187,7 +190,7 @@ struct Board {
                         raysq += rays[i];
                         if (board[raysq] & stm) break;
                         if (board[raysq] == opponent_king) return 0;
-                        list[count++] = {sq, raysq, 0};
+                        list[count++] = Move(sq, raysq, 0);
                         if (board[raysq] & other) break;
                     }
                 }
