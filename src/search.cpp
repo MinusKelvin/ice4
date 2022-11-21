@@ -22,7 +22,7 @@ struct Searcher {
                 if (bestmv) *bestmv = moves[i];
             }
             if (v > alpha) alpha = v;
-            if (v > beta) return v;
+            if (v >= beta) return v;
         }
 
         return best;
