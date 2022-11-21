@@ -64,7 +64,7 @@ struct Board {
     uint8_t stm;
     uint8_t halfmove;
 
-    Board() : /*castle_rights{3,3},*/ stm(WHITE) {
+    Board() : /*castle_rights{3,3},*/ stm(WHITE), ep_square(0), halfmove(0), zobrist(0) {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
@@ -129,6 +129,7 @@ struct Board {
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm_toggle;
+        halfmove++;
     }
 
     int movegen(Move list[], int& count) {
