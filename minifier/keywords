@@ -9,6 +9,7 @@ clock_gettime
 CLOCK_MONOTONIC
 continue
 default
+delete
 do
 double
 else
@@ -30,12 +31,15 @@ long
 main
 memcpy
 memset
+new
+operator
 printf
 putchar
 puts
 return
 setbuf
 short
+size
 sizeof
 std
 stdin
@@ -56,5 +60,6 @@ uint64_t
 uint8_t
 union
 unsigned
+vector
 void
 while

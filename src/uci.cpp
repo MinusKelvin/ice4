@@ -35,7 +35,9 @@ void uci() {
                 hash = *strtok(0, " \n") == 'H';
                 strtok(0, " \n"); // value
                 value = atoi(strtok(0, " \n"));
-                // TODO actually set the options
+                if (hash) {
+                    TT = TranspositionTable(value);
+                }
                 break;
 #endif
             case 'p': // position

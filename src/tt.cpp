@@ -5,23 +5,15 @@ struct TtEntry {
     uint8_t depth;
     uint8_t bound;
 
-    TtEntry() : hash(0) {}
+    TtEntry() : hash(~0) {}
 };
 
 struct TranspositionTable {
-    uint64_t count;
-    TtEntry *entries;
+    std::vector<TtEntry> entries;
 
-    TranspositionTable(int size=8) {
-        count = size*65536ull;
-        entries = new TtEntry[count];
-    }
-
-    ~TranspositionTable() {
-        delete[] entries;
-    }
+    TranspositionTable(uint64_t mb=8) : entries(mb*65536) {}
 
     TtEntry& spot(uint64_t hash) {
-        return entries[hash % count];
+        return entries[hash % entries.size()];
     }
 } TT;
