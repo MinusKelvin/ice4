@@ -61,13 +61,10 @@ void uci() {
                 }
                 break;
             case 'g': // go
-                if (strtok(0, " \n")) { // wtime
-                    wtime = atoi(strtok(0, " \n"));
-                    strtok(0, " \n"); // btime
-                    btime = atoi(strtok(0, " \n"));
-                } else {
-                    wtime = btime = 1 << 31;
-                }
+                strtok(0, " \n"); // wtime
+                wtime = atoi(strtok(0, " \n"));
+                strtok(0, " \n"); // btime
+                btime = atoi(strtok(0, " \n"));
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
                 Searcher s;
                 s.iterative_deepening(time_alotment);

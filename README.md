@@ -7,7 +7,7 @@ It support the following subset of UCI:
 - `uci` (only as first message, required to be first message)
 - `isready`
 - `position startpos moves ...`
-- `go` or `go wtime <#> btime <#> ...`
+- `go wtime <#> btime <#> ...`
 
 Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `setoption` for hash and threads.
 
@@ -18,8 +18,14 @@ Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `s
 - Pseudolegal movegen
 - Zobrist hashing
 - Negamax
-- Iterative Deepening (hardcoded to depth 4)
-- Random leaf evaluation (based on zobrist hash)
+  - Quiescense search
+- Move Ordering
+  - MVV-LVA captures before quiets
+- Iterated Deepening
+- Soft limit + hard limit time management
+- Evaluation
+  - Material
+  - Random factor based on Zobrist hash
 
 ## Acknowledgements
 
