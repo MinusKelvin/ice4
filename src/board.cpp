@@ -198,4 +198,13 @@ struct Board {
         }
         return 1;
     }
+
+    int eval() {
+        int value = (zobrist & 0xFF) - 127;
+        int piece_values[] = {0, 1, 3, 3, 5, 9, 0};
+        for (int sq = A1; sq <= H8; sq++) {
+            value += (stm & board[sq] ? 1 : -1) * piece_values[board[sq] & 7];
+        }
+        return value;
+    }
 } ROOT;

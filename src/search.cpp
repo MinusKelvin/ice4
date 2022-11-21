@@ -2,7 +2,7 @@ struct Searcher {
     uint64_t nodes;
 
     int negamax(Board &board, Move *bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
-        if (depth == 0) return board.zobrist & 0xFFF;
+        if (depth == 0) return board.eval();
 
         Move moves[256];
         int mvcount;
