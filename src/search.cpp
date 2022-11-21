@@ -17,6 +17,14 @@ struct Searcher {
             return WON;
         }
 
+        for (int i = 0, j=mvcount-1; i < j; j--) {
+            if (board.board[moves[j].from]) {
+                Move tmp = moves[j];
+                moves[j++] = moves[i];
+                moves[i++] = tmp;
+            }
+        }
+
         int16_t best = LOST + ply;
 
         for (int i = 0; i < mvcount; i++) {
