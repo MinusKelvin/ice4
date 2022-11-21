@@ -200,7 +200,7 @@ struct Board {
     }
 
     int eval() {
-        int value = (zobrist & 127) - 63;
+        int value = 0;
         int piece_values[] = {0, 1, 3, 3, 5, 9, 0};
         for (int sq = A1; sq <= H8; sq++) {
             value += (stm & board[sq] ? 100 : -100) * piece_values[board[sq] & 7];
