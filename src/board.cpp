@@ -14,7 +14,7 @@ uint64_t rng() {
 #endif
 
 struct Zobrist {
-    uint64_t pieces[23][78];
+    uint64_t pieces[23][SQUARE_SPAN];
     // uint64_t castle_rights[4];
     uint64_t stm_toggle;
 

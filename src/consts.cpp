@@ -18,6 +18,8 @@
 #define SHORT_CASTLE 1
 #define LONG_CASTLE 2
 
+#define SQUARE_SPAN 78
+
 #define A1 21
 #define B1 22
 #define C1 23
