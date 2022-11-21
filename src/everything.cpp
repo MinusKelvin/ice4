@@ -6,5 +6,6 @@
 
 #include "consts.cpp"
 #include "board.cpp"
+#include "tt.cpp"
 #include "search.cpp"
 #include "uci.cpp"

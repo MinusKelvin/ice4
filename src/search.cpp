@@ -11,7 +11,7 @@ struct Searcher {
     double abort_time;
     int16_t history[2][7][SQUARE_SPAN];
 
-    int negamax(Board &board, Move *bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move moves[256];
         int score[256];
         int mvcount;
@@ -19,9 +19,13 @@ struct Searcher {
             return WON;
         }
 
+        TtEntry& tt = TT.spot(board.zobrist);
+
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
-            if (board.board[moves[i].to]) {
+            if (tt.hash == board.zobrist && tt.mv == moves[i]) {
+                score[i] = 99999;
+            } else if (board.board[moves[i].to]) {
                 score[i] = (board.board[moves[i].to] & 7) * 8 - piece + 10000;
             } else {
                 score[i] = history[board.stm == BLACK][piece][moves[i].to-A1];
@@ -50,11 +54,12 @@ struct Searcher {
             if (!(++nodes & 0xFFF) && now() > abort_time) {
                 throw 0;
             }
-            int16_t v = -negamax(mkmove, 0, -beta, -alpha, depth - 1, ply + 1);
+            Move scratch;
+            int16_t v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             if (v == LOST) moves[i].from = 0;
             if (v > best) {
                 best = v;
-                if (bestmv) *bestmv = moves[i];
+                bestmv = moves[i];
             }
             if (v > alpha) alpha = v;
             if (v >= beta) {
@@ -69,8 +74,13 @@ struct Searcher {
                     int change = depth * 16;
                     hist += change - change * hist / MAX_HIST;
                 }
-                return v;
+                break;
             }
+        }
+
+        if (depth > 0 && best > LOST + ply) {
+            tt.hash = board.zobrist;
+            tt.mv = bestmv;
         }
 
         return best;
@@ -84,7 +94,7 @@ struct Searcher {
         Move mv;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int16_t v = negamax(ROOT, &mv, LOST, WON, depth, 0);
+                int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 printf("info depth %d nodes %ld score cp %d pv ", depth, nodes, v);
                 mv.put();
                 putchar('\n');

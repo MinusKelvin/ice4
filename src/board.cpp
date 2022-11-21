@@ -43,6 +43,9 @@ struct Move {
 
     Move() = default;
     Move(int8_t f, int8_t t, int8_t p) : from(f), to(t), promo(p) {}
+    auto operator==(Move& r) {
+        return from == r.from && to == r.to && promo == r.promo;
+    }
 
     void put() {
         putchar(from%10+'a'-1);
