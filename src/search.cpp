@@ -46,6 +46,7 @@ struct Searcher {
         int raised_alpha = 0;
 
         int16_t best = depth > 0 ? LOST + ply : board.eval();
+        if (depth <= 0 && best > alpha) alpha = best;
         if (best >= beta) return best;
 
         for (int i = 0; i < mvcount; i++) {
