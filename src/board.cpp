@@ -93,6 +93,7 @@ struct Board {
 
     void null_move() {
         zobrist ^= ZOBRIST.stm_toggle;
+        stm ^= INVALID;
         ep_square = 0;
         halfmove++;
     }

@@ -15,6 +15,16 @@ struct Searcher {
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         int pv = beta > alpha+1;
 
+        if (!pv && board.eval() >= beta && depth > 1) {
+            Board mkmove = board;
+            mkmove.null_move();
+            Move scratch;
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 3, ply + 1);
+            if (v >= beta) {
+                return v;
+            }
+        }
+
         Move moves[256];
         int score[256];
         int mvcount;
