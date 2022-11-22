@@ -11,6 +11,7 @@ struct Searcher {
     double abort_time;
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
+    Move killers[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         int pv = beta > alpha+1;
@@ -52,6 +53,8 @@ struct Searcher {
                 score[i] = 99999;
             } else if (board.board[moves[i].to]) {
                 score[i] = (board.board[moves[i].to] & 7) * 8 - piece + 10000;
+            } else if (moves[i] == killers[ply]) {
+                score[i] = 9000;
             } else {
                 score[i] = history[board.stm == BLACK][piece][moves[i].to-A1];
             }
@@ -137,9 +140,10 @@ struct Searcher {
                         int change = depth * 16;
                         hist -= change + change * hist / MAX_HIST;
                     }
-                    int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
+                    int16_t& hist = history[board.stm == BLACK][board.board[bestmv.from] & 7][bestmv.to-A1];
                     int change = depth * 16;
                     hist += change - change * hist / MAX_HIST;
+                    killers[ply] = bestmv;
                 }
                 break;
             }
