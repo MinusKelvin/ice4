@@ -17,17 +17,21 @@ Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `s
 - 10x12 board representation
 - Pseudolegal movegen
 - Zobrist hashing
-- Negamax
+- Transposition Table
+- Twofold repetition detection
+- Principle Variation Search
   - Quiescense search
+  - Null Move Pruning
 - Move Ordering
+  - TT move
   - MVV-LVA captures before quiets
+  - History
 - Iterated Deepening
 - Soft limit + hard limit time management
 - Evaluation
-  - Material
-  - Random factor based on Zobrist hash
+  - Piece Square Tables (courtesy of Analog)
 
 ## Acknowledgements
 
 - This follows the TCEC 4K rules: https://wiki.chessdom.org/TCEC_4k_Rules
-- Thanks to Analog for coming up with the name
+- Thanks to Analog for coming up with the name and providing piece square tables
