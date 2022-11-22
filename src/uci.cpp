@@ -50,7 +50,9 @@ void uci() {
                 strtok(0, " \n"); // startpos
 #endif
                 strtok(0, " \n"); // moves
+                PREHISTORY_LENGTH = 0;
                 while (move = strtok(0, " \n")) {
+                    PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     Move mv(
                         atosq(move),
                         atosq(move+2),
@@ -60,6 +62,9 @@ void uci() {
                         move[4] == 'n' ? KNIGHT : 0
                     );
                     ROOT.make_move(mv);
+                    if (!ROOT.halfmove) {
+                        PREHISTORY_LENGTH = 0;
+                    }
                 }
                 break;
             case 'g': // go

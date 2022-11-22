@@ -10,6 +10,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t history[2][7][SQUARE_SPAN];
+    uint64_t rep_list[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         int pv = beta > alpha+1;
@@ -33,6 +34,7 @@ struct Searcher {
                 return tt.eval;
             }
         }
+        rep_list[ply] = board.zobrist;
 
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
@@ -70,9 +72,25 @@ struct Searcher {
             if (!(++nodes & 0xFFF) && now() > abort_time) {
                 throw 0;
             }
+
             Move scratch;
             int16_t v;
-            if (legals) {
+
+            int is_rep = 0;
+            for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
+                if (rep_list[i] == mkmove.zobrist) {
+                    is_rep = 1;
+                }
+            }
+            for (int i = 0; !is_rep && i < PREHISTORY_LENGTH; i++) {
+                if (PREHISTORY[i] == mkmove.zobrist) {
+                    is_rep = 1;
+                }
+            }
+
+            if (is_rep) {
+                v = 0;
+            } else if (legals) {
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                 if (pv && v > alpha) {
                     // at pv nodes, we need to re-search with full window when move raises alpha

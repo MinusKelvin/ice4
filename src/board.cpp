@@ -100,6 +100,10 @@ struct Board {
     void make_move(Move mv) {
         int piece = mv.promo ? mv.promo | stm : board[mv.from];
         int btm = stm != WHITE;
+        halfmove++;
+        if (piece == PAWN || board[mv.to]) {
+            halfmove = 0;
+        }
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
@@ -135,7 +139,6 @@ struct Board {
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm_toggle;
-        halfmove++;
     }
 
     int movegen(Move list[], int& count, int quiets=1) {
@@ -218,3 +221,6 @@ struct Board {
         return stm == WHITE ? value : -value;
     }
 } ROOT;
+
+uint64_t PREHISTORY[256];
+int PREHISTORY_LENGTH = 0;
