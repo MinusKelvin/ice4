@@ -20,8 +20,8 @@ struct Zobrist {
 
     Zobrist() {
 #ifdef OPENBENCH
-        for (int i = 0; i < 15; i++) {
-            for (int j = 0; j < 64; j++) {
+        for (int i = 0; i < 23; i++) {
+            for (int j = 0; j < SQUARE_SPAN; j++) {
                 pieces[i][j] = rng();
             }
         }
