@@ -1,5 +1,6 @@
 #define LOST -30000
 #define WON 30000
+#define MATE_RANGE 25000
 
 #define EMPTY 0
 #define PAWN 1

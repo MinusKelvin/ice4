@@ -23,15 +23,18 @@ struct Searcher {
         }
 
         TtEntry& tt = TT.spot(board.zobrist);
+        int16_t tt_eval =
+            tt.eval > MATE_RANGE ? tt.eval - ply :
+            tt.eval < -MATE_RANGE ? tt.eval + ply : tt.eval;
 
         if (tt.hash == board.zobrist && depth <= tt.depth) {
             if (
                 tt.bound == BOUND_EXACT ||
-                tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                tt.bound == BOUND_UPPER && tt.eval <= alpha
+                tt.bound == BOUND_LOWER && tt_eval >= beta ||
+                tt.bound == BOUND_UPPER && tt_eval <= alpha
             ) {
                 bestmv = tt.mv;
-                return tt.eval;
+                return tt_eval;
             }
         }
         rep_list[ply] = board.zobrist;
@@ -133,7 +136,9 @@ struct Searcher {
         if (depth > 0 && best > LOST + ply) {
             tt.hash = board.zobrist;
             tt.mv = bestmv;
-            tt.eval = best;
+            tt.eval =
+                best > MATE_RANGE ? best + ply :
+                best < -MATE_RANGE ? best - ply : best;
             tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :

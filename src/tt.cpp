@@ -5,7 +5,7 @@ struct TtEntry {
     uint8_t depth;
     uint8_t bound;
 
-    TtEntry() : hash(~0) {}
+    TtEntry() : hash(~0), eval(0) {}
 };
 
 struct TranspositionTable {
