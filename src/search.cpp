@@ -48,6 +48,7 @@ struct Searcher {
         int16_t best = depth > 0 ? LOST + ply : board.eval();
         if (best >= beta) return best;
 
+        int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
@@ -68,8 +69,18 @@ struct Searcher {
                 throw 0;
             }
             Move scratch;
-            int16_t v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
-            if (v == LOST) moves[i].from = 0;
+            int16_t v;
+            if (legals) {
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+            }
+            if (!legals || v > alpha) {
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+            }
+            if (v == LOST) {
+                moves[i].from = 0;
+            } else {
+                legals++;
+            }
             if (v > best) {
                 best = v;
                 bestmv = moves[i];
