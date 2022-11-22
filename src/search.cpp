@@ -83,9 +83,6 @@ struct Searcher {
                 throw 0;
             }
 
-            Move scratch;
-            int16_t v;
-
             int is_rep = 0;
             for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
                 if (rep_list[i] == mkmove.zobrist) {
@@ -98,11 +95,19 @@ struct Searcher {
                 }
             }
 
+            Move scratch;
+            int16_t v;
+
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
-                if (pv && v > alpha) {
+                int reduction = board.board[moves[i].to] ? 0 : legals / 12;
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                if (v > alpha && reduction) {
+                    // reduced search failed high, re-search at full depth
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                }
+                if (v > alpha && v < beta) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
