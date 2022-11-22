@@ -12,6 +12,8 @@ struct Searcher {
     int16_t history[2][7][SQUARE_SPAN];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+        int pv = beta > alpha+1;
+
         Move moves[256];
         int score[256];
         int mvcount;
@@ -72,8 +74,13 @@ struct Searcher {
             int16_t v;
             if (legals) {
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
-            }
-            if (!legals || v > alpha) {
+                if (pv && v > alpha) {
+                    // at pv nodes, we need to re-search with full window when move raises alpha
+                    // at non-pv nodes, this would be equivalent to the previous search, so skip it
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                }
+            } else {
+                // first legal move is always searched with full window
                 v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
             if (v == LOST) {
