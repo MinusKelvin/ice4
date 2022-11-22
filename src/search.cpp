@@ -140,6 +140,14 @@ struct Searcher {
             }
         }
 
+        if (depth > 0 && legals == 0) {
+            Board mkmove = board;
+            mkmove.null_move();
+            if (mkmove.movegen(moves, mvcount)) {
+                return 0;
+            }
+        }
+
         if (depth > 0 && best > LOST + ply) {
             tt.hash = board.zobrist;
             tt.mv = bestmv;
