@@ -215,6 +215,7 @@ struct Board {
             phase += phase_lut[board[sq] & 7];
         }
         int value = (mg_value * phase + eg_value * (24 - phase)) / 24;
+        value += zobrist & 31 - 15;
         return stm == WHITE ? value : -value;
     }
 } ROOT;
