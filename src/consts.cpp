@@ -20,6 +20,10 @@
 
 #define SQUARE_SPAN 78
 
+#define BOUND_EXACT 0
+#define BOUND_LOWER 1
+#define BOUND_UPPER 2
+
 #define A1 21
 #define B1 22
 #define C1 23

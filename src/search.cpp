@@ -21,6 +21,17 @@ struct Searcher {
 
         TtEntry& tt = TT.spot(board.zobrist);
 
+        if (tt.hash == board.zobrist && depth <= tt.depth) {
+            if (
+                tt.bound == BOUND_EXACT ||
+                tt.bound == BOUND_LOWER && tt.eval >= beta ||
+                tt.bound == BOUND_UPPER && tt.eval <= alpha
+            ) {
+                bestmv = tt.mv;
+                return tt.eval;
+            }
+        }
+
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
             if (tt.hash == board.zobrist && tt.mv == moves[i]) {
@@ -31,6 +42,8 @@ struct Searcher {
                 score[i] = history[board.stm == BLACK][piece][moves[i].to-A1];
             }
         }
+
+        int raised_alpha = 0;
 
         int16_t best = depth > 0 ? LOST + ply : board.eval();
         if (best >= beta) return best;
@@ -61,7 +74,10 @@ struct Searcher {
                 best = v;
                 bestmv = moves[i];
             }
-            if (v > alpha) alpha = v;
+            if (v > alpha) {
+                alpha = v;
+                raised_alpha = 1;
+            }
             if (v >= beta) {
                 if (!board.board[moves[i].to]) {
                     for (int j = 0; j < i; j++) {
@@ -81,6 +97,11 @@ struct Searcher {
         if (depth > 0 && best > LOST + ply) {
             tt.hash = board.zobrist;
             tt.mv = bestmv;
+            tt.eval = best;
+            tt.depth = depth;
+            tt.bound =
+                best >= beta ? BOUND_LOWER :
+                raised_alpha ? BOUND_EXACT : BOUND_UPPER;
         }
 
         return best;
