@@ -207,11 +207,14 @@ struct Board {
     }
 
     int eval() {
-        int value = (zobrist & 63) - 31;
-        int piece_values[] = {0, 1, 3, 3, 5, 9, 0};
+        int phase_lut[] = {0, 0, 1, 1, 2, 4, 0};
+        int eg_value = 0, mg_value = 0, phase = 0;
         for (int sq = A1; sq <= H8; sq++) {
-            value += (stm & board[sq] ? 100 : -100) * piece_values[board[sq] & 7];
+            mg_value += PST[0][board[sq]][sq-A1];
+            eg_value += PST[1][board[sq]][sq-A1];
+            phase += phase_lut[board[sq] & 7];
         }
-        return value;
+        int value = (mg_value * phase + eg_value * (24 - phase)) / 24;
+        return stm == WHITE ? value : -value;
     }
 } ROOT;

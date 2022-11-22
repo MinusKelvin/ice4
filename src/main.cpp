@@ -60,6 +60,7 @@ int64_t perft(Board& board, int depth) {
     "4R3/6pk/5p1p/4p2P/8/4PKP1/2r2P2/8 b - - 3 41"
 
 int main(int argc, char *argv[]) {
+    init_pst();
     if (argc == 2 && !strcmp(argv[1], "bench")) {
         char fens[] = BENCH_FENS;
         strtok(fens, " \n");
@@ -95,6 +96,7 @@ int main(int argc, char *argv[]) {
 #else
 
 int main() {
+    init_pst();
     uci();
 }
 

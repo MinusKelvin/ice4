@@ -7,6 +7,7 @@ char
 class
 clock_gettime
 CLOCK_MONOTONIC
+const
 continue
 default
 delete
