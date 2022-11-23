@@ -13,12 +13,13 @@ struct Searcher {
     uint64_t rep_list[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+        Move scratch, hashmv;
+
         int pv = beta > alpha+1;
 
         if (!pv && board.eval() >= beta && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
-            Move scratch;
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 3, ply + 1);
             if (v >= beta) {
                 return v;
@@ -34,21 +35,29 @@ struct Searcher {
 
         TtEntry& tt = TT.spot(board.zobrist);
 
-        if (tt.hash == board.zobrist && depth <= tt.depth) {
-            if (
+        if (tt.hash == board.zobrist) {
+            hashmv = tt.mv;
+            if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 tt.bound == BOUND_UPPER && tt.eval <= alpha
-            ) {
+            )) {
                 bestmv = tt.mv;
                 return tt.eval;
             }
         }
+
+        if (depth >= 3 && pv && (
+            tt.hash != board.zobrist || tt.depth + 2 < depth || tt.bound != BOUND_EXACT
+        )) {
+            negamax(board, hashmv, alpha, beta, depth - 2, ply);
+        }
+
         rep_list[ply] = board.zobrist;
 
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
-            if (tt.hash == board.zobrist && tt.mv == moves[i]) {
+            if (hashmv == moves[i]) {
                 score[i] = 99999;
             } else if (board.board[moves[i].to]) {
                 score[i] = (board.board[moves[i].to] & 7) * 8 - piece + 10000;
