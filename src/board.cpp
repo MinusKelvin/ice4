@@ -42,37 +42,41 @@ struct Board {
     uint8_t ep_square;
     uint8_t stm;
     uint8_t halfmove;
-    uint8_t phase;
-    int16_t mg_eval;
-    int16_t eg_eval;
+    int16_t pst;
+    int16_t accumulator[2][2][4];
 
-    Board() : zobrist(0), /*castle_rights{3,3},*/ ep_square(0), stm(WHITE), halfmove(0),
-            phase(24), mg_eval(0), eg_eval(0)
-    {
+    Board() : zobrist(0), /*castle_rights{3,3},*/ ep_square(0), stm(WHITE), halfmove(0), pst(0) {
         memset(board, INVALID, 120);
+        for (int i = 0; i < 4; i++) {
+            accumulator[0][0][i] = accumulator[0][1][i] = accumulator[1][0][i] = accumulator[1][1][i]
+                = FT_BIAS[i];
+        }
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
-            board[A1 + i] = layout[i] | WHITE;
-            board[A2 + i] = PAWN | WHITE;
-            board[A3 + i] = EMPTY;
-            board[A4 + i] = EMPTY;
-            board[A5 + i] = EMPTY;
-            board[A6 + i] = EMPTY;
-            board[A7 + i] = PAWN | BLACK;
-            board[A8 + i] = layout[i] | BLACK;
+            edit(A1 + i, layout[i] | WHITE);
+            edit(A2 + i, PAWN | WHITE);
+            edit(A3 + i, EMPTY);
+            edit(A4 + i, EMPTY);
+            edit(A5 + i, EMPTY);
+            edit(A6 + i, EMPTY);
+            edit(A7 + i, PAWN | BLACK);
+            edit(A8 + i, layout[i] | BLACK);
         }
     }
 
     void edit(int square, int piece) {
+        int left = square % 10 < 5;
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        mg_eval -= PST[0][board[square]][square-A1];
-        eg_eval -= PST[1][board[square]][square-A1];
-        phase -= PHASE[board[square] & 7];
+        for (int i = 0; i < 4; i++)
+            accumulator[!(board[square] & WHITE)][left][i] -= FT[board[square]][square-A1][i];
+        pst -= PST[board[square]][square-A1];
+
         board[square] = piece;
+
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        mg_eval += PST[0][board[square]][square-A1];
-        eg_eval += PST[1][board[square]][square-A1];
-        phase += PHASE[board[square] & 7];
+        for (int i = 0; i < 4; i++)
+            accumulator[!(board[square] & WHITE)][left][i] += FT[board[square]][square-A1][i];
+        pst += PST[board[square]][square-A1];
     }
 
     void null_move() {
@@ -195,8 +199,16 @@ struct Board {
     }
 
     int eval() {
-        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
-        return stm == WHITE ? value : -value;
+        float value = stm == WHITE ? pst : -pst;
+        value += OUT_BIAS;
+        int black_first = stm == BLACK;
+        for (int i = 0; i < 4; i++) {
+            value += clipped_relu(accumulator[black_first][0][i]) * OUT_WEIGHTS[i];
+            value += clipped_relu(accumulator[black_first][1][i]) * OUT_WEIGHTS[i+4];
+            value += clipped_relu(accumulator[!black_first][0][i]) * OUT_WEIGHTS[i+8];
+            value += clipped_relu(accumulator[!black_first][1][i]) * OUT_WEIGHTS[i+12];
+        }
+        return value;
     }
 } ROOT;
 
