@@ -100,7 +100,7 @@ struct Searcher {
 
             if (is_rep) {
                 v = 0;
-            } else if (legals) {
+            } else if (legals && depth > 0) {
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                 if (pv && v > alpha) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
