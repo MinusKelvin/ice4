@@ -75,7 +75,7 @@ struct Searcher {
             moves[i] = moves[best_so_far];
             score[i] = score[best_so_far];
             moves[best_so_far] = tmp1;
-            score[i] = tmp2;
+            score[best_so_far] = tmp2;
 
             Board mkmove = board;
             mkmove.make_move(moves[i]);
