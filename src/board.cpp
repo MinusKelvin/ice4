@@ -3,8 +3,7 @@ struct Move {
     int8_t to;
     int8_t promo;
 
-    Move() = default;
-    Move(int8_t f, int8_t t, int8_t p) : from(f), to(t), promo(p) {}
+    Move(int8_t f=0, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
     auto operator==(Move& r) {
         return from == r.from && to == r.to && promo == r.promo;
     }
