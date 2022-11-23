@@ -32,7 +32,7 @@ struct Searcher {
             return WON;
         }
 
-        TtEntry& tt = TT.spot(board.zobrist);
+        TtEntry& tt = TT[board.zobrist % TT.size()];
 
         if (tt.hash == board.zobrist && depth <= tt.depth) {
             if (

@@ -36,7 +36,7 @@ void uci() {
                 strtok(0, " \n"); // value
                 value = atoi(strtok(0, " \n"));
                 if (hash) {
-                    TT = TranspositionTable(value);
+                    TT = std::vector<TtEntry>(value * 65536);
                 }
                 break;
 #endif
@@ -139,7 +139,7 @@ void parse_fen() {
 
     if (*strtok(0, " \n") == 'b') {
         ROOT.stm = BLACK;
-        ROOT.zobrist ^= ZOBRIST.stm_toggle;
+        ROOT.zobrist ^= ZOBRIST_STM;
     }
 
     word = strtok(0, " \n");
