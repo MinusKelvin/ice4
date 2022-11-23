@@ -13,16 +13,16 @@ void unpack(int phase, int piece, const char *data, double scale, int offset) {
 }
 
 void init_pst() {
-    unpack(0, PAWN, "VVVV!G=++E=A <@Y'FPl.Fz~V`ckVVVV", 1.092, 41);
-    unpack(0, KNIGHT, "?IRQQR[_R`ek\\hnpel{{apx~X`ni QT]", 1.585, 187);
-    unpack(0, BISHOP, "#6$'4>>79=@D1>DM7DLUGFML*<=9 ,+-", 1.0, 290);
-    unpack(0, ROOK, "\".18 +-/'0,1/44:>ACEEMMOKPYXPPVV", 1.0, 459);
-    unpack(0, QUEEN, "( \".+.8529:56@<DDCMLPRXY<6NR,9KQ", 1.0, 898);
-    unpack(0, KING, "~}\\ZmV8 87((?=;9EDDCGIGHGHHIGGGG", 2.16, -85);
-    unpack(1, PAWN, "1111\",'(!* &#*\"#13)$U_KD~~vi1111", 1.346, 77);
-    unpack(1, KNIGHT, "?IRQQR[_R`ek\\hnpel{{apx~X`ni QT]", 1.585, 187);
-    unpack(1, BISHOP, "#6$'4>>79=@D1>DM7DLUGFML*<=9 ,+-", 1.0, 290);
-    unpack(1, ROOK, "\".18 +-/'0,1/44:>ACEEMMOKPYXPPVV", 1.0, 459);
-    unpack(1, QUEEN, "( \".+.8529:56@<DDCMLPRXY<6NR,9KQ", 1.0, 898);
-    unpack(1, KING, " 34(7EKO:IOW:MZcD^hjKgmmC]`]);>A", 1.0, -44);
+    unpack(0, PAWN, " %*)8NK@<PHG;JLO=QQUCX`heSl~\")&!", 1.538, -8); // average: 50
+    unpack(0, KNIGHT, "BEGIFGNMIRSVTYZY][fc\\sw~WTps .%`", 1.73, 152); // average: 242
+    unpack(0, BISHOP, "FDBAQUQNQZXUXWYbZZho]tu~SZ_Z@1 .", 1.149, 203); // average: 263
+    unpack(0, ROOK, "/7;D ,04*6/2379=CIOVPdfs`[u{xx}~", 1.24, 264); // average: 319
+    unpack(0, QUEEN, " *(,048/572/631.G4:7ESDJH0G9@Qjh", 1.0, 663); // average: 691
+    unpack(0, KING, "RQB@JA6,.1# #+('(2142129A'4=~hkg", 2.052, -63); // average: -7
+    unpack(1, PAWN, " ## HJIIEHEEGJECNNJH]`YUz~vm\"!! ", 3.792, -5); // average: 142
+    unpack(1, KNIGHT, "(5IMAWX_L_fo[hvw`sx~\\grqOael etc", 1.487, 328); // average: 420
+    unpack(1, BISHOP, " /\"..:>>9ENQ4GTW8UPY>LRJ5NLNHMUV", 1.0, 439); // average: 475
+    unpack(1, ROOK, " //-'*02-29:<BECIOOJOJMFNUOQCGGH", 1.0, 736); // average: 767
+    unpack(1, QUEEN, "9& !2-)48?IGHU\\fKhmuUcwvSrq~[^UV", 1.639, 1437); // average: 1516
+    unpack(1, KING, " *+\".5=A:BIMDMRUP\\^^]pohX~um.\\[Z", 1.995, -84); // average: 8
 }
