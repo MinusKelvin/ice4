@@ -1,10 +1,13 @@
+use std::borrow::Cow;
+
 use once_cell::sync::Lazy;
 use regex::Regex;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     Word(String),
-    Number(String),
+    Integer(ParsedNumber),
+    OtherNumber(String),
     String(String),
     Ampersand,
     AmpersandAmpersand,
@@ -55,11 +58,30 @@ pub enum Token {
     Tilde,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ParsedNumber {
+    value: u64,
+    suffix: String,
+}
+
+impl ParsedNumber {
+    pub fn to_string(&self) -> String {
+        let decimal = format!("{}{}", self.value, self.suffix);
+        let hex = format!("0x{:x}{}", self.value, self.suffix);
+        if decimal.len() <= hex.len() {
+            decimal
+        } else {
+            hex
+        }
+    }
+}
+
 impl Token {
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> Cow<str> {
         match self {
             Token::Word(w) => w,
-            Token::Number(n) => n,
+            Token::Integer(n) => return Cow::Owned(n.to_string()),
+            Token::OtherNumber(n) => n,
             Token::String(s) => s,
             Token::Ampersand => "&",
             Token::AmpersandAmpersand => "&&",
@@ -109,13 +131,23 @@ impl Token {
             Token::StarEqual => "*=",
             Token::Tilde => "~",
         }
+        .into()
     }
 
     pub fn requires_space(&self, other: &Token) -> bool {
         match (self, other) {
-            (Token::Word(_) | Token::Number(_), Token::Word(_) | Token::Number(_)) => true,
-            (Token::Word(_) | Token::Number(_) | Token::String(_), _) => false,
-            (_, Token::Word(_) | Token::Number(_) | Token::String(_)) => false,
+            (
+                Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_),
+                Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_),
+            ) => true,
+            (Token::Integer(_), Token::Dot | Token::DotDotDot) => true,
+            (Token::Dot | Token::DotDotDot, Token::Integer(_)) => true,
+            (Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_) | Token::String(_), _) => {
+                false
+            }
+            (_, Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_) | Token::String(_)) => {
+                false
+            }
             _ => {
                 let buf = self.as_str().to_owned() + other.as_str();
                 tokenize(&buf).get(0) != Some(self)
@@ -211,10 +243,8 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
             "~", rest => token(Token::Tilde, rest),
             _ => if let Some(m) = WORD.find(code) {
                 token(Token::Word(m.as_str().to_owned()), &code[m.end()..]);
-            } else if let Some(m) = NUMBER.find(code) {
-                token(Token::Number(m.as_str().to_owned()), &code[m.end()..]);
-            } else if let Some(m) = CHARACTER.find(code) {
-                token(Token::Number(m.as_str().to_owned()), &code[m.end()..]);
+            } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
+                token(parse_number(m.as_str()), &code[m.end()..]);
             } else if let Some(m) = STRING.find(code) {
                 token(Token::String(m.as_str().to_owned()), &code[m.end()..]);
             } else {
@@ -225,5 +255,79 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
             },
         }
     }
+    string_concat(&mut result);
     result
+}
+
+const BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)(\w*)\z"#).unwrap());
+const OCTAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A(0[0-7]*)(\w*)\z"#).unwrap());
+const DECIMAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A([1-9][0-9]*)(\w*)\z"#).unwrap());
+const HEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0x([0-9A-Fa-f]+)(\w*)\z"#).unwrap());
+const CHAR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'(([^'\\]|\\.)+)'\z"#).unwrap());
+
+fn parse_number(text: &str) -> Token {
+    Token::Integer(if let Some(captures) = OCTAL.captures(text) {
+        ParsedNumber {
+            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 8).unwrap(),
+            suffix: captures.get(2).unwrap().as_str().to_owned(),
+        }
+    } else if let Some(captures) = DECIMAL.captures(text) {
+        ParsedNumber {
+            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 10).unwrap(),
+            suffix: captures.get(2).unwrap().as_str().to_owned(),
+        }
+    } else if let Some(captures) = HEX.captures(text) {
+        ParsedNumber {
+            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 16).unwrap(),
+            suffix: captures.get(2).unwrap().as_str().to_owned(),
+        }
+    } else if let Some(captures) = BINARY.captures(text) {
+        ParsedNumber {
+            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 2).unwrap(),
+            suffix: captures.get(2).unwrap().as_str().to_owned(),
+        }
+    } else if let Some(captures) = CHAR.captures(text) {
+        let mut value = 0;
+        let mut iter = captures.get(1).unwrap().as_str().chars();
+        loop {
+            let char_value = match iter.next() {
+                Some('\\') => match iter.next().unwrap() {
+                    'a' => 0x07,
+                    'b' => 0x08,
+                    'e' => 0x1B,
+                    'f' => 0x0C,
+                    'n' => 0x0A,
+                    'r' => 0x0D,
+                    't' => 0x09,
+                    'v' => 0x0B,
+                    '\\' => 0x5C,
+                    '\'' => 0x27,
+                    '"' => 0x22,
+                    '?' => 0x3F,
+                    c => panic!("invalid escape sequence: `\\{c}`"),
+                },
+                Some(c) => c as u64,
+                None => break,
+            };
+            value <<= 8;
+            value |= char_value;
+        }
+        ParsedNumber {
+            value,
+            suffix: String::new(),
+        }
+    } else {
+        return Token::OtherNumber(text.to_string());
+    })
+}
+
+fn string_concat(tokens: &mut Vec<Token>) {
+    tokens.dedup_by(|r, l| match (l, r) {
+        (Token::String(l), Token::String(r)) => {
+            l.pop(); // remove closing "
+            l.push_str(&r[1..]); // remove opening "
+            true
+        }
+        _ => false,
+    })
 }
