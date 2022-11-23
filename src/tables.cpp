@@ -36,18 +36,18 @@ uint64_t ZOBRIST_STM;
 
 void init_tables() {
     // Piece-square tables
-    unpack(0, PAWN, " %*)8NK@<PHG;JLO=QQUCX`heSl~\")&!", 1.538, -8); // average: 50
-    unpack(0, KNIGHT, "BEGIFGNMIRSVTYZY][fc\\sw~WTps .%`", 1.73, 152); // average: 242
-    unpack(0, BISHOP, "FDBAQUQNQZXUXWYbZZho]tu~SZ_Z@1 .", 1.149, 203); // average: 263
-    unpack(0, ROOK, "/7;D ,04*6/2379=CIOVPdfs`[u{xx}~", 1.24, 264); // average: 319
-    unpack(0, QUEEN, " *(,048/572/631.G4:7ESDJH0G9@Qjh", 1.0, 663); // average: 691
-    unpack(0, KING, "RQB@JA6,.1# #+('(2142129A'4=~hkg", 2.052, -63); // average: -7
-    unpack(1, PAWN, " ## HJIIEHEEGJECNNJH]`YUz~vm\"!! ", 3.792, -5); // average: 142
-    unpack(1, KNIGHT, "(5IMAWX_L_fo[hvw`sx~\\grqOael etc", 1.487, 328); // average: 420
-    unpack(1, BISHOP, " /\"..:>>9ENQ4GTW8UPY>LRJ5NLNHMUV", 1.0, 439); // average: 475
-    unpack(1, ROOK, " //-'*02-29:<BECIOOJOJMFNUOQCGGH", 1.0, 736); // average: 767
-    unpack(1, QUEEN, "9& !2-)48?IGHU\\fKhmuUcwvSrq~[^UV", 1.639, 1437); // average: 1516
-    unpack(1, KING, " *+\".5=A:BIMDMRUP\\^^]pohX~um.\\[Z", 1.995, -84); // average: 8
+    unpack(0, PAWN, "\"$' DNKDENIGFLKKKQOOYd_^~~{v#& $", 2.491, -11); // average: 92
+    unpack(0, KNIGHT, "HNPSPT[\\T_ag`gllhjtucux~Y`pr V]d", 1.661, 208); // average: 315
+    unpack(0, BISHOP, "%$ \"4:735?B?6=CL9AKS>OOR.?A@#24;", 1.0, 323); // average: 349
+    unpack(0, ROOK, "(6>E 06;-:;=?HKLS[^^`gjlhiqucdfg", 1.0, 472); // average: 520
+    unpack(0, QUEEN, " %!&/-2-255168;=F>JNHYZ^DDXZBSZX", 1.0, 1025); // average: 1056
+    unpack(0, KING, "18& .,('&1243?BCHWWV\\qoh`~ulAnic", 1.254, -45); // average: 7
+    unpack(1, PAWN, "\"$' DNKDENIGFLKKKQOOYd_^~~{v#& $", 2.491, -11); // average: 92
+    unpack(1, KNIGHT, "HNPSPT[\\T_ag`gllhjtucux~Y`pr V]d", 1.661, 208); // average: 315
+    unpack(1, BISHOP, "%$ \"4:735?B?6=CL9AKS>OOR.?A@#24;", 1.0, 323); // average: 349
+    unpack(1, ROOK, "(6>E 06;-:;=?HKLS[^^`gjlhiqucdfg", 1.0, 472); // average: 520
+    unpack(1, QUEEN, " %!&/-2-255168;=F>JNHYZ^DDXZBSZX", 1.0, 1025); // average: 1056
+    unpack(1, KING, "18& .,('&1243?BCHWWV\\qoh`~ulAnic", 1.254, -45); // average: 7
 
     // Zobrist keys
 #ifdef OPENBENCH
