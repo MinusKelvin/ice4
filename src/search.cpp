@@ -17,7 +17,11 @@ struct Searcher {
 
         int static_eval = board.eval();
 
-        if (!pv && static_eval >= beta && depth > 1) {            
+        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
+            return static_eval;
+        }
+
+        if (!pv && static_eval >= beta && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
 
