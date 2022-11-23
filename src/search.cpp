@@ -15,11 +15,17 @@ struct Searcher {
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         int pv = beta > alpha+1;
 
-        if (!pv && board.eval() >= beta && depth > 1) {
+        int static_eval = board.eval();
+
+        if (!pv && static_eval >= beta && depth > 1) {            
             Board mkmove = board;
             mkmove.null_move();
+
+            int margin_reduction = (static_eval - beta) / 128;
+            if (margin_reduction > 2) margin_reduction = 2;
+
             Move scratch;
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 3, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 3 - margin_reduction, ply + 1);
             if (v >= beta) {
                 return v;
             }
@@ -59,7 +65,7 @@ struct Searcher {
 
         int raised_alpha = 0;
 
-        int16_t best = depth > 0 ? LOST + ply : board.eval();
+        int16_t best = depth > 0 ? LOST + ply : static_eval;
         if (best >= beta) return best;
 
         int legals = 0;
