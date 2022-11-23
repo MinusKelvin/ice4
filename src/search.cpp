@@ -57,9 +57,7 @@ struct Searcher {
             }
         }
 
-        if (depth >= 3 && pv && (
-            tt.hash != board.zobrist || tt.depth + 2 < depth || tt.bound != BOUND_EXACT
-        )) {
+        if (pv && depth > 3 && tt.hash == board.zobrist && tt.bound != BOUND_EXACT) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
 
