@@ -6,7 +6,7 @@ use regex::{NoExpand, Regex};
 
 static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)""#).unwrap());
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
-static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) ?(.*)"#).unwrap());
+static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
 
 #[derive(Default)]
 pub struct Preprocessed {

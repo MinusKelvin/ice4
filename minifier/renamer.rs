@@ -28,7 +28,7 @@ pub fn rename_identifiers(tokens: &mut [Token]) {
             ident.push(IDENT_CHARACTERS[i..].chars().next().unwrap());
         }
         translation_table.insert(word.clone(), ident);
-        for i in ident_state.iter_mut() {
+        for i in ident_state.iter_mut().rev() {
             *i += 1;
             if *i == IDENT_CHARACTERS.len() {
                 *i = 0;
