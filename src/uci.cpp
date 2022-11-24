@@ -163,10 +163,10 @@ void parse_fen() {
                 break;
         }
     }
-    if (remove_white_short) ROOT.remove_castle_rights(0, SHORT_CASTLE);
-    if (remove_white_long) ROOT.remove_castle_rights(0, LONG_CASTLE);
-    if (remove_black_short) ROOT.remove_castle_rights(1, SHORT_CASTLE);
-    if (remove_black_long) ROOT.remove_castle_rights(1, LONG_CASTLE);
+    if (remove_white_long) ROOT.castle_rights[0] = 0;
+    if (remove_black_long) ROOT.castle_rights[1] = 0;
+    if (remove_white_short) ROOT.castle_rights[2] = 0;
+    if (remove_black_short) ROOT.castle_rights[3] = 0;
 
     word = strtok(0, " \n");
     if (*word != '-') {

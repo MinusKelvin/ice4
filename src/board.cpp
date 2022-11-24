@@ -38,7 +38,7 @@ std::vector<TtEntry> TT(524288); // 8MB
 struct Board {
     uint64_t zobrist;
     uint8_t board[120];
-    uint8_t castle_rights[2];
+    uint8_t castle_rights[4];
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
@@ -47,7 +47,7 @@ struct Board {
     int16_t mg_eval;
     int16_t eg_eval;
 
-    Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
+    Board() : zobrist(0), castle_rights{1,1,1,1}, ep_square(0), castle1(0), castle2(0),
               stm(WHITE), halfmove(0), phase(24), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
@@ -83,13 +83,6 @@ struct Board {
         castle1 = 0;
         castle2 = 0;
         halfmove++;
-    }
-
-    void remove_castle_rights(int btm, int which) {
-        if (castle_rights[btm] & which) {
-            castle_rights[btm] &= ~which;
-            zobrist ^= ZOBRIST_CASTLE_RIGHTS[which ^ btm];
-        }
     }
 
     void make_move(Move mv) {
@@ -134,23 +127,24 @@ struct Board {
                 castle1 = back_rank + 4;
                 castle2 = back_rank + 3;
             }
-            remove_castle_rights(btm, SHORT_CASTLE);
-            remove_castle_rights(btm, LONG_CASTLE);
+            castle_rights[btm] = 0;
+            castle_rights[btm + 2] = 0;
         }
 
-        if (mv.from == A1 || mv.to == A1) remove_castle_rights(0, LONG_CASTLE);
-        if (mv.from == H1 || mv.to == H1) remove_castle_rights(0, SHORT_CASTLE);
-        if (mv.from == A8 || mv.to == A8) remove_castle_rights(1, LONG_CASTLE);
-        if (mv.from == H8 || mv.to == H8) remove_castle_rights(1, SHORT_CASTLE);
+        if (mv.from == A1 || mv.to == A1) castle_rights[0] = 0;
+        if (mv.from == A8 || mv.to == A8) castle_rights[1] = 0;
+        if (mv.from == H1 || mv.to == H1) castle_rights[2] = 0;
+        if (mv.from == H8 || mv.to == H8) castle_rights[3] = 0;
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST_STM;
     }
 
-    int movegen(Move list[], int& count, int quiets=1) {
+    int movegen(Move *list, int& count, int quiets=1) {
         count = 0;
         uint8_t other = stm ^ INVALID;
         uint8_t opponent_king = other | KING;
+        int btm = stm == BLACK;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
             if (!board[sq] || board[sq] & other) continue;
@@ -159,13 +153,11 @@ struct Board {
             int8_t limits[16] = {0};
             int piece = board[sq] & 7;
 
-            if (piece == KING && sq == (stm == WHITE ? E1 : E8)) {
-                if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
-                        !board[sq+1] && !board[sq+2]) {
+            if (piece == KING) {
+                if (castle_rights[btm+2] && !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
                 }
-                if (castle_rights[stm == BLACK] & LONG_CASTLE &&
-                        !board[sq-1] && !board[sq-2] && !board[sq-3]) {
+                if (castle_rights[btm] && !board[sq-1] && !board[sq-2] && !board[sq-3]) {
                     list[count++] = Move(sq, sq - 2, 0);
                 }
             }
@@ -173,7 +165,7 @@ struct Board {
             if (piece == PAWN) {
                 int orig = count; // remember start of pawn move list for underpromotions
 
-                int dir = stm == WHITE ? 10 : -10;
+                int dir = btm ? -10 : 10;
                 int upsq = sq + dir;
                 int promo = board[upsq + dir] == INVALID ? stm | QUEEN : 0;
                 if (!board[upsq] && quiets) {

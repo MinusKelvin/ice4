@@ -30,7 +30,6 @@ uint64_t rng() {
 #endif
 
 uint64_t ZOBRIST_PIECES[23][SQUARE_SPAN];
-uint64_t ZOBRIST_CASTLE_RIGHTS[4];
 uint64_t ZOBRIST_STM;
 
 
@@ -56,15 +55,10 @@ void init_tables() {
             ZOBRIST_PIECES[i][j] = rng();
         }
     }
-    ZOBRIST_CASTLE_RIGHTS[0] = rng();
-    ZOBRIST_CASTLE_RIGHTS[1] = rng();
-    ZOBRIST_CASTLE_RIGHTS[2] = rng();
-    ZOBRIST_CASTLE_RIGHTS[3] = rng();
     ZOBRIST_STM = rng();
 #else
     auto rng = fopen("/dev/random", "r");
     fread(ZOBRIST_PIECES, sizeof(ZOBRIST_PIECES), 1, rng);
-    fread(ZOBRIST_CASTLE_RIGHTS, sizeof(ZOBRIST_CASTLE_RIGHTS), 1, rng);
     fread(&ZOBRIST_STM, sizeof(ZOBRIST_STM), 1, rng);
 #endif
 }

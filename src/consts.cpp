@@ -15,9 +15,6 @@
 
 #define INVALID 24
 
-#define SHORT_CASTLE 1
-#define LONG_CASTLE 2
-
 #define SQUARE_SPAN 78
 
 #define BOUND_EXACT 0
