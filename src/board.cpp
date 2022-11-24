@@ -48,7 +48,7 @@ struct Board {
     int16_t eg_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
-              stm(WHITE), halfmove(0), phase(24), mg_eval(0), eg_eval(0)
+              stm(WHITE), halfmove(0), phase(MAX_PHASE), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -234,7 +234,7 @@ struct Board {
     }
 
     int eval() {
-        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
+        int value = (mg_eval * phase + eg_eval * (MAX_PHASE - phase)) / MAX_PHASE;
         return stm == WHITE ? value : -value;
     }
 } ROOT;
