@@ -1,11 +1,17 @@
 use std::borrow::Cow;
+use std::collections::HashSet;
 
 use once_cell::sync::Lazy;
 use regex::Regex;
 
+static KEYWORDS: Lazy<HashSet<&'static str>> =
+    Lazy::new(|| include_str!("keywords").lines().collect());
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
-    Word(String),
+    Identifier(String),
+    Typename(String),
+    Keyword(&'static str),
     Integer(ParsedNumber),
     OtherNumber(String),
     String(String),
@@ -79,7 +85,9 @@ impl ParsedNumber {
 impl Token {
     pub fn as_str(&self) -> Cow<str> {
         match self {
-            Token::Word(w) => w,
+            Token::Identifier(w) => w,
+            Token::Typename(w) => w,
+            Token::Keyword(k) => *k,
             Token::Integer(n) => return Cow::Owned(n.to_string()),
             Token::OtherNumber(n) => n,
             Token::String(s) => s,
@@ -134,20 +142,24 @@ impl Token {
         .into()
     }
 
+    fn is_wordlike(&self) -> bool {
+        matches!(
+            self,
+            Token::Identifier(_)
+                | Token::Keyword(_)
+                | Token::Typename(_)
+                | Token::Integer(_)
+                | Token::OtherNumber(_)
+        )
+    }
+
     pub fn requires_space(&self, other: &Token) -> bool {
         match (self, other) {
-            (
-                Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_),
-                Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_),
-            ) => true,
+            (l, r) if l.is_wordlike() && r.is_wordlike() => true,
             (Token::Integer(_), Token::Dot | Token::DotDotDot) => true,
             (Token::Dot | Token::DotDotDot, Token::Integer(_)) => true,
-            (Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_) | Token::String(_), _) => {
-                false
-            }
-            (_, Token::Word(_) | Token::Integer(_) | Token::OtherNumber(_) | Token::String(_)) => {
-                false
-            }
+            (l, _) if l.is_wordlike() => false,
+            (_, r) if r.is_wordlike() => false,
             _ => {
                 let buf = self.as_str().to_owned() + other.as_str();
                 tokenize(&buf).get(0) != Some(self)
@@ -179,8 +191,17 @@ static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unw
 static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
 
 pub fn tokenize(mut text: &str) -> Vec<Token> {
+    let mut typenames: HashSet<_> = include_str!("extern_types")
+        .lines()
+        .map(|s| s.to_owned())
+        .collect();
+
     let mut result = vec![];
     while !text.is_empty() {
+        let type_introduction = matches!(
+            result.last(),
+            Some(Token::Keyword("struct" | "class" | "union" | "enum"))
+        );
         let code = text;
         let mut token = |token, rest| {
             result.push(token);
@@ -242,7 +263,17 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
             "*=", rest => token(Token::StarEqual, rest),
             "~", rest => token(Token::Tilde, rest),
             _ => if let Some(m) = WORD.find(code) {
-                token(Token::Word(m.as_str().to_owned()), &code[m.end()..]);
+                let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
+                    Token::Keyword(k)
+                } else if type_introduction {
+                    typenames.insert(m.as_str().to_owned());
+                    Token::Typename(m.as_str().to_owned())
+                } else if typenames.contains(m.as_str()) {
+                    Token::Typename(m.as_str().to_owned())
+                } else {
+                    Token::Identifier(m.as_str().to_owned())
+                };
+                token(tok, &code[m.end()..]);
             } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
                 token(parse_number(m.as_str()), &code[m.end()..]);
             } else if let Some(m) = STRING.find(code) {

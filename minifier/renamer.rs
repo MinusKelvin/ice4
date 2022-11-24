@@ -3,13 +3,17 @@ use std::collections::{HashMap, HashSet};
 use crate::lexical::Token;
 
 pub fn rename_identifiers(tokens: &mut [Token]) {
-    let keywords: HashSet<_> = include_str!("keywords").lines().collect();
+    let unrenameable: HashSet<_> = include_str!("extern_idents")
+        .lines()
+        .chain(include_str!("extern_types").lines())
+        .chain(include_str!("keywords").lines())
+        .collect();
 
     let mut counts: HashMap<_, usize> = HashMap::new();
 
     for token in &*tokens {
-        if let Token::Word(word) = token {
-            if keywords.contains(&**word) {
+        if let Token::Identifier(word) | Token::Typename(word) = token {
+            if unrenameable.contains(&**word) {
                 continue;
             }
 
@@ -45,8 +49,8 @@ pub fn rename_identifiers(tokens: &mut [Token]) {
     // dbg!(&translation_table);
 
     for token in tokens {
-        if let Token::Word(word) = token {
-            if keywords.contains(&**word) {
+        if let Token::Identifier(word) | Token::Typename(word) = token {
+            if unrenameable.contains(&**word) {
                 continue;
             }
             *word = translation_table.get(word).unwrap().clone();
