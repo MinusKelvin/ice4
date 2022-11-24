@@ -27,10 +27,9 @@ struct Searcher {
             Board mkmove = board;
             mkmove.null_move();
 
-            int margin_reduction = (static_eval - beta) / 128;
-            if (margin_reduction > 2) margin_reduction = 2;
+            int reduction = (static_eval - beta) / 128 + depth / 3 + 2;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 3 - margin_reduction, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
                 return v;
             }
