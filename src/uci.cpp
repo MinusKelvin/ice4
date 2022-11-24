@@ -143,19 +143,30 @@ void parse_fen() {
     }
 
     word = strtok(0, " \n");
+    int remove_white_short = 1;
+    int remove_white_long = 1;
+    int remove_black_short = 1;
+    int remove_black_long = 1;
     for (char c = *word++; c; c = *word++) {
-        // TODO
         switch (c) {
             case 'K':
+                remove_white_short = 0;
                 break;
             case 'Q':
+                remove_white_long = 0;
                 break;
             case 'k':
+                remove_black_short = 0;
                 break;
             case 'q':
+                remove_black_long = 0;
                 break;
         }
     }
+    if (remove_white_short) ROOT.remove_castle_rights(0, SHORT_CASTLE);
+    if (remove_white_long) ROOT.remove_castle_rights(0, LONG_CASTLE);
+    if (remove_black_short) ROOT.remove_castle_rights(1, SHORT_CASTLE);
+    if (remove_black_long) ROOT.remove_castle_rights(1, LONG_CASTLE);
 
     word = strtok(0, " \n");
     if (*word != '-') {

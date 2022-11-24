@@ -36,18 +36,19 @@ struct TtEntry {
 std::vector<TtEntry> TT(524288); // 8MB
 
 struct Board {
-    uint8_t board[120];
     uint64_t zobrist;
-    // uint8_t castle_rights[2];
+    uint8_t board[120];
+    uint8_t castle_rights[2];
     uint8_t ep_square;
+    uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t halfmove;
     uint8_t phase;
     int16_t mg_eval;
     int16_t eg_eval;
 
-    Board() : zobrist(0), /*castle_rights{3,3},*/ ep_square(0), stm(WHITE), halfmove(0),
-            phase(24), mg_eval(0), eg_eval(0)
+    Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
+              stm(WHITE), halfmove(0), phase(24), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -79,13 +80,24 @@ struct Board {
         zobrist ^= ZOBRIST_STM;
         stm ^= INVALID;
         ep_square = 0;
+        castle1 = 0;
+        castle2 = 0;
         halfmove++;
+    }
+
+    void remove_castle_rights(int btm, int which) {
+        if (castle_rights[btm] & which) {
+            castle_rights[btm] &= ~which;
+            zobrist ^= ZOBRIST_CASTLE_RIGHTS[which ^ btm];
+        }
     }
 
     void make_move(Move mv) {
         int piece = mv.promo ? mv.promo | stm : board[mv.from];
         int btm = stm != WHITE;
         halfmove++;
+        castle1 = 0;
+        castle2 = 0;
         if (piece == PAWN || board[mv.to]) {
             halfmove = 0;
         }
@@ -113,14 +125,23 @@ struct Board {
             if (mv.to == back_rank + 6) {
                 edit(back_rank + 7, EMPTY);
                 edit(back_rank + 5, stm | ROOK);
-                // castle_rights[btm] = 0;
+                castle1 = back_rank + 4;
+                castle2 = back_rank + 5;
             }
             if (mv.to == back_rank + 2) {
                 edit(back_rank + 0, EMPTY);
                 edit(back_rank + 3, stm | ROOK);
-                // castle_rights[btm] = 0;
+                castle1 = back_rank + 4;
+                castle2 = back_rank + 3;
             }
+            remove_castle_rights(btm, SHORT_CASTLE);
+            remove_castle_rights(btm, LONG_CASTLE);
         }
+
+        if (mv.from == A1 || mv.to == A1) remove_castle_rights(0, LONG_CASTLE);
+        if (mv.from == H1 || mv.to == H1) remove_castle_rights(0, SHORT_CASTLE);
+        if (mv.from == A8 || mv.to == A8) remove_castle_rights(1, LONG_CASTLE);
+        if (mv.from == H8 || mv.to == H8) remove_castle_rights(1, SHORT_CASTLE);
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST_STM;
@@ -137,6 +158,18 @@ struct Board {
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int8_t limits[16] = {0};
             int piece = board[sq] & 7;
+
+            if (piece == KING && sq == (stm == WHITE ? E1 : E8)) {
+                if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
+                        !board[sq+1] && !board[sq+2]) {
+                    list[count++] = Move(sq, sq + 2, 0);
+                }
+                if (castle_rights[stm == BLACK] & LONG_CASTLE &&
+                        !board[sq-1] && !board[sq-2] && !board[sq-3]) {
+                    list[count++] = Move(sq, sq - 2, 0);
+                }
+            }
+
             if (piece == PAWN) {
                 int orig = count; // remember start of pawn move list for underpromotions
 
@@ -149,7 +182,11 @@ struct Board {
                         list[count++] = Move(sq, upsq+dir, promo);
                     }
                 }
-                if (board[upsq+1] == opponent_king || board[upsq-1] == opponent_king) {
+                if (
+                    board[upsq+1] == opponent_king || board[upsq-1] == opponent_king ||
+                    upsq+1 == castle1 || upsq+1 == castle2 ||
+                    upsq-1 == castle1 || upsq-1 == castle2
+                ) {
                     return 0;
                 }
                 if (ep_square == upsq-1 || board[upsq-1] & other && ~board[upsq-1] & stm) {
@@ -180,7 +217,9 @@ struct Board {
                     for (int j = 0; j < limits[i]; j++) {
                         raysq += rays[i];
                         if (board[raysq] & stm) break;
-                        if (board[raysq] == opponent_king) return 0;
+                        if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
+                            return 0;
+                        }
                         if (board[raysq] & other) {
                             list[count++] = Move(sq, raysq, 0);
                             break;
