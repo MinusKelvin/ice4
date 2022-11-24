@@ -119,7 +119,8 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = board.board[moves[i].to] ? 0 : legals / 8;
+                int reduction = board.board[moves[i].to] ? 0 : (legals + depth) / 8;
+                if (reduction > legals) reduction = legals;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
