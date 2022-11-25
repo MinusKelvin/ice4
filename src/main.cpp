@@ -25,6 +25,7 @@ int64_t perft(Board& board, int depth) {
     }
 }
 
+// same fens as frozenight
 #define BENCH_FENS "skipped\n"\
     "r4rk1/5pb1/3R2p1/p2Q1qBp/8/7P/1P3PP1/2R3K1 w - - 4 29\n"\
     "r2qkbnr/ppp2p2/2npb3/4p1p1/2P1P2p/1PN1N3/P2PBPPP/R1BQK2R w KQq - 0 10\n"\
@@ -57,7 +58,39 @@ int64_t perft(Board& board, int depth) {
     "r3kbnr/1pp1q1p1/2np2b1/pN2p2N/2P4p/P7/1P1PBPPP/R1BQ1RK1 b kq - 1 11\n"\
     "r2qr1k1/7p/1p1p1ppP/pPpPnb2/3p4/P5R1/1BPPQPP1/2KR1B2 w - - 0 19\n"\
     "rnbqkb1r/1p3p1p/p1pp1np1/4P3/4P3/N1PB3P/PP3PP1/R1BQK1NR b KQkq - 0 7\n"\
-    "4R3/6pk/5p1p/4p2P/8/4PKP1/2r2P2/8 b - - 3 41"
+    "4R3/6pk/5p1p/4p2P/8/4PKP1/2r2P2/8 b - - 3 41\n"\
+    "1r4k1/Q4ppp/8/8/4P3/8/K4PPP/1r3BR1 w - - 1 36\n"\
+    "r3k2r/pp2q3/2p5/5b1p/7R/P1P1PN2/PQ6/2K2B1R b - - 0 20\n"\
+    "2r3k1/1p5p/1q2p1pP/p3Pp2/P1PR1Q2/7P/6B1/6K1 w - - 4 33\n"\
+    "5rk1/p4pp1/1n2pq1p/2b5/3Np1P1/2Pn3P/P3QPB1/R2R2K1 b - - 1 24\n"\
+    "5rk1/5ppp/1p2p3/2n3P1/1NP2P2/4Q3/7P/5RK1 b - - 0 27\n"\
+    "rnb1k2r/pp3ppp/2p1pn2/8/P2PPB2/q1N3P1/2PQN1P1/1R2KB1R w Kkq - 2 13\n"\
+    "r4rk1/pp2pp1p/5qp1/5b2/1n1P4/2N1N2P/1P2BPP1/R2Q1RK1 b - - 4 17\n"\
+    "8/5kp1/p1p2p2/2P4p/RPb4P/6P1/3rrBP1/5RK1 w - - 14 39\n"\
+    "8/1p3N2/8/p1p3p1/3kP3/PP6/2P1K2r/5R2 w - - 3 43\n"\
+    "rnbqkbnr/p3pp1p/2p5/3p2B1/p7/2PPPN2/1P3PPP/RN1QKB1R b KQkq - 0 6\n"\
+    "8/3k4/5p2/2b2p2/2P1q3/3K4/8/8 w - - 0 47\n"\
+    "r3k1nr/1pp2pp1/p2p4/2PPp1qp/P3P3/5Q1P/1P3P2/2RK1B1R w kq - 0 16\n"\
+    "r1b1r1k1/pppn3p/5b2/3PP1p1/2N5/6P1/PPPB3P/R3K1NB w Q - 2 16\n"\
+    "8/5p2/1P1R2pk/7p/5P1P/4P3/1r6/6K1 w - - 5 49\n"\
+    "2krq1r1/1pp2p2/p3p3/2Npn3/6BR/2PPB1P1/PP3P2/R3K3 w - - 1 23\n"\
+    "4r1k1/6p1/2pn4/1pN5/4P1bP/1N4P1/2PP4/5R1K w - - 1 34\n"\
+    "r2qkbnr/ppp1p1pp/n4p2/3p4/3P1Pb1/N3P3/PPP3PP/R1BQKBNR w KQkq - 1 5\n"\
+    "6k1/2p2rp1/1p5p/rP6/4Pp1n/4NP1P/bB1RB1P1/1KR5 w - - 0 30\n"\
+    "r6k/ppp2B2/7p/7n/3n2P1/P1N5/1P5P/5RK1 b - - 0 22\n"\
+    "r1b1r1k1/2qnbppp/p1pp1n2/1p6/2PQP3/P1N1BN1P/1P3PP1/2KR1B1R b - - 0 13\n"\
+    "3R4/7P/6K1/1p4B1/4N3/8/1bk5/7r w - b6 0 61\n"\
+    "r1bq1rk1/pp3pp1/2pb1n2/3pn2p/8/1PN1PPP1/P1P2NBP/R1BQ2KR b - - 5 14\n"\
+    "3qk2r/2p1bpp1/2np4/1N2p2p/2P1P2n/3P1N1Q/PP3P1P/R1B2K1R w - h6 0 15\n"\
+    "2k5/pppb4/1b6/4p3/4N3/P2p4/1PP4P/2K3Q1 b - - 0 35\n"\
+    "r1r3k1/3bqpp1/1p2p2n/p2pP3/P2P1P2/1P1BNR1P/3Q3P/1R4K1 w - - 2 23\n"\
+    "r4rk1/1p2ppb1/2p1bnpp/q1P1N3/2P1PP2/2N3P1/PQ4BP/2R2R1K b - - 2 20\n"\
+    "8/p4p2/7p/1P6/3b1P2/2kB2P1/6K1/8 w - - 5 35\n"\
+    "2r2rk1/4N3/4q1p1/1Qp1p3/PnP3b1/4B1P1/1P1R1P2/4NRK1 b - - 0 32\n"\
+    "r1b1r1k1/p4pbp/2n2n2/q2p2Q1/2p5/P1N2P1P/1PP1N1P1/1RB1KB1R w K - 3 15\n"\
+    "2kr1b1r/1p1b1p2/pqn3pp/1N1Pp1P1/2P1p3/P2n4/4QN1P/R1B2RK1 b - - 0 22\n"\
+    "rnq1kb1r/pb1pn1p1/4p3/3p1pPp/2Q1P3/2N2P2/PPP3BP/R1B1K1NR w KQkq - 0 12\n"\
+    "rn1qkbnr/ppp1pppp/4b3/3p4/P1PP4/8/1P2PPPP/RNBQKBNR w KQkq - 0 5"
 
 int main(int argc, char *argv[]) {
     init_tables();
@@ -67,11 +100,11 @@ int main(int argc, char *argv[]) {
         uint64_t nodes = 0;
         timespec start, end;
         clock_gettime(CLOCK_MONOTONIC, &start);
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < 64; i++) {
             ROOT = Board();
             parse_fen();
             Searcher s;
-            s.iterative_deepening(1.0/0.0, 6);
+            s.iterative_deepening(1.0/0.0, 10);
             nodes += s.nodes;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);
