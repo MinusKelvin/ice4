@@ -160,11 +160,11 @@ struct Searcher {
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) continue;
                         int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
-                        int change = depth * 16;
+                        int change = depth * depth;
                         hist -= change + change * hist / MAX_HIST;
                     }
                     int16_t& hist = history[board.stm == BLACK][board.board[bestmv.from] & 7][bestmv.to-A1];
-                    int change = depth * 16;
+                    int change = depth * depth;
                     hist += change - change * hist / MAX_HIST;
                     if (!(killers[ply][0] == bestmv)) {
                         killers[ply][1] = killers[ply][0];
