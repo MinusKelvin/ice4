@@ -98,7 +98,7 @@ struct Board {
         halfmove++;
         castle1 = 0;
         castle2 = 0;
-        if (piece == PAWN || board[mv.to]) {
+        if ((board[mv.from] & 7) == PAWN || board[mv.to]) {
             halfmove = 0;
         }
         edit(mv.to, piece);

@@ -43,6 +43,10 @@ struct Searcher {
             return WON;
         }
 
+        if (board.halfmove >= 101) {
+            return 0;
+        }
+
         TtEntry& tt = TT[board.zobrist % TT.size()];
 
         if (tt.hash == board.zobrist) {
