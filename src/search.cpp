@@ -83,6 +83,9 @@ struct Searcher {
         int16_t best = depth > 0 ? LOST + ply : static_eval;
         if (best >= beta) return best;
 
+        int quiets_to_check_table[] = { 0, 13, 14, 23 };
+        int quiets_to_check = depth > 0 && depth < 4 ? quiets_to_check_table[depth] : 99;
+
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
@@ -97,6 +100,8 @@ struct Searcher {
             score[i] = score[best_so_far];
             moves[best_so_far] = tmp1;
             score[best_so_far] = tmp2;
+
+            if (!(quiets_to_check -= !board.board[moves[i].to])) break;
 
             Board mkmove = board;
             mkmove.make_move(moves[i]);
