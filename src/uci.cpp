@@ -61,10 +61,10 @@ void uci() {
                         move[4] == 'b' ? BISHOP :
                         move[4] == 'n' ? KNIGHT : 0
                     );
-                    ROOT.make_move(mv);
-                    if (!ROOT.halfmove) {
+                    if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
                         PREHISTORY_LENGTH = 0;
                     }
+                    ROOT.make_move(mv);
                 }
                 break;
             case 'g': // go
@@ -173,7 +173,7 @@ void parse_fen() {
         ROOT.ep_square = atosq(word);
     }
 
-    ROOT.halfmove = atoi(strtok(0, " \n"));
+    strtok(0, " \n"); // halfmove clock
 
     strtok(0, " \n"); // fullmove counter
 }

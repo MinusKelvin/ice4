@@ -42,13 +42,12 @@ struct Board {
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
-    uint8_t halfmove;
     uint8_t phase;
     int16_t mg_eval;
     int16_t eg_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
-              stm(WHITE), halfmove(0), phase(24), mg_eval(0), eg_eval(0)
+              stm(WHITE), phase(24), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -82,7 +81,6 @@ struct Board {
         ep_square = 0;
         castle1 = 0;
         castle2 = 0;
-        halfmove++;
     }
 
     void remove_castle_rights(int btm, int which) {
@@ -95,12 +93,8 @@ struct Board {
     void make_move(Move mv) {
         int piece = mv.promo ? mv.promo | stm : board[mv.from];
         int btm = stm != WHITE;
-        halfmove++;
         castle1 = 0;
         castle2 = 0;
-        if (piece == PAWN || board[mv.to]) {
-            halfmove = 0;
-        }
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
