@@ -5,5 +5,5 @@ if [ -z "$1" ]; then
     chmod +x ice4
     echo Compressed size: `du -b ice4`
 else
-    g++ -DOPENBENCH -O3 src/main.cpp -o "$1"
+    g++ -DOPENBENCH -march=x86-64-v3 -O3 src/main.cpp -o "$1"
 fi
