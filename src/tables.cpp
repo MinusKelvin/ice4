@@ -1,17 +1,11 @@
 int16_t PST[2][25][SQUARE_SPAN];
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
-void unpack(int phase, int piece, const char *data, double scale, int offset) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
-    for (int rank = 0; rank < 80; rank+=10) {
-        for (int file = 0; file < 4; file++) {
-            int v = (*data++ - ' ') * scale + offset;
-            white_section[rank+file] = white_section[rank+7-file] = v;
-            black_section[70-rank+file] = black_section[77-rank-file] = -v;
-        }
-    }
-}
+int16_t FT[10][25][4];
+int16_t FT_BIAS[] = {15, 64, 101, 36};
+
+int16_t OUT[64];
+#define OUT_BIAS -74
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
@@ -29,29 +23,56 @@ uint64_t rng() {
 }
 #endif
 
-uint64_t ZOBRIST_PIECES[23][SQUARE_SPAN];
+uint64_t ZOBRIST_PIECES[25][SQUARE_SPAN];
 uint64_t ZOBRIST_CASTLE_RIGHTS[4];
 uint64_t ZOBRIST_STM;
 
 
 void init_tables() {
-    // Piece-square tables
-    unpack(0, PAWN, " %*)8NK@<PHG;JLO=QQUCX`heSl~\")&!", 1.538, -8); // average: 50
-    unpack(0, KNIGHT, "BEGIFGNMIRSVTYZY][fc\\sw~WTps .%`", 1.73, 152); // average: 242
-    unpack(0, BISHOP, "FDBAQUQNQZXUXWYbZZho]tu~SZ_Z@1 .", 1.149, 203); // average: 263
-    unpack(0, ROOK, "/7;D ,04*6/2379=CIOVPdfs`[u{xx}~", 1.24, 264); // average: 319
-    unpack(0, QUEEN, " *(,048/572/631.G4:7ESDJH0G9@Qjh", 1.0, 663); // average: 691
-    unpack(0, KING, "RQB@JA6,.1# #+('(2142129A'4=~hkg", 2.052, -63); // average: -7
-    unpack(1, PAWN, " ## HJIIEHEEGJECNNJH]`YUz~vm\"!! ", 3.792, -5); // average: 142
-    unpack(1, KNIGHT, "(5IMAWX_L_fo[hvw`sx~\\grqOael etc", 1.487, 328); // average: 420
-    unpack(1, BISHOP, " /\"..:>>9ENQ4GTW8UPY>LRJ5NLNHMUV", 1.0, 439); // average: 475
-    unpack(1, ROOK, " //-'*02-29:<BECIOOJOJMFNUOQCGGH", 1.0, 736); // average: 767
-    unpack(1, QUEEN, "9& !2-)48?IGHU\\fKhmuUcwvSrq~[^UV", 1.639, 1437); // average: 1516
-    unpack(1, KING, " *+\".5=A:BIMDMRUP\\^^]pohX~um.\\[Z", 1.995, -84); // average: 8
+    // Unpack FT
+    const char *ft_data = "7=kH%5d=%@eD&BhB'DmC Em;3Ni.26rL8,S,76j-59i253i140h44+j15)k053l.8*P-68h056j.55i/40h44-i33,j.4-l+.7Y8.=q2.4j2/.g.1*f.3'f*3&e+4\"h'6:t 5:q$83n&9-n'9(m,3*~04 d-6 x&:H8A7Qk=5GX@5P_C<^iD<^p9CmiCDcg98>d9<L =:?YA7D^A2HaD/B`>/L`A-Ce,FXmY4ViW2YmS2XkQ2UmL5VkJ5ZlM5^mY7Zeb4WhY3[qS2VjR3WlU3TjQ3UkK5ZlZ4bOp/[Xh0_ib2]ib5[h^7XgU8VgQ8RfO{z`~{t_xy~npxvmqvsmowqkl~njiurip<eu94faB/exB/cwL0NkF1IkA1Hm7a?n@";
+    double ft_scale[] = {1.041, .7243, 1.69, .7533};
+    double ft_offset[] = {-21.95, -27.47, -126.4, -21.37};
+    for (int color : {WHITE, BLACK}) {
+        for (int piece = PAWN; piece <= KING; piece++) {
+            for (int rank = 2; rank < 10; rank++) {
+                for (int i = 0; i < 4; i++) {
+                    int v = *ft_data++ - 32;
+                    FT[rank][piece | color][i] = v * ft_scale[i] + ft_offset[i];
+                }
+            }
+        }
+    }
+
+    // Unpack hidden layer
+    char out_data[] = "!2q*+2n\"11g!5*d%3'c(0$i.('n. -q.zo)nqo-uko3vfx6shz7ol~1jt{-i{u*j";
+    for (int i = 0; i < 64; i++) {
+        OUT[i] = (out_data[i] - 32) * 3.714 - 170.8;
+    }
+
+    // Unpack piece-square tables
+    const char *pst_data = "b~~~Y|(a~~;3_qqza~(cw}:K^hgxkh)dbzDJb_]vr^\"\\XvJ46eqH`SL^pU< O`oJjJWdmUE,NckOx>XblZR7?^fP|2\\dg]]>dofRoJhja]JN~rfQsIxrb\\YS|qcN|3xud^iU|q`L~*|xb]jSIwhLo1Uu`]QN\\wbFm7exbZcVftaFw0`~eYpXlqbDx+^{aUxW;xhTn0TqbcQbYodNi8dvj^llevhNu1dwd[xdqpiMw/eweV~\\!mlVK.`dkb9cCwoVT-zeiYOv]ymTb(whdUdmnzmUh+xbWNk\\ WQCN5[N?IEJ/QP:P sSDD[~>fQGd.~R?Bfr\\fLId:|S;Aqg_\"7$ |  && -e') 2m$J! &g\\  'No+U$\"-_eP&(Ti*G #5V";
+    double pst_scale[] = {1.521, 2.634, 3.312, 3.192, 3.242, 2.451, 1.641, 2.713, 1.919, 3.661, 3.378, 1.725};
+    double pst_offset[] = {-95.65, -28.33, -25.39, 24.99, 51.17, -129.3, -7.524, 183.8, 323, 522.4, 1143, -83.14};
+    for (int rank = 0; rank < 80; rank += 10) {
+        for (int file = 0; file < 4; file++) {
+            int i = 0;
+            for (int phase : {0, 1}) {
+                for (int piece = PAWN; piece <= KING; piece++) {
+                    int16_t *white_section = PST[phase][piece | WHITE];
+                    int16_t *black_section = PST[phase][piece | BLACK];
+                    int v = (*pst_data++ - ' ') * pst_scale[i] + pst_offset[i];
+                    white_section[rank+file] = white_section[rank+7-file] = v;
+                    black_section[70-rank+file] = black_section[77-rank-file] = -v;
+                    i++;
+                }
+            }
+        }
+    }
 
     // Zobrist keys
 #ifdef OPENBENCH
-    for (int i = 0; i < 23; i++) {
+    for (int i = 0; i < 25; i++) {
         for (int j = 0; j < SQUARE_SPAN; j++) {
             ZOBRIST_PIECES[i][j] = rng();
         }
@@ -67,4 +88,8 @@ void init_tables() {
     fread(ZOBRIST_CASTLE_RIGHTS, sizeof(ZOBRIST_CASTLE_RIGHTS), 1, rng);
     fread(&ZOBRIST_STM, sizeof(ZOBRIST_STM), 1, rng);
 #endif
+}
+
+int clipped_relu(int v) {
+    return v > 127 ? 127 : v < 0 ? 0 : v;
 }

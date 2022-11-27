@@ -189,6 +189,8 @@ static NUMBER: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\A[0-9][a-zA-Z0-9']*(\.[a-zA-Z0-9']+)?"#).unwrap());
 static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unwrap());
 static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
+static FLOAT: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"\A[0-9]*\.[0-9]+|\A[0-9]+\.[0-9]*"#).unwrap());
 
 pub fn tokenize(mut text: &str) -> Vec<Token> {
     let mut typenames: HashSet<_> = include_str!("extern_types")
@@ -207,6 +209,10 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
             result.push(token);
             text = rest;
         };
+        if let Some(m) = FLOAT.find(code) {
+            token(Token::OtherNumber(m.as_str().to_owned()), &code[m.end()..]);
+            continue;
+        }
         match_prefix! { code;
             " " | "\t" | "\n", rest => text = rest,
             "&&", rest => token(Token::AmpersandAmpersand, rest),

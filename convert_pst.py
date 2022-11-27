@@ -1,38 +1,55 @@
 #!/usr/bin/python3
 
+def process_data(data, bias, intrinsic_scale):
+    # Identify data-relative scaling factor
+    small = [float("inf")] * len(data[0])
+    large = [-float("inf")] * len(data[0])
+    for vector in data:
+        for i, v in enumerate(vector):
+            small[i] = min(small[i], v)
+            large[i] = max(large[i], v)
+    scale = [94 / (l - s) for l, s in zip(large, small)]
+
+    # Emit data string
+    print("\"", end="")
+    for vector in data:
+        for i, v in enumerate(vector):
+            v = chr(round((v - small[i]) * scale[i]) + 32)
+            if v == "\"" or v == "\\":
+                print("\\", end="")
+            print(v, end="")
+    print("\"")
+
+    # Emit decoding parameters
+    print("scale: ", end="")
+    for v in scale:
+        print(f"{intrinsic_scale / v:.4}, ", end="")
+    print()
+    print("offsets: ", end="")
+    for v in small:
+        print(f"{v * intrinsic_scale:.4}, ", end="")
+    print()
+    print("bias: ", end="")
+    for w in bias:
+        print(f"{round(w * intrinsic_scale)}, ",end="")
+    print()
+
+ACTIVATION_RANGE = 127
+OUT_SCALE = 64
+
 import json, math
-with open("0-45.json", "r") as f:
+with open("filenetwork.json", "r") as f:
     data = json.load(f)
 
-def dump_string(piece_data, stuff):
-    smallest = float("inf")
-    largest = -smallest
-    average = 0
-    for value in piece_data:
-        smallest = smallest if smallest < value else value
-        largest = largest if largest > value else value
-        average += value / 32
+print("FEATURE TRANSFORMER")
+process_data(data["ft.weight"], data["ft.bias"], ACTIVATION_RANGE)
 
-    scale_factor = max((largest - smallest) / 94, 1.0)
-    print(f"unpack({stuff}, \"", end="")
-    for value in piece_data:
-        c = chr(round((value - smallest) / scale_factor) + 32)
-        if c == "\\" or c == "\"":
-            print("\\", end="")
-        print(c, end="")
-    print(f"\", {scale_factor:.4}, {round(smallest)}); // average: {average:.0f}")
+print("OUTPUT LAYER")
+process_data(data["out.weight"], [data["out.bias"][0] * ACTIVATION_RANGE], OUT_SCALE)
 
-scaled = [v[0] * 160 for v in data["pst.weight"]]
+pst = [[] for i in range(32)]
+for i in range(32):
+    for j in range(0, 384, 32):
+        pst[i].append(data["pst"][i+j][0])
 
-dump_string(scaled[0:32], "0, PAWN")
-dump_string(scaled[32:64], "0, KNIGHT")
-dump_string(scaled[64:96], "0, BISHOP")
-dump_string(scaled[96:128], "0, ROOK")
-dump_string(scaled[128:160], "0, QUEEN")
-dump_string(scaled[160:192], "0, KING")
-dump_string(scaled[192:224], "1, PAWN")
-dump_string(scaled[224:256], "1, KNIGHT")
-dump_string(scaled[256:288], "1, BISHOP")
-dump_string(scaled[288:320], "1, ROOK")
-dump_string(scaled[320:352], "1, QUEEN")
-dump_string(scaled[352:384], "1, KING")
+process_data(pst, [0]*12, ACTIVATION_RANGE * OUT_SCALE / 40)
