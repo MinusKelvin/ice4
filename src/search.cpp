@@ -6,10 +6,23 @@ double now() {
     return t.tv_sec + t.tv_nsec / 1000000000.0;
 }
 
+#define HH_SCALE 1000000
+struct HhEntry {
+    int32_t value;
+    int32_t count;
+    HhEntry() : value(HH_SCALE), count(1) {}
+
+    void adjust(int depth) {
+        int32_t diff = depth * HH_SCALE - value;
+        if (depth && diff < 0) diff = 0;
+        value += diff / ++count;
+    }
+};
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
-    int16_t history[2][7][SQUARE_SPAN];
+    HhEntry piece_to[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -68,13 +81,13 @@ struct Searcher {
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
             if (hashmv == moves[i]) {
-                score[i] = 99999;
+                score[i] = HH_SCALE*100;
             } else if (board.board[moves[i].to]) {
-                score[i] = (board.board[moves[i].to] & 7) * 8 - piece + 10000;
+                score[i] = (board.board[moves[i].to] & 7) * 8 - piece + HH_SCALE*99;
             } else if (moves[i] == killers[ply][0] || moves[i] == killers[ply][1]) {
-                score[i] = 9000;
+                score[i] = HH_SCALE*98;
             } else {
-                score[i] = history[board.stm == BLACK][piece][moves[i].to-A1];
+                score[i] = piece_to[board.stm == BLACK][piece][moves[i].to-A1].value;
             }
         }
 
@@ -154,14 +167,10 @@ struct Searcher {
             if (v >= beta) {
                 if (!board.board[moves[i].to]) {
                     for (int j = 0; j < i; j++) {
-                        if (board.board[moves[j].to]) continue;
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
-                        int change = depth * depth;
-                        hist -= change + change * hist / MAX_HIST;
+                        if (!moves[j].from || board.board[moves[j].to]) continue;
+                        piece_to[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1].adjust(0);
                     }
-                    int16_t& hist = history[board.stm == BLACK][board.board[bestmv.from] & 7][bestmv.to-A1];
-                    int change = depth * depth;
-                    hist += change - change * hist / MAX_HIST;
+                    piece_to[board.stm == BLACK][board.board[bestmv.from] & 7][bestmv.to-A1].adjust(depth);
                     if (!(killers[ply][0] == bestmv)) {
                         killers[ply][1] = killers[ply][0];
                         killers[ply][0] = bestmv;
@@ -193,7 +202,6 @@ struct Searcher {
     }
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
-        memset(history, 0, sizeof(history));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.02;
