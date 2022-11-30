@@ -94,12 +94,8 @@ struct Searcher {
                     best_so_far = j;
                 }
             }
-            Move tmp1 = moves[i];
-            int tmp2 = score[i];
-            moves[i] = moves[best_so_far];
-            score[i] = score[best_so_far];
-            moves[best_so_far] = tmp1;
-            score[best_so_far] = tmp2;
+            std::swap(moves[i], moves[best_so_far]);
+            std::swap(score[i], score[best_so_far]);
 
             if (!(quiets_to_check -= !board.board[moves[i].to])) break;
 

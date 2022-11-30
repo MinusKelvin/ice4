@@ -19,5 +19,6 @@ stdin
 stdout
 strcmp
 strtok
+swap
 tv_nsec
 tv_sec
