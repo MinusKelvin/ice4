@@ -152,9 +152,9 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                if (!board.board[moves[i].to]) {
+                if (!board.board[bestmv.to]) {
                     for (int j = 0; j < i; j++) {
-                        if (board.board[moves[j].to]) continue;
+                        if (!moves[j].from || board.board[moves[j].to]) continue;
                         int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
                         int change = depth * depth;
                         hist -= change + change * hist / MAX_HIST;
