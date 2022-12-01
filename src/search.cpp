@@ -127,7 +127,7 @@ struct Searcher {
             } else if (legals) {
                 int reduction = victim
                     ? 0
-                    : (legals / 8 - history[board.stm == BLACK][piece][moves[i].to-A1] / 200);
+                    : ((legals > 3) + legals / 8 - history[board.stm == BLACK][piece][moves[i].to-A1] / 200);
                 if (reduction < 0) reduction = 0;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
