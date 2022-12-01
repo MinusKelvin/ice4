@@ -125,10 +125,10 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = victim
-                    ? 0
-                    : ((legals > 3) + legals / 8 - history[board.stm == BLACK][piece][moves[i].to-A1] / 200);
-                if (reduction < 0) reduction = 0;
+                int reduction = (legals > 3) + (legals + depth/2) / 8;
+                if (reduction > legals) reduction = legals;
+                reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                if (reduction < 0 || victim) reduction = 0;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
