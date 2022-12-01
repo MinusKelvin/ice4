@@ -101,6 +101,8 @@ struct Searcher {
 
             Board mkmove = board;
             mkmove.make_move(moves[i]);
+            int piece = board.board[moves[i].from] & 7;
+            int victim = board.board[moves[i].to] & 7;
             if (!(++nodes & 0xFFF) && now() > abort_time) {
                 throw 0;
             }
@@ -123,7 +125,10 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = board.board[moves[i].to] ? 0 : legals / 8;
+                int reduction = victim
+                    ? 0
+                    : (legals / 8 - history[board.stm == BLACK][piece][moves[i].to-A1] / 200);
+                if (reduction < 0) reduction = 0;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
@@ -152,7 +157,7 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                if (!board.board[moves[i].to]) {
+                if (!victim) {
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) continue;
                         int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
