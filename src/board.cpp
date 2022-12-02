@@ -33,13 +33,13 @@ struct TtData {
 };
 
 struct TtEntry {
-    std::atomic_uint64_t hash_xor_data;
-    std::atomic_uint64_t data;
+    atomic_uint64_t hash_xor_data;
+    atomic_uint64_t data;
 
     TtEntry() : hash_xor_data(0), data(0) {}
 };
 
-std::vector<TtEntry> TT(524288); // 8MB
+vector<TtEntry> TT(524288); // 8MB
 
 struct Board {
     uint64_t zobrist;

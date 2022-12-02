@@ -7,6 +7,7 @@
 #include <atomic>
 #include <mutex>
 #include <thread>
+using namespace std;
 
 #include "consts.cpp"
 #include "tables.cpp"

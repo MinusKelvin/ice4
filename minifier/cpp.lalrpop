@@ -12,29 +12,39 @@ TopLevel: TopLevel = {
             declarations: e,
         })
     },
+    "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
 };
 
 BaseType: BaseType = {
-    "char" => BaseType { path: vec!["char".to_owned()], template_parameters: None },
-    "short" => BaseType { path: vec!["short".to_owned()], template_parameters: None },
-    "int" => BaseType { path: vec!["int".to_owned()], template_parameters: None },
-    "long" => BaseType { path: vec!["long".to_owned()], template_parameters: None },
-    "float" => BaseType { path: vec!["float".to_owned()], template_parameters: None },
-    "double" => BaseType { path: vec!["double".to_owned()], template_parameters: None },
-    <mut path:(<Identifier> "::")*> <f:Typename> => {
-        path.push(f);
-        BaseType {
-            path,
-            template_parameters: None
-        }
+    "const" <core:CoreType> => BaseType {
+        core,
+        const_: true,
+        template_parameters: None,
     },
-    <mut path:(<Identifier> "::")*> <f:Typename> "<" <t:Comma<BaseType>> ">" => {
-        path.push(f);
-        BaseType {
-            path,
-            template_parameters: Some(t),
-        }
+    CoreType => BaseType {
+        core: <>,
+        const_: false,
+        template_parameters: None,
     },
+    <core:CoreType> "<" <t:Comma<BaseType>> ">" => BaseType {
+        core,
+        const_: false,
+        template_parameters: Some(t),
+    },
+};
+
+CoreType: CoreType = {
+    "signed"? "char" => CoreType::SignedChar,
+    "signed"? "short" => CoreType::SignedShort,
+    "signed"? "int" => CoreType::SignedInt,
+    "signed"? "long" => CoreType::SignedLong,
+    "unsigned" "char" => CoreType::UnsignedChar,
+    "unsigned" "short" => CoreType::UnsignedShort,
+    "unsigned" "int" => CoreType::UnsignedInt,
+    "unsigned" "long" => CoreType::UnsignedLong,
+    "float" => CoreType::Float,
+    "double" => CoreType::Double,
+    Typename => CoreType::User(<>),
 };
 
 DeclExpr: DeclExpr = {

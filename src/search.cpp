@@ -6,8 +6,8 @@ double now() {
     return t.tv_sec + t.tv_nsec / 1000000000.0;
 }
 
-std::atomic_bool ABORT;
-std::mutex MUTEX;
+atomic_bool ABORT;
+mutex MUTEX;
 int FINISHED_DEPTH;
 Move BEST_MOVE(0);
 
@@ -49,8 +49,8 @@ struct Searcher {
         }
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
-        uint64_t data = slot.data.load(std::memory_order_relaxed);
-        uint64_t hash_xor_data = slot.hash_xor_data.load(std::memory_order_relaxed);
+        uint64_t data = slot.data.load(memory_order_relaxed);
+        uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
         int tt_good = (data ^ board.zobrist) == hash_xor_data;
         TtData tt;
         if (tt_good) {
@@ -104,8 +104,8 @@ struct Searcher {
                     best_so_far = j;
                 }
             }
-            std::swap(moves[i], moves[best_so_far]);
-            std::swap(score[i], score[best_so_far]);
+            swap(moves[i], moves[best_so_far]);
+            swap(score[i], score[best_so_far]);
 
             if (!(quiets_to_check -= !board.board[moves[i].to])) break;
 
@@ -202,8 +202,8 @@ struct Searcher {
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
             memcpy(&data, &tt, sizeof(TtData));
-            slot.data.store(data, std::memory_order_relaxed);
-            slot.hash_xor_data.store(data ^ board.zobrist, std::memory_order_relaxed);
+            slot.data.store(data, memory_order_relaxed);
+            slot.hash_xor_data.store(data ^ board.zobrist, memory_order_relaxed);
         }
 
         return best;

@@ -39,7 +39,7 @@ void uci() {
                 strtok(0, " \n"); // value
                 value = atoi(strtok(0, " \n"));
                 if (hash) {
-                    TT = std::vector<TtEntry>(value * 65536);
+                    TT = vector<TtEntry>(value * 65536);
                 } else {
                     THREADS = value;
                 }
@@ -80,7 +80,7 @@ void uci() {
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
-                std::vector<std::thread> threads;
+                vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
                     threads.emplace_back([time_alotment]() {
                         Searcher s;

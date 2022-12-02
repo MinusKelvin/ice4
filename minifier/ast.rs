@@ -3,6 +3,7 @@ use crate::lexical::*;
 #[derive(Debug)]
 pub enum TopLevel {
     Declaration(Declaration),
+    Using(String),
 }
 
 #[derive(Debug)]
@@ -13,8 +14,24 @@ pub struct Declaration {
 
 #[derive(Debug)]
 pub struct BaseType {
-    pub path: Vec<String>,
+    pub core: CoreType,
+    pub const_: bool,
     pub template_parameters: Option<Vec<BaseType>>,
+}
+
+#[derive(Debug)]
+pub enum CoreType {
+    User(String),
+    SignedChar,
+    SignedShort,
+    SignedInt,
+    SignedLong,
+    UnsignedChar,
+    UnsignedShort,
+    UnsignedInt,
+    UnsignedLong,
+    Float,
+    Double,
 }
 
 #[derive(Debug)]
