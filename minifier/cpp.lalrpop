@@ -1,0 +1,217 @@
+use crate::ast::*;
+use crate::lexical::*;
+
+grammar;
+
+pub File = TopLevel*;
+
+TopLevel: TopLevel = {
+    <t:BaseType> <e:Comma<DeclExpr>> ";" => {
+        TopLevel::Declaration(Declaration {
+            base_type: t,
+            declarations: e,
+        })
+    },
+};
+
+BaseType: BaseType = {
+    "char" => BaseType { path: vec!["char".to_owned()], template_parameters: None },
+    "short" => BaseType { path: vec!["short".to_owned()], template_parameters: None },
+    "int" => BaseType { path: vec!["int".to_owned()], template_parameters: None },
+    "long" => BaseType { path: vec!["long".to_owned()], template_parameters: None },
+    "float" => BaseType { path: vec!["float".to_owned()], template_parameters: None },
+    "double" => BaseType { path: vec!["double".to_owned()], template_parameters: None },
+    <mut path:(<Identifier> "::")*> <f:Typename> => {
+        path.push(f);
+        BaseType {
+            path,
+            template_parameters: None
+        }
+    },
+    <mut path:(<Identifier> "::")*> <f:Typename> "<" <t:Comma<BaseType>> ">" => {
+        path.push(f);
+        BaseType {
+            path,
+            template_parameters: Some(t),
+        }
+    },
+};
+
+DeclExpr: DeclExpr = {
+    <form:DeclForm> => DeclExpr { form, init: Initializer::Default },
+    <form:DeclForm> "(" ")" => DeclExpr { form, init: Initializer::Call(()) },
+    <form:DeclForm> "{" "}" => DeclExpr { form, init: Initializer::Brace(()) },
+    <form:DeclForm> "=" Number => DeclExpr { form, init: Initializer::Equal(()) },
+    <form:DeclForm> "=" "{" "}" => DeclExpr { form, init: Initializer::Array(()) },
+};
+
+DeclForm = DeclForm1;
+
+DeclForm1: DeclForm = {
+    <f:DeclForm1> "[" <s:Number?> "]" => DeclForm::Array(Box::new(f), s),
+    DeclForm2
+};
+
+DeclForm2: DeclForm = {
+    "*" <DeclForm2> => DeclForm::Pointer(Box::new(<>)),
+    Identifier => DeclForm::Name(<>),
+};
+
+Comma<T>: Vec<T> = {
+    <mut v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    },
+};
+
+
+Identifier: String = RawIdentifier => match <> { Token::Identifier(s) => s, _ => unreachable!() };
+Typename: String = RawTypename => match <> { Token::Typename(s) => s, _ => unreachable!() };
+Number: Result<ParsedNumber, String> = {
+    RawInteger => match <> { Token::Integer(n) => Ok(n), _ => unreachable!() },
+    RawOtherNumber => match <> { Token::OtherNumber(s) => Err(s), _ => unreachable!() },
+};
+
+extern {
+    type Location = usize;
+    type Error = ();
+
+    enum Token {
+        RawIdentifier => Token::Identifier(_),
+        RawTypename => Token::Typename(_),
+        RawInteger => Token::Integer(_),
+        RawOtherNumber => Token::OtherNumber(_),
+        "&" => Token::Ampersand,
+        "&&" => Token::AmpersandAmpersand,
+        "&=" => Token::AmpersandEqual,
+        "!" => Token::Bang,
+        "!=" => Token::BangEqual,
+        "|" => Token::Bar,
+        "||" => Token::BarBar,
+        "|=" => Token::BarEqual,
+        "^" => Token::Caret,
+        "^=" => Token::CaretEqual,
+        ":" => Token::Colon,
+        "::" => Token::ColonColon,
+        "," => Token::Comma,
+        "." => Token::Dot,
+        "..." => Token::DotDotDot,
+        "=" => Token::Equal,
+        "==" => Token::EqualEqual,
+        ">" => Token::Greater,
+        ">=" => Token::GreaterEqual,
+        ">>" => Token::GreaterGreater,
+        ">>=" => Token::GreaterGreaterEqual,
+        "{" => Token::LeftBrace,
+        "[" => Token::LeftBracket,
+        "(" => Token::LeftParen,
+        "<" => Token::Less,
+        "<=" => Token::LessEqual,
+        "<<" => Token::LessLess,
+        "<<=" => Token::LessLessEqual,
+        "-" => Token::Minus,
+        "-=" => Token::MinusEqual,
+        "->" => Token::MinusGreater,
+        "--" => Token::MinusMinus,
+        "%" => Token::Percent,
+        "%=" => Token::PercentEqual,
+        "+" => Token::Plus,
+        "+=" => Token::PlusEqual,
+        "++" => Token::PlusPlus,
+        "?" => Token::Question,
+        "}" => Token::RightBrace,
+        "]" => Token::RightBracket,
+        ")" => Token::RightParen,
+        ";" => Token::Semicolon,
+        "/" => Token::Slash,
+        "/=" => Token::SlashEqual,
+        "*" => Token::Star,
+        "*=" => Token::StarEqual,
+        "~" => Token::Tilde,
+        "alignas" => Token::Keyword("alignas"),
+        "alignof" => Token::Keyword("alignof"),
+        "and" => Token::Keyword("and"),
+        "and_eq" => Token::Keyword("and_eq"),
+        "asm" => Token::Keyword("asm"),
+        "auto" => Token::Keyword("auto"),
+        "bitand" => Token::Keyword("bitand"),
+        "bitor" => Token::Keyword("bitor"),
+        "bool" => Token::Keyword("bool"),
+        "break" => Token::Keyword("break"),
+        "case" => Token::Keyword("case"),
+        "catch" => Token::Keyword("catch"),
+        "char" => Token::Keyword("char"),
+        "class" => Token::Keyword("class"),
+        "compl" => Token::Keyword("compl"),
+        "const" => Token::Keyword("const"),
+        "const_cast" => Token::Keyword("const_cast"),
+        "constexpr" => Token::Keyword("constexpr"),
+        "continue" => Token::Keyword("continue"),
+        "decltype" => Token::Keyword("decltype"),
+        "default" => Token::Keyword("default"),
+        "delete" => Token::Keyword("delete"),
+        "do" => Token::Keyword("do"),
+        "double" => Token::Keyword("double"),
+        "dynamic_cast" => Token::Keyword("dynamic_cast"),
+        "else" => Token::Keyword("else"),
+        "enum" => Token::Keyword("enum"),
+        "explicit" => Token::Keyword("explicit"),
+        "export" => Token::Keyword("export"),
+        "extern" => Token::Keyword("extern"),
+        "false" => Token::Keyword("false"),
+        "float" => Token::Keyword("float"),
+        "for" => Token::Keyword("for"),
+        "friend" => Token::Keyword("friend"),
+        "goto" => Token::Keyword("goto"),
+        "if" => Token::Keyword("if"),
+        "inline" => Token::Keyword("inline"),
+        "int" => Token::Keyword("int"),
+        "long" => Token::Keyword("long"),
+        "mutable" => Token::Keyword("mutable"),
+        "namespace" => Token::Keyword("namespace"),
+        "new" => Token::Keyword("new"),
+        "noexcept" => Token::Keyword("noexcept"),
+        "not" => Token::Keyword("not"),
+        "not_eq" => Token::Keyword("not_eq"),
+        "nullptr" => Token::Keyword("nullptr"),
+        "operator" => Token::Keyword("operator"),
+        "or" => Token::Keyword("or"),
+        "or_eq" => Token::Keyword("or_eq"),
+        "private" => Token::Keyword("private"),
+        "protected" => Token::Keyword("protected"),
+        "public" => Token::Keyword("public"),
+        "register" => Token::Keyword("register"),
+        "reinterpret_cast" => Token::Keyword("reinterpret_cast"),
+        "return" => Token::Keyword("return"),
+        "short" => Token::Keyword("short"),
+        "signed" => Token::Keyword("signed"),
+        "sizeof" => Token::Keyword("sizeof"),
+        "static" => Token::Keyword("static"),
+        "static_assert" => Token::Keyword("static_assert"),
+        "static_cast" => Token::Keyword("static_cast"),
+        "struct" => Token::Keyword("struct"),
+        "switch" => Token::Keyword("switch"),
+        "template" => Token::Keyword("template"),
+        "this" => Token::Keyword("this"),
+        "thread_local" => Token::Keyword("thread_local"),
+        "throw" => Token::Keyword("throw"),
+        "true" => Token::Keyword("true"),
+        "try" => Token::Keyword("try"),
+        "typedef" => Token::Keyword("typedef"),
+        "typeid" => Token::Keyword("typeid"),
+        "typename" => Token::Keyword("typename"),
+        "union" => Token::Keyword("union"),
+        "unsigned" => Token::Keyword("unsigned"),
+        "using" => Token::Keyword("using"),
+        "virtual" => Token::Keyword("virtual"),
+        "void" => Token::Keyword("void"),
+        "volatile" => Token::Keyword("volatile"),
+        "wchar_t" => Token::Keyword("wchar_t"),
+        "while" => Token::Keyword("while"),
+        "xor" => Token::Keyword("xor"),
+        "xor_eq" => Token::Keyword("xor_eq"),
+    }
+}

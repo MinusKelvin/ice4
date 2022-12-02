@@ -1,11 +1,24 @@
+mod ast;
 mod lexical;
 mod preprocess;
 mod renamer;
+
+mod cpp;
 
 fn main() {
     let preprocessed = preprocess::preprocess("src/main.cpp".as_ref());
     eprintln!("Raw size: {}", preprocessed.code.len());
     let mut tokens = lexical::tokenize(&preprocessed.code);
+
+    let parser = cpp::FileParser::new();
+    let parsed = parser.parse(
+        tokens
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(i, t)| Ok((i, t, i+1))),
+    );
+    dbg!(parsed);
 
     renamer::rename_identifiers(&mut tokens);
 
