@@ -14,7 +14,7 @@ struct Searcher {
     Move killers[256][2];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
-        Move scratch, hashmv;
+        Move scratch, hashmv(0);
 
         int pv = beta > alpha+1;
 
@@ -43,9 +43,14 @@ struct Searcher {
             return WON;
         }
 
-        TtEntry& tt = TT[board.zobrist % TT.size()];
+        TtEntry& slot = TT[board.zobrist % TT.size()];
+        uint64_t data = slot.data.load(std::memory_order_relaxed);
+        uint64_t hash_xor_data = slot.hash_xor_data.load(std::memory_order_relaxed);
+        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        TtData tt;
+        if (tt_good) {
+            memcpy(&tt, &data, sizeof(TtData));
 
-        if (tt.hash == board.zobrist) {
             hashmv = tt.mv;
             if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
@@ -58,7 +63,7 @@ struct Searcher {
         }
 
         if (depth >= 3 && pv && (
-            tt.hash != board.zobrist || tt.depth + 2 < depth || tt.bound != BOUND_EXACT
+            !tt_good || tt.depth + 2 < depth || tt.bound != BOUND_EXACT
         )) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
@@ -119,7 +124,6 @@ struct Searcher {
                 }
             }
 
-            Move scratch;
             int16_t v;
 
             if (is_rep) {
@@ -185,13 +189,15 @@ struct Searcher {
         }
 
         if (depth > 0 && best > LOST + ply) {
-            tt.hash = board.zobrist;
             tt.mv = bestmv;
             tt.eval = best;
             tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+            memcpy(&data, &tt, sizeof(TtData));
+            slot.data.store(data, std::memory_order_relaxed);
+            slot.hash_xor_data.store(data ^ board.zobrist, std::memory_order_relaxed);
         }
 
         return best;
@@ -199,10 +205,11 @@ struct Searcher {
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
         memset(history, 0, sizeof(history));
+        memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.02;
-        Move mv;
+        Move mv(0);
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
                 int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);

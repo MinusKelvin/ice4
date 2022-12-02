@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
+#include <atomic>
 
 #include "consts.cpp"
 #include "tables.cpp"

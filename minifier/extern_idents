@@ -1,4 +1,5 @@
 atoi
+atomic_uint64_t
 clock_gettime
 CLOCK_MONOTONIC
 exit
@@ -8,6 +9,7 @@ fopen
 fread
 main
 memcpy
+memory_order_relaxed
 memset
 printf
 putchar
