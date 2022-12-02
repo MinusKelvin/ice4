@@ -18,6 +18,11 @@ struct Searcher {
     uint64_t rep_list[256];
     Move killers[256][2];
 
+    Searcher() {
+        memset(history, 0, sizeof(history));
+        memset(killers, 0, sizeof(killers));
+    }
+
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
 
@@ -210,8 +215,6 @@ struct Searcher {
     }
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
-        memset(history, 0, sizeof(history));
-        memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.02;

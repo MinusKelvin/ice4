@@ -11,6 +11,7 @@ int atosq(char *move) {
 }
 
 void uci() {
+    std::vector<Searcher> states;
     setbuf(stdout, 0);
     char buf[4096], *move;
     int wtime, btime, hash, value;
@@ -27,6 +28,9 @@ void uci() {
     for (;;) {
         fgets(buf, 4096, stdin);
         switch (*strtok(buf, " \n")) {
+            case 'u':
+                states.clear();
+                break;
             case 'i': // isready
                 puts("readyok");
                 break;
@@ -81,10 +85,12 @@ void uci() {
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 std::vector<std::thread> threads;
+                while (states.size() < THREADS) {
+                    states.emplace_back();
+                }
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
-                        Searcher s;
-                        s.iterative_deepening(time_alotment);
+                    threads.emplace_back([&, i]() {
+                        states[i].iterative_deepening(time_alotment);
                         ABORT = 1;
                     });
                 }

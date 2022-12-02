@@ -1,6 +1,7 @@
 atoi
 atomic_uint64_t
 atomic_bool
+clear
 clock_gettime
 CLOCK_MONOTONIC
 emplace_back
