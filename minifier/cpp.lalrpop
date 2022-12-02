@@ -6,14 +6,34 @@ grammar;
 pub File = TopLevel*;
 
 TopLevel: TopLevel = {
-    <t:BaseType> <e:Comma<DeclExpr>> ";" => {
-        TopLevel::Declaration(Declaration {
-            base_type: t,
-            declarations: e,
-        })
-    },
+    Declaration => TopLevel::Declaration(<>),
     "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
 };
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Expressions
+//
+///////////////////////////////////////////////////////////////////////////////
+
+CommaExpression: Expression = {
+    <CommaExpression> "," <Expression> => Box::new(Expr::Comma(<>)),
+    Expression
+};
+
+Expression = Atom;
+
+Atom: Expression = {
+    Identifier => Box::new(Expr::Ident(<>)),
+    Number => Box::new(Expr::Number(<>)),
+    String => Box::new(Expr::String(<>)),
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Types
+//
+///////////////////////////////////////////////////////////////////////////////
 
 BaseType: BaseType = {
     "const" <core:CoreType> => BaseType {
@@ -44,15 +64,39 @@ CoreType: CoreType = {
     "unsigned" "long" => CoreType::UnsignedLong,
     "float" => CoreType::Float,
     "double" => CoreType::Double,
+    "void" => CoreType::Void,
+    "auto" => CoreType::Auto,
     Typename => CoreType::User(<>),
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Declarations
+//
+///////////////////////////////////////////////////////////////////////////////
+
+Declaration: Declaration = <t:BaseType> <e:Comma<DeclExpr>> ";" => {
+    Declaration {
+        base_type: t,
+        declarations: e,
+    }
 };
 
 DeclExpr: DeclExpr = {
     <form:DeclForm> => DeclExpr { form, init: Initializer::Default },
-    <form:DeclForm> "(" ")" => DeclExpr { form, init: Initializer::Call(()) },
-    <form:DeclForm> "{" "}" => DeclExpr { form, init: Initializer::Brace(()) },
-    <form:DeclForm> "=" Number => DeclExpr { form, init: Initializer::Equal(()) },
-    <form:DeclForm> "=" "{" "}" => DeclExpr { form, init: Initializer::Array(()) },
+    <form:DeclForm> "(" ")" => DeclExpr { form, init: Initializer::Call(vec![]) },
+    <form:DeclForm> "(" <mut args:(<Expression> ",")*> <l:Expression> ")" => {
+        args.push(l);
+        DeclExpr { form, init: Initializer::Call(args) }
+    },
+    <form:DeclForm> "{" <i:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Brace(i) },
+    <form:DeclForm> "=" <i:Expression> => DeclExpr { form, init: Initializer::Equal(i) },
+    <form:DeclForm> "=" "{" <v:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Array(v) },
+    <form:DeclForm> "(" ")" "{" "}" => DeclExpr { form, init: Initializer::Function(vec![], vec![]) },
+    <form:DeclForm> "(" <mut args:(<Argument> ",")*> <l:Argument> ")" "{" "}" => {
+        args.push(l);
+        DeclExpr { form, init: Initializer::Function(args, vec![]) }
+    },
 };
 
 DeclForm = DeclForm1;
@@ -64,8 +108,18 @@ DeclForm1: DeclForm = {
 
 DeclForm2: DeclForm = {
     "*" <DeclForm2> => DeclForm::Pointer(Box::new(<>)),
+    "&" <DeclForm2> => DeclForm::LReference(Box::new(<>)),
+    "&&" <DeclForm2> => DeclForm::RReference(Box::new(<>)),
     Identifier => DeclForm::Name(<>),
 };
+
+Argument = BaseType DeclExpr;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Utilities
+//
+///////////////////////////////////////////////////////////////////////////////
 
 Comma<T>: Vec<T> = {
     <mut v:(<T> ",")*> <e:T?> => match e {
@@ -77,9 +131,9 @@ Comma<T>: Vec<T> = {
     },
 };
 
-
 Identifier: String = RawIdentifier => match <> { Token::Identifier(s) => s, _ => unreachable!() };
 Typename: String = RawTypename => match <> { Token::Typename(s) => s, _ => unreachable!() };
+String: String = RawString => match <> { Token::String(s) => s, _ => unreachable!() };
 Number: Result<ParsedNumber, String> = {
     RawInteger => match <> { Token::Integer(n) => Ok(n), _ => unreachable!() },
     RawOtherNumber => match <> { Token::OtherNumber(s) => Err(s), _ => unreachable!() },
@@ -90,6 +144,7 @@ extern {
     type Error = ();
 
     enum Token {
+        RawString => Token::String(_),
         RawIdentifier => Token::Identifier(_),
         RawTypename => Token::Typename(_),
         RawInteger => Token::Integer(_),

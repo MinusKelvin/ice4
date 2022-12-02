@@ -32,6 +32,8 @@ pub enum CoreType {
     UnsignedLong,
     Float,
     Double,
+    Void,
+    Auto,
 }
 
 #[derive(Debug)]
@@ -43,15 +45,30 @@ pub struct DeclExpr {
 #[derive(Debug)]
 pub enum Initializer {
     Default,
-    Call(()),
-    Brace(()),
-    Equal(()),
-    Array(()),
+    Call(Vec<Expression>),
+    Brace(Vec<Expression>),
+    Equal(Expression),
+    Array(Vec<Expression>),
+    Function(Vec<(BaseType, DeclExpr)>, Vec<()>),
 }
 
 #[derive(Debug)]
 pub enum DeclForm {
     Name(String),
     Pointer(Box<DeclForm>),
+    LReference(Box<DeclForm>),
+    RReference(Box<DeclForm>),
     Array(Box<DeclForm>, Option<Result<ParsedNumber, String>>),
+}
+
+pub type Expression = Box<Expr>;
+
+#[derive(Debug)]
+pub enum Expr {
+    Number(Result<ParsedNumber, String>),
+    String(String),
+    Ident(String),
+
+    Comma(Expression, Expression),
+    Ternary(Expression, Expression, Expression),
 }
