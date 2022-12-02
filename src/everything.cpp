@@ -5,6 +5,8 @@
 #include <ctime>
 #include <vector>
 #include <atomic>
+#include <mutex>
+#include <thread>
 
 #include "consts.cpp"
 #include "tables.cpp"

@@ -6,6 +6,11 @@ double now() {
     return t.tv_sec + t.tv_nsec / 1000000000.0;
 }
 
+std::atomic_bool ABORT;
+std::mutex MUTEX;
+int FINISHED_DEPTH;
+Move BEST_MOVE(0);
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -108,7 +113,7 @@ struct Searcher {
             mkmove.make_move(moves[i]);
             int piece = board.board[moves[i].from] & 7;
             int victim = board.board[moves[i].to] & 7;
-            if (!(++nodes & 0xFFF) && now() > abort_time) {
+            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
 
@@ -213,16 +218,19 @@ struct Searcher {
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
                 int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);
-                printf("info depth %d nodes %ld score cp %d pv ", depth, nodes, v);
-                mv.put();
-                putchar('\n');
+                MUTEX.lock();
+                if (FINISHED_DEPTH < depth) {
+                    BEST_MOVE = mv;
+                    printf("info depth %d nodes %ld score cp %d pv ", depth, nodes, v);
+                    mv.put();
+                    putchar('\n');
+                    FINISHED_DEPTH = depth;
+                }
+                MUTEX.unlock();
                 if (now() > time_alotment) {
                     break;
                 }
             }
         } catch (...) {}
-        printf("bestmove ");
-        mv.put();
-        putchar('\n');
     }
 };

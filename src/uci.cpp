@@ -1,6 +1,9 @@
 
 #ifdef OPENBENCH
 void parse_fen();
+int THREADS = 1;
+#else
+#define THREADS 1
 #endif
 
 int atosq(char *move) {
@@ -37,6 +40,8 @@ void uci() {
                 value = atoi(strtok(0, " \n"));
                 if (hash) {
                     TT = std::vector<TtEntry>(value * 65536);
+                } else {
+                    THREADS = value;
                 }
                 break;
 #endif
@@ -73,8 +78,22 @@ void uci() {
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
-                Searcher s;
-                s.iterative_deepening(time_alotment);
+                ABORT = 0;
+                FINISHED_DEPTH = 0;
+                std::vector<std::thread> threads;
+                for (int i = 0; i < THREADS; i++) {
+                    threads.emplace_back([time_alotment]() {
+                        Searcher s;
+                        s.iterative_deepening(time_alotment);
+                        ABORT = 1;
+                    });
+                }
+                for (auto& t : threads) {
+                    t.join();
+                }
+                printf("bestmove ");
+                BEST_MOVE.put();
+                putchar('\n');
         }
     }
 }
