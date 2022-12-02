@@ -3,7 +3,8 @@ struct Move {
     int8_t to;
     int8_t promo;
 
-    Move(int8_t f=0, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
+    Move() = default;
+    Move(int8_t f, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
     auto operator==(Move& r) {
         return from == r.from && to == r.to && promo == r.promo;
     }
@@ -23,14 +24,19 @@ struct Move {
     }
 };
 
-struct TtEntry {
-    uint64_t hash;
+struct TtData {
     int16_t eval;
     Move mv;
     uint8_t depth;
     uint8_t bound;
+    uint8_t padding;
+};
 
-    TtEntry() : hash(~0) {}
+struct TtEntry {
+    std::atomic_uint64_t hash_xor_data;
+    std::atomic_uint64_t data;
+
+    TtEntry() : hash_xor_data(0), data(0) {}
 };
 
 std::vector<TtEntry> TT(524288); // 8MB
