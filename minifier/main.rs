@@ -2,6 +2,7 @@ mod ast;
 mod lexical;
 mod preprocess;
 mod renamer;
+mod tokenize;
 
 mod cpp;
 
@@ -16,12 +17,46 @@ fn main() {
             .clone()
             .into_iter()
             .enumerate()
-            .map(|(i, t)| Ok((i, t, i+1))),
+            .map(|(i, t)| Ok((i, t, i + 1))),
     );
-    match dbg!(parsed) {
+    match parsed {
+        Ok(ast) => {
+            let tokens = tokenize::tokenize(ast);
+            let mut formatted = String::new();
+            let mut indentation_level = 0;
+            let mut newline = false;
+            for t in tokens {
+                if matches!(t, lexical::Token::RightBrace) {
+                    indentation_level -= 1;
+                    newline = true;
+                }
+                if newline {
+                    formatted.push('\n');
+                    for _ in 0..indentation_level {
+                        formatted.push_str("    ");
+                    }
+                    newline = false;
+                }
+                formatted.push_str(&t.as_str());
+                formatted.push(' ');
+                if matches!(t, lexical::Token::LeftBrace) {
+                    indentation_level += 1;
+                    newline = true;
+                }
+                if matches!(t, lexical::Token::Semicolon | lexical::Token::RightBrace) {
+                    newline = true;
+                }
+            }
+            eprintln!("{formatted}");
+        }
         Err(lalrpop_util::ParseError::UnrecognizedToken { token, .. }) => {
             let mut packed = String::new();
-            for (i, t) in tokens.iter().enumerate().skip(token.0.max(10) - 10).take(20) {
+            for (i, t) in tokens
+                .iter()
+                .enumerate()
+                .skip(token.0.max(10) - 10)
+                .take(20)
+            {
                 if i == token.0 {
                     packed.push_str("!!! ");
                 }
@@ -29,7 +64,7 @@ fn main() {
                 packed.push(' ');
             }
             eprintln!("{packed}");
-        },
+        }
         _ => {}
     }
 
