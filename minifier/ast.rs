@@ -4,6 +4,15 @@ use crate::lexical::*;
 pub enum TopLevel {
     Declaration(Declaration),
     Using(String),
+    Function(Function),
+}
+
+#[derive(Debug)]
+pub struct Function {
+    pub base_type: BaseType,
+    pub decl_form: DeclForm,
+    pub args: Vec<(BaseType, DeclExpr)>,
+    pub body: Vec<Statement>,
 }
 
 #[derive(Debug)]
@@ -49,7 +58,6 @@ pub enum Initializer {
     Brace(Vec<Expression>),
     Equal(Expression),
     Array(Vec<Expression>),
-    Function(Vec<(BaseType, DeclExpr)>, Vec<()>),
 }
 
 #[derive(Debug)]
@@ -61,6 +69,14 @@ pub enum DeclForm {
     Array(Box<DeclForm>, Option<Result<ParsedNumber, String>>),
 }
 
+#[derive(Debug)]
+pub enum ModifiedType {
+    Base(BaseType),
+    Pointer(Box<ModifiedType>),
+    LReference(Box<ModifiedType>),
+    RReference(Box<ModifiedType>),
+}
+
 pub type Expression = Box<Expr>;
 
 #[derive(Debug)]
@@ -70,5 +86,58 @@ pub enum Expr {
     Ident(String),
 
     Comma(Expression, Expression),
+    Assign(Expression, Expression),
+    OrAssign(Expression, Expression),
+    XorAssign(Expression, Expression),
+    AndAssign(Expression, Expression),
+    LeftShiftAssign(Expression, Expression),
+    RightShiftAssign(Expression, Expression),
+    AddAssign(Expression, Expression),
+    SubAssign(Expression, Expression),
+    MulAssign(Expression, Expression),
+    DivAssign(Expression, Expression),
+    ModAssign(Expression, Expression),
     Ternary(Expression, Expression, Expression),
+    LogicalOr(Expression, Expression),
+    LogicalAnd(Expression, Expression),
+    BitOr(Expression, Expression),
+    BitXor(Expression, Expression),
+    BitAnd(Expression, Expression),
+    Equals(Expression, Expression),
+    NotEquals(Expression, Expression),
+    Less(Expression, Expression),
+    LessEquals(Expression, Expression),
+    Greater(Expression, Expression),
+    GreaterEquals(Expression, Expression),
+    ShiftLeft(Expression, Expression),
+    ShiftRight(Expression, Expression),
+    Add(Expression, Expression),
+    Sub(Expression, Expression),
+    Mul(Expression, Expression),
+    Div(Expression, Expression),
+    Mod(Expression, Expression),
+    Index(Expression, Expression),
+    Call(Expression, Vec<Expression>),
+    MemberAccess(Expression, String),
+    PointerMemberAccess(Expression, String),
+    PostIncrement(Expression),
+    PostDecrement(Expression),
+    Deref(Expression),
+    AddressOf(Expression),
+    UnaryPlus(Expression),
+    Negate(Expression),
+    Not(Expression),
+    Complement(Expression),
+    PreIncrement(Expression),
+    PreDecrement(Expression),
+    SizeOf(Expression),
+    SizeOfType(ModifiedType),
+    Cast(ModifiedType, Expression),
+}
+
+#[derive(Debug)]
+pub enum Statement {
+    Declaration(Declaration),
+    Expression(Expression),
+    ForLoop(Option<Declaration>, Option<Expression>, Option<Expression>, Vec<Statement>),
 }

@@ -18,7 +18,20 @@ fn main() {
             .enumerate()
             .map(|(i, t)| Ok((i, t, i+1))),
     );
-    dbg!(parsed);
+    match dbg!(parsed) {
+        Err(lalrpop_util::ParseError::UnrecognizedToken { token, .. }) => {
+            let mut packed = String::new();
+            for (i, t) in tokens.iter().enumerate().skip(token.0.max(10) - 10).take(20) {
+                if i == token.0 {
+                    packed.push_str("!!! ");
+                }
+                packed.push_str(&t.as_str());
+                packed.push(' ');
+            }
+            eprintln!("{packed}");
+        },
+        _ => {}
+    }
 
     renamer::rename_identifiers(&mut tokens);
 

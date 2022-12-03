@@ -6,7 +6,7 @@ grammar;
 pub File = TopLevel*;
 
 TopLevel: TopLevel = {
-    Declaration => TopLevel::Declaration(<>),
+    TopLevelDeclaration,
     "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
 };
 
@@ -16,24 +16,206 @@ TopLevel: TopLevel = {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-CommaExpression: Expression = {
+CommaExpression = {
     <CommaExpression> "," <Expression> => Box::new(Expr::Comma(<>)),
     Expression
 };
 
-Expression = Atom;
+Expression = AssignmentExpr;
+
+AssignmentExpr = {
+    <LogicalOrExpr> "=" <AssignmentExpr> => Box::new(Expr::Assign(<>)),
+    <LogicalOrExpr> "*=" <AssignmentExpr> => Box::new(Expr::MulAssign(<>)),
+    <LogicalOrExpr> "/=" <AssignmentExpr> => Box::new(Expr::DivAssign(<>)),
+    <LogicalOrExpr> "%=" <AssignmentExpr> => Box::new(Expr::ModAssign(<>)),
+    <LogicalOrExpr> "+=" <AssignmentExpr> => Box::new(Expr::AddAssign(<>)),
+    <LogicalOrExpr> "-=" <AssignmentExpr> => Box::new(Expr::SubAssign(<>)),
+    <LogicalOrExpr> "<<=" <AssignmentExpr> => Box::new(Expr::LeftShiftAssign(<>)),
+    <LogicalOrExpr> ">>=" <AssignmentExpr> => Box::new(Expr::RightShiftAssign(<>)),
+    <LogicalOrExpr> "|=" <AssignmentExpr> => Box::new(Expr::OrAssign(<>)),
+    <LogicalOrExpr> "&=" <AssignmentExpr> => Box::new(Expr::AndAssign(<>)),
+    <LogicalOrExpr> "^=" <AssignmentExpr> => Box::new(Expr::XorAssign(<>)),
+    <LogicalOrExpr> "?" <CommaExpression> ":" <AssignmentExpr> => Box::new(Expr::Ternary(<>)),
+    LogicalOrExpr,
+};
+
+LogicalOrExpr = {
+    <LogicalOrExpr> "||" <LogicalAndExpr> => Box::new(Expr::LogicalOr(<>)),
+    LogicalAndExpr
+};
+
+LogicalAndExpr = {
+    <LogicalAndExpr> "&&" <BitOrExpr> => Box::new(Expr::LogicalAnd(<>)),
+    BitOrExpr
+};
+
+BitOrExpr = {
+    <BitOrExpr> "|" <BitXorExpr> => Box::new(Expr::BitOr(<>)),
+    BitXorExpr
+};
+
+BitXorExpr = {
+    <BitXorExpr> "^" <BitAndExpr> => Box::new(Expr::BitXor(<>)),
+    BitAndExpr
+};
+
+BitAndExpr = {
+    <BitAndExpr> "&" <EqualityExpr> => Box::new(Expr::BitAnd(<>)),
+    EqualityExpr
+};
+
+EqualityExpr = {
+    <EqualityExpr> "==" <CompareExpr> => Box::new(Expr::Equals(<>)),
+    <EqualityExpr> "!=" <CompareExpr> => Box::new(Expr::NotEquals(<>)),
+    CompareExpr
+};
+
+CompareExpr = {
+    <CompareExpr> "<" <BitShiftExpr> => Box::new(Expr::Less(<>)),
+    <CompareExpr> "<=" <BitShiftExpr> => Box::new(Expr::LessEquals(<>)),
+    <CompareExpr> ">" <BitShiftExpr> => Box::new(Expr::Greater(<>)),
+    <CompareExpr> ">=" <BitShiftExpr> => Box::new(Expr::GreaterEquals(<>)),
+    BitShiftExpr
+};
+
+BitShiftExpr = {
+    <BitShiftExpr> "<<" <AddExpr> => Box::new(Expr::ShiftLeft(<>)),
+    <BitShiftExpr> ">>" <AddExpr> => Box::new(Expr::ShiftRight(<>)),
+    AddExpr
+};
+
+AddExpr = {
+    <AddExpr> "+" <MulExpr> => Box::new(Expr::Add(<>)),
+    <AddExpr> "-" <MulExpr> => Box::new(Expr::Sub(<>)),
+    MulExpr
+};
+
+MulExpr = {
+    <MulExpr> "*" <PrefixExpr> => Box::new(Expr::Mul(<>)),
+    <MulExpr> "/" <PrefixExpr> => Box::new(Expr::Div(<>)),
+    <MulExpr> "%" <PrefixExpr> => Box::new(Expr::Mod(<>)),
+    PrefixExpr
+};
+
+PrefixExpr = {
+    PrefixExprNoParen,
+    "(" <ModifiedType> ")" <PrefixExpr> => Box::new(Expr::Cast(<>)),
+}
+
+PrefixExprNoParen = {
+    "*" <PrefixExpr> => Box::new(Expr::Deref(<>)),
+    "&" <PrefixExpr> => Box::new(Expr::AddressOf(<>)),
+    "+" <PrefixExpr> => Box::new(Expr::UnaryPlus(<>)),
+    "-" <PrefixExpr> => Box::new(Expr::Negate(<>)),
+    "!" <PrefixExpr> => Box::new(Expr::Not(<>)),
+    "~" <PrefixExpr> => Box::new(Expr::Complement(<>)),
+    "++" <PrefixExpr> => Box::new(Expr::PreIncrement(<>)),
+    "--" <PrefixExpr> => Box::new(Expr::PreDecrement(<>)),
+    "sizeof" <PrefixExprNoParen> => Box::new(Expr::SizeOf(<>)),
+    "sizeof" "(" <ModifiedType> ")" => Box::new(Expr::SizeOfType(<>)),
+    PostfixExpr,
+};
+
+PostfixExpr = {
+    <PostfixExpr> "[" <CommaExpression> "]" => Box::new(Expr::Index(<>)),
+    <PostfixExpr> "(" <Comma<Expression>> ")" => Box::new(Expr::Call(<>)),
+    <PostfixExpr> "." <Identifier> => Box::new(Expr::MemberAccess(<>)),
+    <PostfixExpr> "->" <Identifier> => Box::new(Expr::PointerMemberAccess(<>)),
+    <PostfixExpr> "++" => Box::new(Expr::PostIncrement(<>)),
+    <PostfixExpr> "--" => Box::new(Expr::PostDecrement(<>)),
+    Atom,
+};
 
 Atom: Expression = {
     Identifier => Box::new(Expr::Ident(<>)),
     Number => Box::new(Expr::Number(<>)),
     String => Box::new(Expr::String(<>)),
+    "(" <CommaExpression> ")",
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Types
+// Statements
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+Statement: Statement = {
+    Declaration => Statement::Declaration(<>),
+    <CommaExpression> ";" => Statement::Expression(<>),
+    "for" "(" <d:Declaration> <c:CommaExpression?> ";" <i:CommaExpression?> ")" "{" <b:Statement*> "}" => Statement::ForLoop(Some(d), c, i, b),
+    "for" "(" ";" <CommaExpression?> ";" <CommaExpression?> ")" "{" <Statement*> "}"
+        => Statement::ForLoop(None, <>),
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Declarations
+//
+///////////////////////////////////////////////////////////////////////////////
+
+TopLevelDeclaration: TopLevel = {
+    <t:BaseType> <e:Comma<DeclExpr>> ";" => {
+        TopLevel::Declaration(Declaration {
+            base_type: t,
+            declarations: e,
+        })
+    },
+    <t:BaseType> <f:DeclForm> "(" ")" "{" <s:Statement*> "}" => TopLevel::Function(Function {
+        base_type: t,
+        decl_form: f,
+        args: vec![],
+        body: s,
+    }),
+    <t:BaseType> <f:DeclForm> "(" <mut a:(<Argument> ",")*> <l:Argument> ")" "{" <s:Statement*> "}" => {
+        a.push(l);
+        TopLevel::Function(Function {
+            base_type: t,
+            decl_form: f,
+            args: a,
+            body: s,
+        })
+    }
+};
+
+Declaration: Declaration = {
+    <t:BaseType> <e:Comma<DeclExpr>> ";" => {
+        Declaration {
+            base_type: t,
+            declarations: e,
+        }
+    },
+};
+
+DeclExpr: DeclExpr = {
+    <form:DeclForm> => DeclExpr { form, init: Initializer::Default },
+    <form:DeclForm> "(" ")" => DeclExpr { form, init: Initializer::Call(vec![]) },
+    <form:DeclForm> "(" <mut args:(<Expression> ",")*> <l:Expression> ")" => {
+        args.push(l);
+        DeclExpr { form, init: Initializer::Call(args) }
+    },
+    <form:DeclForm> "{" <i:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Brace(i) },
+    <form:DeclForm> "=" <i:Expression> => DeclExpr { form, init: Initializer::Equal(i) },
+    <form:DeclForm> "=" "{" <v:Comma<Expression>> "}" => DeclExpr {
+        form,
+        init: Initializer::Array(v),
+    },
+};
+
+DeclForm = DeclForm1;
+
+DeclForm1: DeclForm = {
+    <f:DeclForm1> "[" <s:Number?> "]" => DeclForm::Array(Box::new(f), s),
+    DeclForm2
+};
+
+DeclForm2: DeclForm = {
+    "*" <DeclForm2> => DeclForm::Pointer(Box::new(<>)),
+    "&" <DeclForm2> => DeclForm::LReference(Box::new(<>)),
+    "&&" <DeclForm2> => DeclForm::RReference(Box::new(<>)),
+    Identifier => DeclForm::Name(<>),
+};
+
+Argument = BaseType DeclExpr;
 
 BaseType: BaseType = {
     "const" <core:CoreType> => BaseType {
@@ -69,51 +251,12 @@ CoreType: CoreType = {
     Typename => CoreType::User(<>),
 };
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Declarations
-//
-///////////////////////////////////////////////////////////////////////////////
-
-Declaration: Declaration = <t:BaseType> <e:Comma<DeclExpr>> ";" => {
-    Declaration {
-        base_type: t,
-        declarations: e,
-    }
+ModifiedType: ModifiedType = {
+    <ModifiedType> "*" => ModifiedType::Pointer(Box::new(<>)),
+    <ModifiedType> "&" => ModifiedType::LReference(Box::new(<>)),
+    <ModifiedType> "&&" => ModifiedType::RReference(Box::new(<>)),
+    BaseType => ModifiedType::Base(<>),
 };
-
-DeclExpr: DeclExpr = {
-    <form:DeclForm> => DeclExpr { form, init: Initializer::Default },
-    <form:DeclForm> "(" ")" => DeclExpr { form, init: Initializer::Call(vec![]) },
-    <form:DeclForm> "(" <mut args:(<Expression> ",")*> <l:Expression> ")" => {
-        args.push(l);
-        DeclExpr { form, init: Initializer::Call(args) }
-    },
-    <form:DeclForm> "{" <i:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Brace(i) },
-    <form:DeclForm> "=" <i:Expression> => DeclExpr { form, init: Initializer::Equal(i) },
-    <form:DeclForm> "=" "{" <v:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Array(v) },
-    <form:DeclForm> "(" ")" "{" "}" => DeclExpr { form, init: Initializer::Function(vec![], vec![]) },
-    <form:DeclForm> "(" <mut args:(<Argument> ",")*> <l:Argument> ")" "{" "}" => {
-        args.push(l);
-        DeclExpr { form, init: Initializer::Function(args, vec![]) }
-    },
-};
-
-DeclForm = DeclForm1;
-
-DeclForm1: DeclForm = {
-    <f:DeclForm1> "[" <s:Number?> "]" => DeclForm::Array(Box::new(f), s),
-    DeclForm2
-};
-
-DeclForm2: DeclForm = {
-    "*" <DeclForm2> => DeclForm::Pointer(Box::new(<>)),
-    "&" <DeclForm2> => DeclForm::LReference(Box::new(<>)),
-    "&&" <DeclForm2> => DeclForm::RReference(Box::new(<>)),
-    Identifier => DeclForm::Name(<>),
-};
-
-Argument = BaseType DeclExpr;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
