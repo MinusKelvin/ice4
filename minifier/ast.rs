@@ -5,6 +5,7 @@ pub enum TopLevel {
     Declaration(Declaration),
     Using(String),
     Function(Function),
+    Struct(String, Vec<MemberItem>, Vec<DeclExpr>),
 }
 
 #[derive(Debug)]
@@ -19,6 +20,14 @@ pub struct Function {
 pub struct Declaration {
     pub base_type: BaseType,
     pub declarations: Vec<DeclExpr>,
+}
+
+#[derive(Debug)]
+pub enum MemberItem {
+    Field(Declaration),
+    Method(Function),
+    Constructor(String, Vec<(BaseType, DeclExpr)>, Vec<(String, Initializer)>, Vec<Statement>),
+    DefaultedConstructor(String),
 }
 
 #[derive(Debug)]
@@ -62,6 +71,7 @@ pub enum Initializer {
 
 #[derive(Debug)]
 pub enum DeclForm {
+    OpEquals,
     Name(String),
     Pointer(Box<DeclForm>),
     LReference(Box<DeclForm>),
@@ -84,8 +94,10 @@ pub enum Expr {
     Number(Result<ParsedNumber, String>),
     String(String),
     Ident(String),
+    Lambda(Vec<String>, Vec<(BaseType, DeclExpr)>, Vec<Statement>),
 
     Comma(Expression, Expression),
+    Throw(Expression),
     Assign(Expression, Expression),
     OrAssign(Expression, Expression),
     XorAssign(Expression, Expression),
@@ -118,6 +130,8 @@ pub enum Expr {
     Mod(Expression, Expression),
     Index(Expression, Expression),
     Call(Expression, Vec<Expression>),
+    Construct(BaseType, Vec<Expression>),
+    BraceConstruct(BaseType, Vec<Expression>),
     MemberAccess(Expression, String),
     PointerMemberAccess(Expression, String),
     PostIncrement(Expression),
@@ -139,5 +153,14 @@ pub enum Expr {
 pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),
-    ForLoop(Option<Declaration>, Option<Expression>, Option<Expression>, Vec<Statement>),
+    Case(Expression),
+    Try(Vec<Statement>),
+    For(Option<Declaration>, Option<Expression>, Option<Expression>, Vec<Statement>),
+    ForEach((BaseType, DeclExpr), Result<Expression, Vec<Expression>>, Vec<Statement>),
+    Return(Option<Expression>),
+    If(Expression, Vec<Statement>, Vec<Statement>),
+    Switch(Expression, Vec<Statement>),
+    While(Expression, Vec<Statement>),
+    Continue,
+    Break,
 }

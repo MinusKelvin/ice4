@@ -1,6 +1,4 @@
 atoi
-atomic_uint64_t
-atomic_bool
 clock_gettime
 CLOCK_MONOTONIC
 emplace_back
@@ -16,7 +14,6 @@ main
 memcpy
 memory_order_relaxed
 memset
-mutex
 printf
 putchar
 puts
@@ -29,7 +26,6 @@ store
 strcmp
 strtok
 swap
-thread
 tv_nsec
 tv_sec
 unlock

@@ -1,3 +1,5 @@
+atomic_bool
+atomic_uint64_t
 char8_t
 char16_t
 char32_t
@@ -5,6 +7,8 @@ int16_t
 int32_t
 int64_t
 int8_t
+mutex
+thread
 timespec
 uint16_t
 uint32_t

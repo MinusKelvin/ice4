@@ -91,7 +91,9 @@ struct Searcher {
         int raised_alpha = 0;
 
         int16_t best = depth > 0 ? LOST + ply : static_eval;
-        if (best >= beta) return best;
+        if (best >= beta) {
+            return best;
+        }
 
         int quiets_to_check_table[] = { 0, 7, 8, 17 };
         int quiets_to_check = depth > 0 && depth < 4 && !pv ? quiets_to_check_table[depth] : 99;
@@ -107,7 +109,9 @@ struct Searcher {
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
 
-            if (!(quiets_to_check -= !board.board[moves[i].to])) break;
+            if (!(quiets_to_check -= !board.board[moves[i].to])) {
+                break;
+            }
 
             Board mkmove = board;
             mkmove.make_move(moves[i]);
@@ -135,10 +139,14 @@ struct Searcher {
                 v = 0;
             } else if (legals) {
                 int reduction = (legals*3 + depth*2) / 32;
-                if (reduction > legals) reduction = legals;
+                if (reduction > legals) {
+                    reduction = legals;
+                }
                 reduction += legals > 3;
                 reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                if (reduction < 0 || victim) reduction = 0;
+                if (reduction < 0 || victim) {
+                    reduction = 0;
+                }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
@@ -169,7 +177,9 @@ struct Searcher {
             if (v >= beta) {
                 if (!victim) {
                     for (int j = 0; j < i; j++) {
-                        if (board.board[moves[j].to]) continue;
+                        if (board.board[moves[j].to]) {
+                            continue;
+                        }
                         int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
                         int change = depth * depth;
                         hist -= change + change * hist / MAX_HIST;

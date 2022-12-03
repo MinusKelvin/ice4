@@ -6,8 +6,12 @@ grammar;
 pub File = TopLevel*;
 
 TopLevel: TopLevel = {
-    TopLevelDeclaration,
+    DeclareOrFunction => match <> {
+        Ok(d) => TopLevel::Declaration(d),
+        Err(f) => TopLevel::Function(f),
+    },
     "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
+    "struct" <Typename> "{" <MemberDeclaration*> "}" <Comma<DeclExpr>> ";" => TopLevel::Struct(<>),
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,6 +40,7 @@ AssignmentExpr = {
     <LogicalOrExpr> "&=" <AssignmentExpr> => Box::new(Expr::AndAssign(<>)),
     <LogicalOrExpr> "^=" <AssignmentExpr> => Box::new(Expr::XorAssign(<>)),
     <LogicalOrExpr> "?" <CommaExpression> ":" <AssignmentExpr> => Box::new(Expr::Ternary(<>)),
+    "throw" <LogicalOrExpr> => Box::new(Expr::Throw(<>)),
     LogicalOrExpr,
 };
 
@@ -123,6 +128,8 @@ PostfixExpr = {
     <PostfixExpr> "->" <Identifier> => Box::new(Expr::PointerMemberAccess(<>)),
     <PostfixExpr> "++" => Box::new(Expr::PostIncrement(<>)),
     <PostfixExpr> "--" => Box::new(Expr::PostDecrement(<>)),
+    <BaseType> "(" <Comma<Expression>> ")" => Box::new(Expr::Construct(<>)),
+    <BaseType> "{" <Comma<Expression>> "}" => Box::new(Expr::BraceConstruct(<>)),
     Atom,
 };
 
@@ -130,6 +137,7 @@ Atom: Expression = {
     Identifier => Box::new(Expr::Ident(<>)),
     Number => Box::new(Expr::Number(<>)),
     String => Box::new(Expr::String(<>)),
+    "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
     "(" <CommaExpression> ")",
 };
 
@@ -140,12 +148,38 @@ Atom: Expression = {
 ///////////////////////////////////////////////////////////////////////////////
 
 Statement: Statement = {
-    Declaration => Statement::Declaration(<>),
+    <Declaration> ";" => Statement::Declaration(<>),
     <CommaExpression> ";" => Statement::Expression(<>),
-    "for" "(" <d:Declaration> <c:CommaExpression?> ";" <i:CommaExpression?> ")" "{" <b:Statement*> "}" => Statement::ForLoop(Some(d), c, i, b),
-    "for" "(" ";" <CommaExpression?> ";" <CommaExpression?> ")" "{" <Statement*> "}"
-        => Statement::ForLoop(None, <>),
+    "case" <CommaExpression> ":" => Statement::Case(<>),
+    "try" "{" <Statement*> "}" "catch" "(" "..." ")" "{" "}" => Statement::Try(<>),
+    "for" "(" <Declaration?> ";" <CommaExpression?> ";" <CommaExpression?> ")" "{" <Statement*> "}" => {
+        Statement::For(<>)
+    },
+    "for" "(" <d:Argument> ":" <v:CommaExpression> ")" "{" <s:Statement*> "}" => {
+        Statement::ForEach(d, Ok(v), s)
+    },
+    "for" "(" <d:Argument> ":" "{" <v:Comma<Expression>> "}" ")" "{" <s:Statement*> "}" => {
+        Statement::ForEach(d, Err(v), s)
+    },
+    If,
+    "switch" "(" <CommaExpression> ")" "{" <Statement*> "}" => Statement::Switch(<>),
+    "while" "(" <CommaExpression> ")" "{" <Statement*> "}" => Statement::While(<>),
+    "return" <CommaExpression?> ";" => Statement::Return(<>),
+    "continue" ";" => Statement::Continue,
+    "break" ";" => Statement::Break,
 };
+
+If: Statement = {
+    "if" "(" <CommaExpression> ")" "{" <Statement*> "}" => {
+        Statement::If(<>, vec![])
+    },
+    "if" "(" <CommaExpression> ")" "{" <Statement*> "}" "else" "{" <Statement*> "}" => {
+        Statement::If(<>)
+    },
+    "if" "(" <c:CommaExpression> ")" "{" <t:Statement*> "}" "else" <f:If> => {
+        Statement::If(c, t, vec![f])
+    },
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -153,14 +187,32 @@ Statement: Statement = {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-TopLevelDeclaration: TopLevel = {
+MemberDeclaration: MemberItem = {
+    DeclareOrFunction => match <> {
+        Ok(d) => MemberItem::Field(d),
+        Err(f) => MemberItem::Method(f),
+    },
+    <t:Typename> "(" <a:Comma<Argument>> ")" <i:(":" <Comma<MemberInit>>)?> "{" <s:Statement*> "}" => {
+        MemberItem::Constructor(t, a, i.unwrap_or_default(), s)
+    },
+    <t:Typename> "(" ")" "=" "default" ";" => {
+        MemberItem::DefaultedConstructor(<>)
+    }
+};
+
+MemberInit: (String, Initializer) = {
+    <i:Identifier> "(" <t:Comma<Expression>> ")" => (i, Initializer::Call(t)),
+    <i:Identifier> "{" <t:Comma<Expression>> "}" => (i, Initializer::Brace(t)),
+};
+
+DeclareOrFunction: Result<Declaration, Function> = {
     <t:BaseType> <e:Comma<DeclExpr>> ";" => {
-        TopLevel::Declaration(Declaration {
+        Ok(Declaration {
             base_type: t,
             declarations: e,
         })
     },
-    <t:BaseType> <f:DeclForm> "(" ")" "{" <s:Statement*> "}" => TopLevel::Function(Function {
+    <t:BaseType> <f:DeclForm> "(" ")" "{" <s:Statement*> "}" => Err(Function {
         base_type: t,
         decl_form: f,
         args: vec![],
@@ -168,7 +220,7 @@ TopLevelDeclaration: TopLevel = {
     }),
     <t:BaseType> <f:DeclForm> "(" <mut a:(<Argument> ",")*> <l:Argument> ")" "{" <s:Statement*> "}" => {
         a.push(l);
-        TopLevel::Function(Function {
+        Err(Function {
             base_type: t,
             decl_form: f,
             args: a,
@@ -178,7 +230,7 @@ TopLevelDeclaration: TopLevel = {
 };
 
 Declaration: Declaration = {
-    <t:BaseType> <e:Comma<DeclExpr>> ";" => {
+    <t:BaseType> <e:Comma<DeclExpr>> => {
         Declaration {
             base_type: t,
             declarations: e,
@@ -213,6 +265,7 @@ DeclForm2: DeclForm = {
     "&" <DeclForm2> => DeclForm::LReference(Box::new(<>)),
     "&&" <DeclForm2> => DeclForm::RReference(Box::new(<>)),
     Identifier => DeclForm::Name(<>),
+    "operator" "==" => DeclForm::OpEquals,
 };
 
 Argument = BaseType DeclExpr;
@@ -264,6 +317,7 @@ ModifiedType: ModifiedType = {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#[inline]
 Comma<T>: Vec<T> = {
     <mut v:(<T> ",")*> <e:T?> => match e {
         None => v,

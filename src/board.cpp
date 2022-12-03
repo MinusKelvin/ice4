@@ -138,10 +138,18 @@ struct Board {
             remove_castle_rights(btm, LONG_CASTLE);
         }
 
-        if (mv.from == A1 || mv.to == A1) remove_castle_rights(0, LONG_CASTLE);
-        if (mv.from == H1 || mv.to == H1) remove_castle_rights(0, SHORT_CASTLE);
-        if (mv.from == A8 || mv.to == A8) remove_castle_rights(1, LONG_CASTLE);
-        if (mv.from == H8 || mv.to == H8) remove_castle_rights(1, SHORT_CASTLE);
+        if (mv.from == A1 || mv.to == A1) {
+            remove_castle_rights(0, LONG_CASTLE);
+        }
+        if (mv.from == H1 || mv.to == H1) {
+            remove_castle_rights(0, SHORT_CASTLE);
+        }
+        if (mv.from == A8 || mv.to == A8) {
+            remove_castle_rights(1, LONG_CASTLE);
+        }
+        if (mv.from == H8 || mv.to == H8) {
+            remove_castle_rights(1, SHORT_CASTLE);
+        }
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST_STM;
@@ -153,7 +161,9 @@ struct Board {
         uint8_t opponent_king = other | KING;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
-            if (!board[sq] || board[sq] & other) continue;
+            if (!board[sq] || board[sq] & other) {
+                continue;
+            }
 
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int8_t limits[16] = {0};
@@ -216,7 +226,9 @@ struct Board {
                     int raysq = sq;
                     for (int j = 0; j < limits[i]; j++) {
                         raysq += rays[i];
-                        if (board[raysq] & stm) break;
+                        if (board[raysq] & stm) {
+                            break;
+                        }
                         if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
                             return 0;
                         }
