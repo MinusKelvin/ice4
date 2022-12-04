@@ -21,18 +21,20 @@ fn merge_exprs_item(ast: &mut [MemberItem]) {
 }
 
 fn merge_exprs_stmt(ast: &mut Vec<Statement>) {
-    ast.dedup_by(|second, first| {
-        match (first, second) {
-            (Statement::Expression(e1), Statement::Expression(e2)) => {
-                let mut d1 = dummy();
-                let mut d2 = dummy();
-                std::mem::swap(&mut d1, e1);
-                std::mem::swap(&mut d2, e2);
-                *e1 = Box::new(Expr::Comma(d1, d2));
-                true
-            }
-            _ => false
+    ast.dedup_by(|second, first| match (&mut *first, second) {
+        (Statement::Expression(e1), Statement::Expression(e2)) => {
+            let d1 = take(e1);
+            let d2 = take(e2);
+            *e1 = Box::new(Expr::Comma(d1, d2));
+            true
         }
+        (Statement::Expression(e1), Statement::Return(Some(e2))) => {
+            let d1 = take(e1);
+            let d2 = take(e2);
+            *first = Statement::Return(Some(Box::new(Expr::Comma(d1, d2))));
+            true
+        }
+        _ => false,
     });
 
     for stmt in ast {
@@ -51,6 +53,8 @@ fn merge_exprs_stmt(ast: &mut Vec<Statement>) {
     }
 }
 
-fn dummy() -> Expression {
-    Box::new(Expr::Ident(String::new()))
+fn take(from: &mut Expression) -> Expression {
+    let mut dummy = Box::new(Expr::Ident(String::new()));
+    std::mem::swap(&mut dummy, from);
+    dummy
 }
