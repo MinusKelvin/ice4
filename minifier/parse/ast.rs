@@ -30,14 +30,14 @@ pub enum MemberItem {
     DefaultedConstructor(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BaseType {
     pub core: CoreType,
     pub const_: bool,
     pub template_parameters: Option<Vec<BaseType>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum CoreType {
     User(String),
     SignedChar,
