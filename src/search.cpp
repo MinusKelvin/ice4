@@ -113,7 +113,7 @@ struct Searcher {
             mkmove.make_move(moves[i]);
             int piece = board.board[moves[i].from] & 7;
             int victim = board.board[moves[i].to] & 7;
-            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+            if (!(++nodes & 0xFFF) && (ABORT.load(std::memory_order_relaxed) || now() > abort_time)) {
                 throw 0;
             }
 
