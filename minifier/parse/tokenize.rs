@@ -1,6 +1,5 @@
-use crate::ast::*;
-use crate::lexical::Token::*;
-use crate::lexical::{ParsedNumber, Token};
+use super::*;
+use Token::*;
 
 pub fn tokenize(ast: Vec<TopLevel>) -> Vec<Token> {
     let mut result = vec![];

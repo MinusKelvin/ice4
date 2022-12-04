@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::lexical::Token;
+use crate::parse::Token;
 
 pub fn rename_identifiers(tokens: &mut [Token]) {
     let unrenameable: HashSet<_> = include_str!("extern_idents")
         .lines()
-        .chain(include_str!("extern_types").lines())
-        .chain(include_str!("keywords").lines())
+        .chain(include_str!("parse/extern_types").lines())
         .collect();
 
     let mut counts: HashMap<_, usize> = HashMap::new();

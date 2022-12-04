@@ -1,4 +1,4 @@
-use crate::lexical::*;
+use super::lexical::*;
 
 #[derive(Debug)]
 pub enum TopLevel {

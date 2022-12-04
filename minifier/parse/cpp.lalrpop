@@ -1,5 +1,4 @@
-use crate::ast::*;
-use crate::lexical::*;
+use super::*;
 
 grammar;
 
