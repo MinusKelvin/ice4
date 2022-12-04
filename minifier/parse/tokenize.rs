@@ -358,7 +358,7 @@ impl Expr {
             Expr::Comma(l, r) => {
                 l.tokenize(result, Precedence::Comma);
                 result.push(Comma);
-                r.tokenize(result, Precedence::LogicalOr);
+                r.tokenize(result, Precedence::Assignment);
             }
             Expr::Throw(v) => {
                 result.push(Keyword("throw"));

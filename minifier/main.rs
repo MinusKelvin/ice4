@@ -2,6 +2,7 @@ mod parse;
 mod preprocess;
 mod renamer;
 mod decl_merger;
+mod expr_merger;
 
 fn main() {
     let preprocessed = preprocess::preprocess("src/main.cpp".as_ref());
@@ -10,6 +11,7 @@ fn main() {
     let mut ast = parse::parse(&preprocessed.code);
 
     decl_merger::merge_decls(&mut ast);
+    expr_merger::merge_exprs(&mut ast);
 
     let mut tokens = parse::unparse(ast);
 
