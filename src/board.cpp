@@ -48,12 +48,13 @@ struct Board {
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
+    uint8_t wking, bking;
     uint8_t phase;
     int16_t mg_eval;
     int16_t eg_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
-              stm(WHITE), phase(24), mg_eval(0), eg_eval(0)
+              stm(WHITE), wking(E1), bking(E8), phase(24), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -79,6 +80,12 @@ struct Board {
         mg_eval += PST[0][board[square]][square-A1];
         eg_eval += PST[1][board[square]][square-A1];
         phase += PHASE[board[square] & 7];
+        if (piece == (WHITE | KING)) {
+            wking = square;
+        }
+        if (piece == (BLACK | KING)) {
+            bking = square;
+        }
     }
 
     void null_move() {
@@ -246,7 +253,23 @@ struct Board {
     }
 
     int eval() {
-        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
+        int mg = mg_eval;
+        int eg = eg_eval;
+
+        int w_king_mob = 0;
+        int b_king_mob = 0;
+        for (int rd : {-1, 1, -10, 10, 11, -11, 9, -9}) {
+            for (int sq = wking + rd; !board[sq]; sq += rd) {
+                w_king_mob++;
+            }
+            for (int sq = bking + rd; !board[sq]; sq += rd) {
+                b_king_mob++;
+            }
+        }
+        mg += KING_SAFETY_MG[w_king_mob] - KING_SAFETY_MG[b_king_mob];
+        eg += KING_SAFETY_EG[w_king_mob] - KING_SAFETY_EG[b_king_mob];
+
+        int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
 } ROOT;

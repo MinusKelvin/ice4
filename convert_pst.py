@@ -36,3 +36,6 @@ dump_string(scaled[512:576], "1, BISHOP")
 dump_string(scaled[576:640], "1, ROOK")
 dump_string(scaled[640:704], "1, QUEEN")
 dump_string(scaled[704:768], "1, KING")
+
+print([round(v) for v in scaled[768:768+28]])
+print([round(v) for v in scaled[768+28:768+56]])
