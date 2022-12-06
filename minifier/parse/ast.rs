@@ -66,7 +66,13 @@ pub enum Initializer {
     Call(Vec<Expression>),
     Brace(Vec<Expression>),
     Equal(Expression),
-    Array(Vec<Expression>),
+    Array(ArrayInit),
+}
+
+#[derive(Debug)]
+pub enum ArrayInit {
+    Exprs(Vec<Expression>),
+    Arrays(Vec<ArrayInit>),
 }
 
 #[derive(Debug)]
