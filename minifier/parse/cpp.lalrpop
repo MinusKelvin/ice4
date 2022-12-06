@@ -246,9 +246,17 @@ DeclExpr: DeclExpr = {
     },
     <form:DeclForm> "{" <i:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Brace(i) },
     <form:DeclForm> "=" <i:Expression> => DeclExpr { form, init: Initializer::Equal(i) },
-    <form:DeclForm> "=" "{" <v:Comma<Expression>> "}" => DeclExpr {
+    <form:DeclForm> "=" <v:ArrayInit> => DeclExpr {
         form,
         init: Initializer::Array(v),
+    },
+};
+
+ArrayInit: ArrayInit = {
+    "{" <Comma<Expression>> "}" => ArrayInit::Exprs(<>),
+    "{" <mut v:(<ArrayInit> ",")*> <l:ArrayInit> "}" => {
+        v.push(l);
+        ArrayInit::Arrays(v)
     },
 };
 
