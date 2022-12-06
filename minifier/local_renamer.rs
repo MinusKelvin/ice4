@@ -60,12 +60,28 @@ fn count_occurances_decl<'a>(counts: &mut HashMap<&'a str, usize>, decl: &'a Dec
 fn count_occurances_init<'a>(counts: &mut HashMap<&'a str, usize>, init: &'a Initializer) {
     match init {
         Initializer::Default => {}
-        Initializer::Call(exprs) | Initializer::Brace(exprs) | Initializer::Array(exprs) => {
+        Initializer::Call(exprs) | Initializer::Brace(exprs) => {
             for e in exprs {
                 count_occurances_expr(counts, e);
             }
         }
+        Initializer::Array(arr) => count_occurances_array(counts, arr),
         Initializer::Equal(e) => count_occurances_expr(counts, e),
+    }
+}
+
+fn count_occurances_array<'a>(counts: &mut HashMap<&'a str, usize>, arr: &'a ArrayInit) {
+    match arr {
+        ArrayInit::Exprs(exprs) => {
+            for e in exprs {
+                count_occurances_expr(counts, e);
+            }
+        }
+        ArrayInit::Arrays(arrs) => {
+            for a in arrs {
+                count_occurances_array(counts, a);
+            }
+        }
     }
 }
 
@@ -238,12 +254,24 @@ fn rename_decl(translation: &HashMap<String, String>, decl: &mut DeclExpr) {
 fn rename_init(translation: &HashMap<String, String>, init: &mut Initializer) {
     match init {
         Initializer::Default => {}
-        Initializer::Call(exprs) | Initializer::Brace(exprs) | Initializer::Array(exprs) => {
+        Initializer::Call(exprs) | Initializer::Brace(exprs) => {
             for e in exprs {
                 rename_expr(translation, e);
             }
         }
+        Initializer::Array(a) => rename_array(translation, a),
         Initializer::Equal(e) => rename_expr(translation, e),
+    }
+}
+
+fn rename_array(translation: &HashMap<String, String>, arr: &mut ArrayInit) {
+    match arr {
+        ArrayInit::Exprs(exprs) => for e in exprs {
+            rename_expr(translation, e);
+        },
+        ArrayInit::Arrays(arrs) => for a in arrs {
+            rename_array(translation, a);
+        },
     }
 }
 

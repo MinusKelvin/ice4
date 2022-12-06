@@ -151,16 +151,30 @@ impl DeclExpr {
             }
             Initializer::Array(args) => {
                 result.push(Equal);
-                result.push(LeftBrace);
-                for (i, arg) in args.into_iter().enumerate() {
-                    if i != 0 {
-                        result.push(Comma);
-                    }
-                    arg.tokenize(result, Precedence::Assignment);
-                }
-                result.push(RightBrace);
+                args.tokenize(result);
             }
         }
+    }
+}
+
+impl ArrayInit {
+    fn tokenize(self, result: &mut Vec<Token>) {
+        result.push(LeftBrace);
+        match self {
+            ArrayInit::Exprs(args) => for (i, arg) in args.into_iter().enumerate() {
+                if i != 0 {
+                    result.push(Comma);
+                }
+                arg.tokenize(result, Precedence::Assignment);
+            }
+            ArrayInit::Arrays(args) => for (i, arg) in args.into_iter().enumerate() {
+                if i != 0 {
+                    result.push(Comma);
+                }
+                arg.tokenize(result);
+            }
+        }
+        result.push(RightBrace);
     }
 }
 
