@@ -1,14 +1,18 @@
-int16_t PST[2][25][SQUARE_SPAN];
-int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int16_t FT[25][SQUARE_SPAN][256];
+int16_t BIAS[256] = {445, 50, -17, -163, 177, 19, 43, 89, 244, 10, -39, -197, 161, 203, -14, -188, 234, 109, 244, 76, 31, -53, 253, -6, 10, 337, 167, 67, -41, -37, -296, -25, 110, -20, 241, 99, -79, 258, -137, -327, 247, 248, -45, 168, 274, 312, 387, 258, 260, 102, 246, -14, -26, 365, 109, -1, 227, 177, -30, -228, -15, 115, 247, 177, 238, 250, 279, 95, 250, 223, 127, -3, 221, -151, 250, 248, -153, -124, -118, 115, 347, 251, 53, 260, 36, 249, 252, 18, -26, -4, -225, 287, 195, 322, 256, 104, -55, 246, -4, 113, 232, 277, 408, 28, 252, 248, 51, 52, 288, 230, 253, 222, -1, 289, 22, 96, 41, -215, 25, -120, 246, -122, 76, 80, 212, 86, 155, -221, -84, 240, 350, -145, 254, 48, 144, -153, 23, 78, 97, 92, 44, 165, 18, 189, -66, -23, 259, 104, 247, 83, 191, 53, 98, 225, -198, 1, 161, 15, 354, 318, 173, 212, 240, 236, 213, -128, 57, -275, -34, 88, 72, 255, 246, 234, 171, -137, 257, 23, 44, 300, 361, -9, -33, -535, 71, 84, 248, 33, 253, 195, 252, 239, 261, 209, 47, -111, 171, -12, 244, 49, -56, 122, 437, 246, 230, 131, -259, 19, 13, 238, 267, 250, 179, 147, 216, -16, 134, 257, 208, 258, 13, -65, -53, -2, 145, 335, 211, 459, 220, 432, 74, -131, 68, 278, 77, 8, 133, 244, 32, -136, 30, 92, 214, 18, 251, -417, -67, -18, -58, 142, 24, 48, -6, 242, 169, 225};
+int OUT_W[512] = {15, 11, -33, 68, -7, 12, -6, -15, 0, -14, 68, 21, 20, 10, 23, -20, 3, 16, -11, 6, -11, 12, 1, 9, -16, 14, 15, 11, -13, -19, 14, 10, -7, 18, 13, 19, 14, 20, -6, 12, -11, 2, 7, 4, -26, -34, 19, 16, 16, 17, 12, -6, 21, -33, -11, -13, 11, 14, -13, 9, 13, -9, 0, -14, -9, 20, -13, -9, 2, -15, 7, -7, 7, 16, 2, 0, -14, 21, -21, -16, 7, 1, -25, 10, 9, 16, 1, -14, 8, -8, -13, -22, 17, -11, 21, -14, -7, 11, 15, 21, -23, 9, -27, 4, -15, -18, -7, 12, -16, -10, -10, -14, -11, 10, 10, 9, -11, 10, -16, -4, 1, 15, -13, 14, 2, 12, -31, -50, 5, 3, -2, 12, 2, -7, -15, 32, -9, 4, 13, 10, 19, -13, 8, 9, -4, -13, -9, -19, 0, -13, 3, 12, -17, 15, 14, 19, -12, -19, 13, 15, -9, 16, -11, 13, -12, 11, 27, -11, 14, 12, 18, 13, -20, 8, -21, -21, -15, 11, 14, -15, 27, -7, -28, 25, -13, 15, 2, -27, 11, 10, 16, 1, 13, 11, 3, -21, -15, -11, -1, 15, 21, 9, -13, 4, 0, -8, -7, -6, -16, -11, -8, 16, 9, 11, -9, -13, -19, 19, 9, 21, -11, 6, 15, 16, 19, 31, -17, 16, 10, 10, 13, -11, -5, -23, -9, -18, 13, 24, -22, -7, 6, 15, -9, -9, 0, -13, 10, -12, -14, 13, 20, 16, 5, -26, 1, 3, -16, -11, 11, -63, 7, -12, 5, 17, 1, 11, -53, -21, -20, -11, -21, 19, 1, -15, 10, 2, 11, -12, 0, -9, 18, -16, -15, -11, 14, 19, -14, -9, 8, -17, -13, -19, -15, -19, 6, -12, 9, 0, -8, 3, 23, 25, -18, -16, -16, -22, -12, 6, -20, 12, 12, 15, -11, -14, 16, -10, -16, 9, 4, 14, 10, -19, 13, 9, 3, 12, -7, 8, -8, -17, 4, 3, 15, -22, 21, 15, -8, 3, 26, -12, -9, -17, 1, 15, -10, 8, 12, 22, -15, 10, -21, 14, 8, -11, -16, -21, 18, -10, 18, 3, 16, 18, 7, -13, 16, 10, 10, 13, 10, -10, -11, -9, 11, -10, 16, 4, 0, -15, 12, -13, 2, -12, 31, 44, -6, 0, 11, -13, 1, 7, 16, -34, 9, -1, -13, -10, -20, 13, -8, -8, 4, 13, 10, 19, 0, 15, 2, -12, 18, -17, -14, -18, 12, 18, -16, -19, 10, -17, 11, -13, 13, -12, -24, 12, -14, -12, -17, -13, 20, -9, 20, 19, 15, -10, -20, 15, -34, 8, 29, -22, 13, -15, 3, 28, -11, -9, -16, -1, -13, -10, -12, 21, 15, 11, 2, -15, -22, -9, 13, 3, 1, 7, 8, 6, 15, 13, 15, -16, -8, -11, 10, 14, 20, -19, -11, -21, 12, -7, -17, -15, -19, -39, 17, -31, -12, -11, -12, 11, 4, 23, 9, 18, -14, -23, 28, 7, -6, -15, 11, 9, 4, 12, -10, 11, 16, -12, -18, -15, -6, 27, 4, 4};
+int OUT_B = 772;
 
-void unpack(int phase, int piece, const char *data, double scale, int offset) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
-    for (int rank = 0; rank < 80; rank+=10) {
-        for (int file = 0; file < 8; file++) {
-            int v = (*data++ - ' ') * scale + offset;
-            white_section[rank+file] = v;
-            black_section[70-rank+file] = -v;
+void unpack(int neuron, double base, double scale, const char *data) {
+    for (int r = 0; r < 48; r++) {
+        for (int f = 0; f < 16; f++) {
+            double r_value = (data[r] - ' ') * scale + base;
+            double f_value = (data[f+48] - ' ') * scale + base;
+            int rank = (r % 8) * 10;
+            int file = f % 8;
+            int color = f / 8 ? BLACK : WHITE;
+            int piece = r / 8 + 1;
+            FT[piece | color][rank + file][neuron] = r_value * f_value;
         }
     }
 }
@@ -29,25 +33,268 @@ uint64_t rng() {
 }
 #endif
 
-uint64_t ZOBRIST_PIECES[23][SQUARE_SPAN];
+uint64_t ZOBRIST_PIECES[25][SQUARE_SPAN];
 uint64_t ZOBRIST_CASTLE_RIGHTS[4];
 uint64_t ZOBRIST_STM;
 
-
 void init_tables() {
-    // Piece-square tables
-unpack(0, PAWN, "$!!&'$ !3EA=?NQ88FEBFFS<7DGKMKJ9<LJQSRO;AUYec`TAtlr~t[5N# &%'!!'", 1.602, -6); // average: 50
-unpack(0, KNIGHT, "FHKKLHIDFGNNORLJJRSWVUTMRWXXZ[[WXXac`f]^Yiks~zp]QTfrktU\\ /8Pl\"96", 2.074, 135); // average: 244
-unpack(0, BISHOP, "OPMLIKJOZ[XRUWZSW_\\\\Y\\]W\\Z_dd][\\X[gnlj_]Tjhxx~rfWY^[`ed[C;C1G AP", 1.538, 177); // average: 265
-unpack(0, ROOK, "-4<?C9:4!*03421 )0-.31:./17:=:<8<BIRVRPHIY[kwqoYXWm{wx_hqsy}|}|~", 1.258, 267); // average: 322
-unpack(0, QUEEN, "\")+-)%, .0513891040005;92//-345:9/45<>9E8B:HL[VOB*;9<UDN3I`dl~XJ", 1.021, 671); // average: 699
-unpack(0, KING, "BGC5;6JLD=4++4=C02%#\"%/-+-+)''*!/4/5/0.$550841*,D06<5. 4~ejbSQR[", 2.548, -68); // average: -7
-unpack(1, PAWN, "!#\"#\"!\" IJIJIIJGFHDEEFGDHJECDEJFOOKHHIML_a[UVW`Zy}vlmv~y#! # ! #", 3.803, -5); // average: 142
-unpack(1, KNIGHT, "*3GMMJ:'@XX__VUBJ]enne`NZguuwuh[]ovz~xtb[gstloh\\O`fjla`O fpf]td&", 1.519, 326); // average: 419
-unpack(1, BISHOP, "*6 6635\"9?IEEAA2@OWXWRH@=O\\^\\YN9>[T_aZ[CIQZORUWD:WSYRSQ<UUX^Z`SI", 1.0, 431); // average: 474
-unpack(1, ROOK, "/:::553 37==;3,,9@EEA?40JQROJJD>V^\\VQRPL^Y[SKNKP\\b]ZYQXPNSQQQOMH", 1.0, 727); // average: 767
-unpack(1, QUEEN, "@2*'*\" 58=5:6-%7@DOILJD;EW[ja_WSLclrvpqZReptvwpbOotz~oua\\`YYWSdd", 1.795, 1420); // average: 1513
-unpack(1, KING, "+./*%-+ 08>BB=6/:BIMMIA;CLRUTRMEMZ][]]\\QYjlegmo^Svqikr~[-UWWZ]`4", 2.156, -90); // average: 9
+    // Feature Transformer
+unpack(0, -46.66, 0.8284, "d[Z[ZY_iYXXYWTVOYXXY[VZEZ[YYYYX YYXYZWU4YXYZXVc~`bbedeXGYXXXYZLQ");
+unpack(1, -4.686, 0.1844, "G1=Bsuuh6<4KDBJ3&$;O@+C);+Db\\0%. ;P_V83 HFRmkuq6>901EJV~EC=62:wf");
+unpack(2, -8.892, 1.499, "/&&&'% 0''('*'Oc(':DPMnb((*)),-o()()(()'*+,,,,,~9;<<=<97(())))''");
+unpack(3, -5.012, 0.2535, "f36?NZ`@,23758<C!!*5<?D@49552/31*&),+'(.=KUajt~l)//5HSYU<=;8.% )");
+unpack(4, -72.05, 1.893, "JIIFFFFKCFFCEFEFDGHFFFFF^OIJFFFFFHGGFGFF IOFFFFFLJIFFFFF~DFGGFEH");
+unpack(5, -28.65, 0.465, "x][[XQNzab`]^\\Xca``__\\Yccbbbac`Z||~}|yy}ghhma, %vutsrustagd`ZTRS");
+unpack(6, -38.69, 1.162, "HDDCLROB @A@BAAEBC@ABBDE?>?K8[sU>>==\\IgR???8AB;9(B?@AAAB~AAAAAAA");
+unpack(7, -5.566, 1.337, "* \"#$$$)(%$$$#$$&%$%%%&&Rz+)++)),/--,-9~())()***-&%&%%'-33321347");
+unpack(8, -0.07587, 0.1652, "NQyN2/eLmSm26;T`14&9OH9}T7SN_t7>Tox a;7M~w)o7U~BMedf(x:OWi1\\00@7");
+unpack(9, -13.14, 0.4158, "R@@DEED`ILLMOOMINNOPRSOLZ\\__^]^Xyuwy~wrpcijqjed`\" \"&(*12djlfbaa`");
+unpack(10, -23.02, 0.5575, "RHIJJo~PEGIJLPOSGGHHJOUSIJKJMLKLIJJJLLKJFFGIMS\\gHKPRSNIIJIH( HII");
+unpack(11, -3.95, 0.3576, "-***+.4W'''')--)XYYYZ[]Q&$&%&')'\"!!  !!%)))-04/~SRSSRRQQ***)()((");
+unpack(12, -6.036, 0.4045, "K6;GJRK:02..//5/0.+-//262/20--/+-.,,-.,/-0279t|~ d$-.0003h3./...");
+unpack(13, -7.915, 0.3899, "\\0/27BEL*-3;ALAJ679=BKED:=?@CVSVHKOSZd^\\! !%&*i~NOOOTSUU51/-,+.0");
+unpack(14, -12.73, 0.4868, ";>???>;:LNMMNONLNNNMNNMLXYZZ[\\\\W}zyy{~{z=>===<<:[[[[[[[[%#!! !!$");
+unpack(15, -17.23, 0.2931, "h<rnniftUr|w|vmk Zfjkd`\\crtdVOX]WRd^ZZ]Z?]bjpk_\\X[]YZ]\\[npu}~unk");
+unpack(16, 0.1507, 0.1685, "(t h[Vw`f<+<e,\"oP}EBdVFXT+<J+'SA$.lel0qyR>NIQ{~tVKse0F('SvAx5s0P");
+unpack(17, -8.142, 0.3375, "KG0! -3B170398,:XYC>@=6<RQWSD3.4a_[RI;;5m~cM6((-@ACDEDB>7.'$&(08");
+unpack(18, -10.29, 0.6201, "<VC=434Ir+.0010343/03101@////,-/14457537~W+-/112/1253213#C1JEL h");
+unpack(19, -4.599, 0.3741, "6IBP2-;T-W7*'B .(&RY[E~c@Ojd4V<^/TFAMLER1*D:](y?RoSKV94<JC`7K4.H");
+unpack(20, -28.41, 0.4283, "x ?ljcatYR[mVUbkbq\\bb[c^[~ifghhjfqe[cicidTbkagbdbabb`lZ\\agacfYse");
+unpack(21, -4.153, 0.2708, "]6:EEIkW~?3& !\"&OH?900%\"BEA;481'^IE=3319EADBMNTFGLTYicTP1-18<70.");
+unpack(22, 0.3547, 0.1638, "@TU?U; Kec)>E;{h##&5< OQ.pkLo#+u:5'~N()H*&LZ|4TqD>M^Tb'\\90PNK\\OC");
+unpack(23, -11.19, 0.276, "]DGA910uLhg~k`NK[WZi`TGH^bO]\\QPEZ[[_\\KEB`WGC20 &MYWWVTXTbB:,335<");
+unpack(24, -7.328, 0.5667, "=LO3102>EGLLNJGFumfdehkxPV~}|RuQaVWTUUQ>,=<<7554)!\" ! !\"dccb`fgf");
+unpack(25, -9.73, 0.5985, "Dd]R10.6A19340/-/<932...12277897101477716Q:<;6/(015~21104/' ,120");
+unpack(26, -2.643, 0.6637, "4####%/0####$&&-$$$$##'+\"\"#\"###)#%%$##%%$$\"\"$(~~FJE<.+!$))++  !\"");
+unpack(27, -7.89, 0.3628, "K+'0I[>: ).CDFJY04:GBNWV:>L<IJGSIKZeedm~@A=EMe[LGIIFGJHC87635768");
+unpack(28, -6.69, 0.2685, "A)-7:=>g'19A@@DE1+48;;>B[^c[Z[\\\\~yzuqklkDMJUG.' ./4:9:5.`cdfehfb");
+unpack(29, -32.84, 0.9647, "PIGBBAAMABBCBAABB@BBBBAACCABBABAv~~||uz{B% @BAAADEFFGEEDT^[^a_^V");
+unpack(30, -3.215, 0.3508, ".*++/57I+,-0212/(*,-//0*..//142)qtuz~~zTGEFIGX[\\RQNLJHIF!  \"/8FB");
+unpack(31, -1.508, 1.062, "%//KHGK.\",!!\"\"+!\"\"\"%#\"\"\"! !!!\"!\"'\"\"\"\"\"\"\"$%%$$$$$''\"\"\"!\"\"}~\"!\"!!\"");
+unpack(32, -8.28, 0.3324, "cHFED@?AYUUOMMJJOPLIIGHAikkce^YY~vutsqljXXK)50,' ! $(+48Y\\\\XTK?8");
+unpack(33, -15.51, 0.5193, "\\@BAA@??POOOPNMLOPPQRQQQWXXXYXYXutuvwwz~<?>??9-,\\\\[ZYYXW  !\"\"$%$");
+unpack(34, -11.86, 0.2728, "ie~faJIXe=B6LXJ[@NC=6 <MKQNUbgvkIH=?D9DP?EZ_SMOQHDO[iXEFW]SB7IWV");
+unpack(35, -46.36, 0.8033, "\\ZZZYSGaZYYZYXZNZZZZZYYYZZYYZ[\\\\ZZYZZZZ]ZZZZZU\" YYX[s~zbZZZZXTV[");
+unpack(36, -11.05, 0.4216, "U6;<>>=LJGKHHKOLILLJINOMSNORRTUT~}zwy{zw`bWJ !!!VVVWWVVV\"#\"\"\"\"\"\"");
+unpack(37, -7.062, 0.3638, "8JKC;05IB41AGBK924BD8** ,(2ADLLD8).362/&%%K~A82-.+-/5:=;?E>7-+!'");
+unpack(38, -33.85, 1.236, "GAEBE@@;9=ACGPP:;<<?CC<;;<=;=kZN>>>>OSPB>75<3 ='G<<<===<~;<<<<<;");
+unpack(39, -7.294, 1.103, "*869V~+2(12322321111111011115001;7A7P,*)!##\"!\"! ))*))***FFFEHFFF");
+unpack(40, -9.498, 1.029, "/23Ks_S-))()*+**)((*..+8*++***)*,.,--.,)#%$ #/++)))**'&')))))~vj");
+unpack(41, 0.6612, 0.1627, "xW =s!}++\"R:v>-hrU{iYt_Rh9KN$<V$g[\"wtop>)V'j80PE~R\\UJPW?5Q_-0ywo");
+unpack(42, -9.376, 0.6849, "3B>ADC~47=/,++,+..--./-+KIOOJEF@E?,DA67;BN41//.L$ )41:5i_VURECHF");
+unpack(43, -9.37, 0.4129, "YXJ8P?%XUWS\\U(^E2eK>MJ_ P>IW[OW_W;F],XI859o?NQZR^IMT_\\SL[eML>RJ~");
+unpack(44, -7.631, 1.095, "(''06BE-&(('(((?'''('((-,-+))'(''(((('''%&()))*>'''''(& ''''''(~");
+unpack(45, -7.975, 0.7826, "6+*3<IZ+)**+,-.1))**+.33..././,/++,,,-++**+,-6=C)& '*,++*-~,+***");
+unpack(46, -14.59, 0.4689, "TUOFDFEJ@BCA?>??DGB@ABB?~Y@;:99:QI878::9 .7=@?=:<<<<::WXBE@?@Erg");
+unpack(47, -10.26, 0.2415, "}, ?ZdM|?)G~c&,UWG\\'j5J;F]LEEDJPI]Q:T@MCHeEDKL?HP<Z6\\8[B@W<\\8^:S");
+unpack(48, -10.82, 0.2195, "fM2[sJSfWSP W~M)B}>*lV6kSNQJPLPWN[Q?XKMWRYRB[INY]7jDGj7c_?`FK_?\\");
+unpack(49, -9.178, 1.245, ") $'(((/@pr)((((ju`ep~up*,,,,,+-&'(()((',,++,,,,*++++*+*BCCCBBB?");
+unpack(50, -8.496, 0.1853, "wwvL$QX|IKkt4$`I @x~=.;p_SHLFISRGKU`GGTXSNql_9OOBkA0rR8^B\\Q<]G<`");
+unpack(51, -23.78, 1.175, ";>=<<;:6'&&'''& $#%&''''101110121:=BCLIH23320/}~,()((&'*HJIHIIJH");
+unpack(52, -5.57, 1.271, "%%%%&&-'&&&&&&&&&'''''''WVTPSMNcMadah_j~%%%%%%%%JJGFEGEH   !!! !");
+unpack(53, -12.31, 1.934, ")&&&&( (((((()'9))'(((&Q''''''+~&&&&((&&''(((((w97653447((''''''");
+unpack(54, -1.484, 0.7022, "8+-,*%$,%$$#\"#\"$$$##\"!\"#  !\"\"##\"\"#!! !!\"RTh~t>!!#.[.$\"\"!\" X\"#\"\"#");
+unpack(55, -3.863, 0.7119, "&/,*'&%()(&%%%&&')(&'('&&&&&&$%%##\"#%%%'~zj\\W%%%'()+5;6. !%&']W(");
+unpack(56, -119.6, 1.424, "~wttsty~qquutuwtvututux tutusstrrttusttq{{wwvuzvuvutttttratttttt");
+unpack(57, -18.39, 0.6097, "@?>??>KWDAA@?>?3@A@??@:3BCDDFGMBdhnfhr~p7699922 hPPQPLR\\9<@CCB=:");
+unpack(58, -10.89, 0.2524, "n{}pzec[ae\\Z^fXS_`\\SRj_;S^OOc[YJjj]er~xV]G<<3 <Tc]WQE<;6@JSRIFNR");
+unpack(59, -8.047, 1.306, "(.,+*)~0754/,65+7,--,,-,C66656)7#$(%)&% \"#%$$$%%)++*)***<=;=>=A;");
+unpack(60, -16.22, 2.035, "0))))' +++++,162,,,--,3-5---+.,/~JGG?;4$*)**+,,)0123421/)))))***");
+unpack(61, -55.43, 0.8245, "igddeefj filmoli,hkjnomnbklqrpolx|}~}}||^acgebcdY[YZYYZZlmmmllmk");
+unpack(62, 0.2476, 0.165, "{DK+4[q[NZtM{Mt3j<p.# Kc:9[.7^w?+#p$b:j.2yeMRf|=\\/8`x7w~2 ` bxs[");
+unpack(63, -5.001, 0.2957, "BjhjmP>e~?551/7<7933.-.3*' ')337,,1--+*-?@<;<3.-0012/4z311231,Y!");
+unpack(64, -9.841, 0.2795, "Toe[GNDqgkne^o~}RYWRROdk &*5D@CED@HHRT_a<S]^TouiF6*>?77<_RPFHKOP");
+unpack(65, -8.211, 0.2114, "gVkZ&<C~T68wa 1cKB6v=>\\CEDGIGHJHFCAUJPRHFC9dKEPEDS0i(b8LBT3`/[8O");
+unpack(66, -5.731, 0.2296, "~Bf =2:B%M89=VW6e%6@L.FB.6J+C?>3?0E6=:F9:DI:7d5.B/\"UZ#/B*5A99A8-");
+unpack(67, -4.409, 0.4616, "3-&$&+/Fd\",(,'*+~,(*.*,1KOP:7655c7/+,.*1.,#'.,(&+**++& [,))+,65F");
+unpack(68, 0.2468, 0.1662, "=<Q|}Rn 7iH)&>d;M<<)I#x\"@vX[~vk]:V%5r[[|\"_rmJ6D'%0ZkNuiYL,!0r0Yl");
+unpack(69, -6.745, 0.5802, "1+,,21~9.1,+--,*---,,0-P++-,*-2H010.+,..,-+-+0JP,,, !,/-,,,NO,,,");
+unpack(70, -19.97, 0.7194, "COMA=>>F=F===@@9~<<>==<:H9YD89:9oM=><=<<** ;7<;=?{===<;;;(><===<");
+unpack(71, -0.7681, 1.106, "%3#%(7:#TTU!DM<?-/47A=@)! \"!!!!!D#('*B7\"$a!!!!!\" !\"&''&~$$#\"FM@=");
+unpack(72, -9.045, 0.782, ";-,,+*+1/.-,+*.9,-,++*,9,,++*,.E0-,+++,F-,-.0+*~-<F64-3/ =<0+-,,");
+unpack(73, -6.365, 0.2471, "NC>??GXYKKJLIGAkMLLOPMNY`_^__\\]`pwv|~{ys  '01F?U}vslkkw}B<9434AD");
+unpack(74, 0.09663, 0.1684, "n6SRZ1o%%v{KCT?Gev W8Z.ec(D'n&+ZlHQE,6J9\"ajxT9&~UztN_6t`KfD':z<@");
+unpack(75, 0.2731, 0.1633, "~c&6wZ*doOl}1MEEn&hCx:jPJ$'f$~0VeBV 6j<rm44T9xBc>aUoOzYX9~v\"r.}(");
+unpack(76, 0.4848, 1.641, " !!!!!&'  ##$#% #$'$$$$&9;888789&.,.106;'*--+. +\"\"\"\"#%**! ! !!w~");
+unpack(77, -6.414, 0.4472, "G34:KGC23432//.2::97877:1410-.-/J[^VVVR~ddfc`]XTKKORY^bd587.)$  ");
+unpack(78, -39.66, 0.7294, "cQVUVWXX=T\\[[[Z]PPZXXZZ[Y\\[\\^][ZK`fghkjjao~1 0_\\TVVVVVVUbbcabbcc");
+unpack(79, -5.127, 0.325, "F88PFR{X1%<:762. '4670/.589857;8.,15433353.-621/450$;!43/10(~1/.");
+unpack(80, -10.53, 0.3487, "k)@ >;9lG=F5F:P=E@=7?<,&84@)ADIM=>?;A@<>D?;<6~D7<ALpgK=679AIG>79");
+unpack(81, 0.1122, 0.1687, "FkN7gF/ [`8LDE!x?H+)>/!y|K;J<i-W~L[t0|F\\S>hlbWM\"Koumzj62~Z^Vl$G1");
+unpack(82, -13.43, 0.421, "NFGGGFEM`^__^^_a`______a~}}~~}}|EEEEEEFG>ABFHJJH      ! ccbcbbbc");
+unpack(83, -11.46, 0.8025, "Az]WK=71997/....99F?/...0.//1100A5655;=5E=>))' \"~~zC/...+**./...");
+unpack(84, -8.449, 0.3546, "A9:93' BC@?86239=<:8612;F@A><<?F]ZWVRFUb`dds~$%0HHKJQTSQ6139DkU:");
+unpack(85, -7.295, 0.4908, "41111\" 7/01/.))$2112/..,2321/-./dv{qUCUD4457=w~t56BZ`YG?99.*)+.1");
+unpack(86, 0.6354, 0.1619, "4Fj |(} v-q_40!B^}VmZ\"/)l.1!,6`8Q.YJN7QS?[QB2+ {[$NFD@d~m6\\W674=");
+unpack(87, -1.275, 1.159, "*($!  !#'#\"#\"\"\"!##\"!!!! $$###\"\"\"''%$%%%%Ul~'$#$$##$$$$#\"-26;<;84");
+unpack(88, -10.65, 1.643, "*''(*23(G/\\K~i??401115420,70///0))((()&(#!!!!% \"89::9899))'''())");
+unpack(89, -15.21, 0.7637, "CWY]XIOBNigkQGLE4ACG8GX365455454A<BBDEI1<?@=<;7 }Y^o~:87$O7;;312");
+unpack(90, -3.521, 0.2275, "4DG@;8:l 6<?GDIL8YC?A?DLZZovyrsn_dnmsz~pG9+0*)#'<>;66:BCnqnhbdqn");
+unpack(91, -11.52, 0.3062, "xyyfHACg7=GQJABECVDHCHEFMKMIHGEEFQGDGFGD+f'7EEEFGFJHKDHC;a-~ i9M");
+unpack(92, -4.787, 0.3954, "?-1O`fD?.-*,/35/++&(013.///,'&%$ )''+++)&**+/00.,,,+)B%-+-,,1~0+");
+unpack(93, -38.7, 0.661, "a{~jZU^j RXjcWW];t_Za\\aVZaa[_]X\\Pi^\\`]aZca`W]Y_[YZY[\\YZXaQdXVgOe");
+unpack(94, -20.02, 0.3699, "s^Ip\\GPjgYHMrz C3~:PrG_VURTSU[P_PbNQaNaW[aERp@Z]R^MaKaN[S[Q\\P\\P[");
+unpack(95, -6.278, 0.6125, "7**)0;L8*-+,),'-+++*+'*#*++*('%)*,+****\"+*++* ~,'+*,%!0Y***+,+>)");
+unpack(96, -1.02, 1.046, "(:FJH#!' %\"%\"\"\"\"\"######\"!!\"\"\"! !!!!!\"!\"\"V&'''&(+!!!\"\"#~Q!!!!! (%");
+unpack(97, -11.29, 0.2685, "pG`N*@vl^34aO;?~;FTe_ 5}PR@;ERNEFFKKFQV>ZOIWD6UCAQL?DUD6BOS?AWKB");
+unpack(98, -17.16, 0.3297, "~YqU7Rf}TxU Js`NMK`@8~R:R\\VYUXOYUFWQNaPKROTBKkYV]I]OQ\\K[[E_PQ\\I[");
+unpack(99, -7.182, 0.9069, "7('()( .''&&&%$('&&&&'(*&&&%$$&'~sxurxou++,-0+'!47<>?BB7&$#$ #\"&");
+unpack(100, -12.33, 0.4027, "LHGFDCCfa`_][ZYZ`a`^_^_^uuvtqqop|}~|yxwuDHIHIEEC\"!! !!!!eeedeedc");
+unpack(101, -8.344, 0.3077, "K698:<CMIGLLXac`SURR^dbYjmhhjheny{xy{~tp:FNTQS[rbca`_^^b(($! !&&");
+unpack(102, -7.135, 0.8881, "-$'''V~1&'()),)2+)('(*35')/./.*-)(*)-0/2,-((,33:('((,( !((((((us");
+unpack(103, -14.68, 0.6452, "LRKNN:9KK@>=AB:8EACBJJL@N8LK9RK~K 3ECNWJ?;F?;?M?ec>ENNRL^G0?:IA;");
+unpack(104, -8.625, 0.3288, "G8eO.?<U0;D2E?=.~YC29HC 1.A@=6=CB,B59=/:87I7;?2;77CE,3A=@3:B/<@3");
+unpack(105, -7.706, 0.3174, "L (7D@:HPKIJG>C>I:CJ?5.3?KKMICDBMJNMB:;;\\c~i:/26*+/6<DGHHIJ=1%%)");
+unpack(106, -6.728, 0.2776, "S~YODEAp;!3//332o7(25?:= ..;=JEGujLSWcc^.GKODA.)>(:345.5bfWZYV\\d");
+unpack(107, -11.22, 0.6551, "4432-*431330.1/(3441/22045666--3t\\_b_i~s//05?( )EDELIF=B78989965");
+unpack(108, -7.82, 0.2683, "QK]s~zVsED@9AFA.A?CI>A2I@?=?B@B>A@;?;<=G=6>@HH5<>>>FAaCC=;?4[ S4");
+unpack(109, -12.7, 0.3592, "DnGLA<>d>HFIGUI:~cDDMID7/@EZEIPT KGNLONYFPCFMSKDCFDDHB.XFECD==I8");
+unpack(110, -16.27, 0.5829, "E=@CFA V<::B><5<@=:6:E;4=<>9;79?:968<?<5<<?AEFi~;ERK=115<?BA=88;");
+unpack(111, -25.14, 0.9464, "E:::;?O@:;;=::DF9:;;=<94:::::5A_:;:;::;=<<;<9~67 .9;;:::K=;::;::");
+unpack(112, -5.581, 0.3896, "2BEDEzSN)1;078-0010001+/)5689SrY98778;Dm&!0/.-.!.-.../- ...../.~");
+unpack(113, -11.36, 0.5433, "7356889M>ABDHJKKCEEFFHHFILGJLLKMZ\\Z[[^\\\\~<?<BCDHJJHGFGGJ$#\"! !#%");
+unpack(114, -4.768, 0.3613, "S4;;<<9N214:697-*+0-131%23//00.*+132/.( }~k[a\\Y:.224<??=$$!$PhbU");
+unpack(115, -5.419, 0.5142, "0$I-+*.=/'7)(0)&+~B*++$*/-r2/+).*-2-/.'(/&+#'</*-2H-*)+*+& +**-+");
+unpack(116, -4.625, 0.2562, "k$.J\\LL75 03;848D++3>NXR68%!>?>4?8,&-=D01&6~qvvy,.<Jf^H45>>ACE<=");
+unpack(117, -10.02, 0.6832, "/8975444NNRPOONNOQQOPPQQZ\\YZYYZ]PRQPQPMA64310/./~ !!   !QTTSTSTS");
+unpack(118, -5.33, 0.5475, "E;46\\6~2*'(+(**)+((*'*(&1,/.&+W.*-)*)**, +'+%(((')()***)+^+*)***");
+unpack(119, -12.8, 0.4919, "SCFGCEGG?8==?AC<bGKLPHGINYT[YQTUZZO\\a\\^e>9=;?12+~ -03546FDHGEFGJ");
+unpack(120, 0.6551, 0.1616, "4}\\ZE =t\"15Ye-GBsY%dy%P&&m-~%\\^jSvSINVZI}'^NW[%Rl1aJ_/cMS)$E,L/5");
+unpack(121, -8.615, 0.2378, "ZVRRPNHIMPWae\\]~JOZ`_T[r?AIXgins96>NQLXw<A<,&. *NS^cjgYQZUSPQQU[");
+unpack(122, -10.44, 0.3359, "MOKCBBECzl_LMLQTsgbUSQUWc]TXVWZ]{~jeab_[6%.A@7* 35665431d^Z[^[]c");
+unpack(123, -7.551, 0.2828, "EB@DBB@QUCMacku^ZSUdgk_`_U]`cjhh~tt|y|z}gfD5NJCB][\\YWWXY$!   !#%");
+unpack(124, 0.6262, 0.156, "[fI)=qsCQ0:'Z-{_EB%b2S.Bv\"PCc;Uodd)bF Rd|~.,Ig-hsBb?RpbbvW8[=JFe");
+unpack(125, -5.389, 0.18, "aS6kr^MZ@Vmg[VE=Icr_D+*,X\\c~D$54BP^S6 \",?QpbFRG6]XbJ;984^x]VD<29");
+unpack(126, -9.98, 0.2504, "X=PuZEU^Sr]bUJGP =~3Y+REKS8EICRMVKV;O>]DiqvJYMSIKJCGAD;O6XIOA_8B");
+unpack(127, -33.01, 0.5234, "hgc`]]^bjghgda__fffec`^^jijgddccuuusolki$\" &`_aaXXXX[ced~}{vnje_");
+unpack(128, -0.4672, 0.8563, "0<#'&(%#$#$\"W\"\"N\"\"\"##&kG\"~tddi$#G5#,'D1!'$#\"#  \"\".\"$]h^#%+))'','");
+unpack(129, 0.3959, 0.1642, "A@)`Um.DD31b!T`{ow,/;agE#7 ?ozki>^i0'(5~\\4^lWZ*{G/y:$~(tE|\\:?E[u");
+unpack(130, -8.251, 0.5018, ":|R>51&9F)*DEHIUD80%'',(07/;A5675@D39>6~5B=6963296GUE64=\"\"%(#\" \"");
+unpack(131, -3.322, 0.3562, "5+*)-4@K*--14622,.12435,23246;<*LSUXVRR=FFHLQ~zt@@?@BDEF386$# !'");
+unpack(132, 0.1135, 0.1689, "w B\"vD<CVo0j>oKPyGU:hB`N)I-Fe)<<7&l,>k.k^aJ;t]<3@d<=aL(et[IKn/~J");
+unpack(133, -14.95, 0.7205, "=23E<<<70357<97391688aUU6444J58H235AQ^N= 0287G76443;2335788~6655");
+unpack(134, -25.03, 0.6319, "R~iUNKFNGHIHHIHLDGHGDCGIKKHCIJIJHHHDBECJFGFFFFACHIGGI GEHHFEAPFC");
+unpack(135, -13.9, 0.3537, "KHGHKTbMGIKTX\\[eFJNSWY[VLIMNU_fgSU]ft}~~?@??@4) ]_adihhhJHC?=7:A");
+unpack(136, -45.51, 0.752, "kLRWZ\\]oFTUZ\\\\\\^ZSV\\^__`^bca^]]]_[^_^^^` #3PZ[[]WSTZ[]]\\~zwk`[Y\\");
+unpack(137, 0.7912, 0.2004, "T?52:@[2 .dK5W3Y`WmPIbYLRRN[WfB$J>g1bdI!iSfZ`BAp_Z]WWBCtnVsgy~mx");
+unpack(138, -26.47, 0.4334, "~ZW[co~k[Z\\d_delYZ^cdci_a]^aa^to\\Z]]_aih]_a^N #2el}\\ZY[]ZPJS[]aa");
+unpack(139, -7.553, 0.5296, "L4450?>9123122)16:=9469103:5.+ AAAGFAKI=16:4.%-~9<>>?CB=)))++*))");
+unpack(140, -9.02, 0.2757, "k=?C_7ZM:8D]w. NA=^oZQ8jCR`ifc\\fFei~uh_]CSAEUPeC`YEHCMHT@=>???>@");
+unpack(141, -28.75, 0.6756, "Ox~iRMKbKIJIKLKJIHHIJJKLOONIKKKLMLKIJJIIHHGGGHHIIM KIJKJKEdGKJJK");
+unpack(142, -10.11, 0.5396, "BSPNSLBE241.23+20341221/Oh44587:-2220111,0874622123532~ 34453/;%");
+unpack(143, -8.908, 0.304, "V;OK<;;mGOHAJP@:P[W[c`\\ZF*1bbC5GZUVt~kabD+% )*&.MOW\\YTPK&)'(+*)%");
+unpack(144, -0.4968, 1.059, "(~_\"!\"\")\"))\"\"\"! !%%$!E Z!!$$\"!!\"  \"!!!! +++,6.3&<fR!! !!#%#\"   !");
+unpack(145, -6.591, 0.3063, "HFBFABC8MbRTPQPNNTLNOPPS5)46:;EB~~|{trsnnn]XOF>9!%%$$$! SUUWWTUO");
+unpack(146, -17.34, 0.449, "T27>?@@LLBHIFHCFRCCFGJFGd~_MKJLMpk[SSTTR#  QSRML[RKGHGHHgdSMHFEG");
+unpack(147, -21.77, 0.474, "k~XNKLJOl^PRTKH>fYPXRMKIW`QKHHIKVXMSOJIH +@MJGHFONMFEILNXVUcd\\VU");
+unpack(148, 0.5719, 0.1636, "\"Ua*pv0.ug{)gmn)RK%;f@!mgOt;WKWEE?,aEURQ]bI6~i#q}x)V$}ZGka ]P,iw");
+unpack(149, -1.898, 0.6833, "/)+168;*5@9ACDE[$$$##\"###$###\"##$$##!!\"\"DPOE?#\"!N($\"!   ~$&&&'''");
+unpack(150, 1.742, 0.1548, ";~T|]v{RB%6_#AQ1KQFRZKyGJ(* Kj:W<_|G 3zp2miV8?x'ys*)~/+lS8yfC_Av");
+unpack(151, -3.075, 0.5975, "/##%(,*+&''**,-,$$&'(,+)(+,,-/,*,.//1311%%'*~lms##/3@FJI+,*(\"! !");
+unpack(152, -12.51, 0.5705, ":AFD942H=6577443<8:;96457:;=>==:A:<<;8;~!\"! X\\\\\\:;>=><>?DHPRSOLG");
+unpack(153, -3.673, 0.5959, ":2/+'&%8.,,*)(''+*,)('&&+,,+****CB?=4000eoz~''''# !&.-.,ah]L8'%$");
+unpack(154, -7.079, 0.3164, "S899:BU@NMORQPORKMLPPQOS]][]`cfgwuuz|~yt #(-4;C/\\[Y\\ZZZ_42-/..07");
+unpack(155, -7.191, 0.3264, "FLLOKJGBXX]\\VVYSY\\aaYTWVCBB>:179^bc`XW[[JNWeluz~EHJLLLJG\"!!\"#\"  ");
+unpack(156, -15.77, 0.484, "DCIRahoTFA=;8<9=B=;=7<;=CBC=@EDB@BA?=>A@7:;6.)57 B<CFEEC~BF@@@>?");
+unpack(157, -15.91, 0.6201, "=?CA935?>8<:;884<;;<;7568<::;=?<AFBFDA=@/*(# tv~EFGIIIFEORWXVUUR");
+unpack(158, -11.49, 0.7849, ";p ///0:?D//1014/2.202327J721001-0131113m~}+.///67960/./LTQG//01");
+unpack(159, -9.79, 0.7858, "8VME--,44210.-,+5430-,,,/.--..----.01/-!8=8600,*--..6~-,---&! +/");
+unpack(160, -3.69, 0.4342, "L (D><;5*%)++0/'W%*)++,*ER&&))()\\('(('!#)%1(8=cj(&&&&)~@*,+**,,,");
+unpack(161, -13.04, 0.4466, "?FFFJHF`C>@==;9<KMLNNKKI>;;9888?ABB>@;?>z|~ywsnke`b\\[VRQ !#(,G>8");
+unpack(162, -10.88, 0.3697, "GGLLGGH@BBCC=>@D<ED86>@L! /585=7!-9<>>EE~rhm~jT?OMLNPS41JGACFMFM");
+unpack(163, -18.32, 0.3524, "wGDIEINgVVWV[UZaKYWYYZZUe[_dg||~^`\\a]bk_]dhhV( 'TRRWTanlWWWYU_hn");
+unpack(164, -6.219, 1.198, "):>?:65/&%&&&&&'%%&&&%%%%%%&&%&%,.(&(&/5-''&&&&&'(~'&&')***)'$D ");
+unpack(165, -22.91, 0.4236, "{ZZY\\w~bXZ[^`b[8TTXY^^S ijmmrpjgWWZ_lpnobcZZZaaYsooplplnYXUUSTUY");
+unpack(166, -5.721, 0.5528, "9:=a]YW88?;=@?@?<;:;<;=?>ADD@@@>MjMspy~v25573,(%TSUUVUUR# !!!! \"");
+unpack(167, 1.179, 1.027, "*  `~\"#!\"\"#$##$$######\"!#$#$$##$*4*,'B2=$&'(('$#1598:62-\"\"\"\"\"#!!");
+unpack(168, -11.5, 1.28, "*8::9-./mlporq;;54555544!!!~z!! H3(0/.,<(('&&&''MMKJJJLL65555337");
+unpack(169, -6.371, 1.077, "+),(,1/,$%'&&*.)''))()(&%'&%(&% &%&%$$$#\"$'''~C1&&*24*&'&')./'&&");
+unpack(170, -15.56, 0.7327, "=65688]H68789:746457885777688973~klnhqog6878:K7 BXKABGYP45432553");
+unpack(171, -13.41, 0.3224, "mZTkWH!PAI`HT$O~DJJG=aA ILE>JG>NIHH?4S.2FLHEcJ/DES9n5REGKGOBQFLI");
+unpack(172, -10.7, 0.2591, "kMDO<1Z~GGLZFL1Qg)n\"p&| HCHIBTERR?S=LQGBELBGCv/d/f,g-f-aQ=Y:Z7X?");
+unpack(173, -5.496, 0.2464, "H{~qfUPwFCKKKGB/WJ>=301&,2,5<>ZX2TF@74DSX`J;2*&,`T?6</&& *E[`SMM");
+unpack(174, -17.48, 0.3148, "}TTUZ`ai^`\\^`bbaVVWY]bce^^`_`cglcegkloopYXXT:$ )pqnkbXIC]Z[aah~~");
+unpack(175, -15.93, 0.3197, "V~l^UOObbesQTOROkhiTNQPRg[RLQSUSe\\SKMPRPbgZ 8HKHSVWY\\WVQbgiqtqd[");
+unpack(176, -17.77, 0.3514, "xiy~XPDc EoVLORGOjTYDV@eX\\dV[TOPRQHUQXRWV_XQGQOQRUQQRQUPIdHWXDfF");
+unpack(177, -7.651, 0.4106, "87<<:973:;87331->;996436MLPRUXUSbsx~|yok*+.13425KKPXVYSG %2UTNM#");
+unpack(178, -5.428, 0.2434, "VAEJB?9nJNQY`pdJKU\\gnjibFJMRXd]eXclprx~z-+'$ 7?5EGNWZ[XT+*)$$$#!");
+unpack(179, -10.45, 0.3547, "QSROMHGkDCFEA@A==DC>>?DG#0@;>;=. +5442:5vgfiq~pW$*3NJHGEGGJGKGGG");
+unpack(180, -11.16, 0.6815, "EYQD001G814420/.?:5210/.3246556402243230BE>;532/4~510000, +/12/2");
+unpack(181, -5.39, 1.017, "()(((&&+ &&%%74B%8.*%'&'1?@9?CBH&&%%&&'*EJJ>&&&%&&&%%').))((''&~");
+unpack(182, -4.44, 0.287, "AQU4---LYP>9.,*&S);:62/,~U:42411bHA:4.*+23+%\"!  221/0/12AGKMOMHD");
+unpack(183, -17.34, 0.8762, ";TTR~}i6DEFFFFFDHGGGGFFEHHHHHHHHLUNTHFHk !\"\"####NNNNMNNNfffffffe");
+unpack(184, -11.0, 0.2412, "|>L/+79g RPYQTCOKaV[Q\\ifOY]fc`RbY^ok`[SU~yfILcPX>CFTWIA:ho_\\\\_pi");
+unpack(185, -2.353, 0.7698, "'30/.)'$''')&%$\"#$%$$\"\"\"\"#\"\"\"\"\"$$##\"\"#+\"W~h^8/'$ QDI\"##$4<>0(#\"\"");
+unpack(186, 0.8816, 0.1565, " Qp.aH{rq1m0a<(6Re5_~8)~w?q0$cV_SBQQ ^2)g$qf7~p{,3@\"MxtAG#O1M$)#");
+unpack(187, -4.36, 0.1818, "X^t~`@:y1LJ796R`6;4;>>@.=99<:7.0:<768@1381N:@E62862@#Z H7:;2I?B-");
+unpack(188, -9.915, 0.229, "uA 9,qs|]midf-cZWWQ|qiQJKTNJ7:$)`dg~cb@CTdXHTSLICNVTAAEOZT;;X[HA");
+unpack(189, -5.474, 1.078, "'%$$$# +7'%%%%$#*%%%%%&(~%%%&&&B($%%&''&&\"\"%0.4)'+1><6)'%%&&&&%%");
+unpack(190, -17.14, 0.3258, "bB?frA`~LElfF uXbVCbHa@yQdZPqZY^UVSWQ^PbQYGZPQ[Q\\J\\SO`GaP]OWYM_N");
+unpack(191, 0.07688, 0.1667, " uVje[$:#]k,qr.~+tr$M'~/P'VQ2{cMzeDJ[kDf.g`lHi.N;+'wL_M@?Q6E_l8E");
+unpack(192, -4.438, 0.9002, "2(*\"\"\"#')%%%#$$#*&##$%'&]bW&n~{r<&$$$&$% %$$'+--(,((((,)Q>0)(*5:");
+unpack(193, -9.988, 0.2691, "`6vNQDL{XDL?JbBBAOGGKJ@<GE]GUWRWDQPRS^US8 4TnP>8BCB@Hb~RPPJIC;8A");
+unpack(194, -36.9, 0.9543, "H?RSILPGRQMHILHHOWQPa^nkkFMKTOiMqbt~toS XIBGJNHTQQNRQROO]LLPTTU_");
+unpack(195, -11.75, 0.6978, "9ac~8781GLHDCGA=TQOOPOGBLLLMMOLO[fQOKOFK #?<:753,+,,--,+beeegddd");
+unpack(196, -61.91, 0.7623, "~oooqptz^ppqqrqrGqnqnnpsxtqrrst~ssqqpmpl louumpiqqqqqnmPprstusrr");
+unpack(197, -1.119, 0.6197, ",**$\"!\"2\"(''%$!!$,&$#\"\"\"$'('&#$#EKPYYWWT=>;#\"!!\"0/&#\" !&~++++,,/");
+unpack(198, 0.7424, 0.1616, "~>M $3>`XSci7rj#fyOHw{'FA8[84I@AnjhCA]|f;r3)Mnta%W3C>&7;+lU0bm8t");
+unpack(199, -9.706, 0.3849, "O989?EJ]<<?BFEGM647;BFDD>BCFJQODKMQX_bad9:;?H~yw# ,?JYZYBB?9-+),");
+unpack(200, -16.2, 0.3047, "WSQOJ@ uLPPOMNFFNQRROPIMTTTY[]ZWortsptw~vvrtvnuy{xvuttsyQX]`djj\\");
+unpack(201, -8.419, 0.2637, "]c((N\\QC?9QB:`XC96>`]lO;2= fv=HBD;>Zc_VN2@\\k}~ZVCHST\\UNFHNQQSUQJ");
+unpack(202, -22.08, 0.4719, "eJJLNPJ]GJMLKOMQMNPQPRQX`]]]`^j~`^bcegtwRRTXU\\[ =<<>>BFI]\\YYZ^fo");
+unpack(203, 0.1381, 0.166, "CSvEzOkYs7@Mnzd},AmA2LW$`vC!MPk*N~5&KG.N DWN`.v*jBgD~z~)'|XxBN;,");
+unpack(204, 1.466, 0.1542, "qrlb$4aO)<&(VCW |',XUGhhd-,lz-woD.9G{ `C3oXu6;YM5!}j\\WT7~ZJVvCKf");
+unpack(205, -14.47, 0.5785, "NF=;<<=?/51:89?Z45:=><BY6==;=9;~?9;:<;=I 9/.712&076::;9<`[P?==BK");
+unpack(206, -4.075, 1.081, "29;?C86--+%%%$%(5(('$$/+%%&&&%%%1<.42//);6//./34%$%',~b& ?;4012/");
+unpack(207, -5.78, 0.861, ",CA-/,9)mjwoqsfZ)''((6)))((V(&(T)\"& %:\"'&%%&'+++>~,,.-,-%W%Vgjt'");
+unpack(208, -0.6098, 1.467, "+  !!\"#)!!!!!\"!\"    !!!!!!!!\"\"!!ft~svvwj !  1447\"\"\"\"1AIH%)&%%!  ");
+unpack(209, -70.24, 0.8671, "x~trsuxwpwutswyw tuutsvvjcoonmloObqtrruyr|qonttpqqnaoqqqrrtwvsss");
+unpack(210, -14.27, 0.9017, "6'11121A /59HUUN\\:52012E-oQSNNI4@E8=DOW~G;5./01115:;:862[110001\\");
+unpack(211, -10.34, 0.2555, "o,<a`*W\\ VsQ,!lSNC5AQF0~LRHGbIWSEDFCY@MmHB@DP2h2Q7Z7W<SABU<W:U?N");
+unpack(212, -2.442, 0.6899, "3c{ \"$s)*(*'$%&5$$$$#&&Y$$%&&&%%#$%%$%$%J'*$\"$%:'*)&$$##Q~hF%##$");
+unpack(213, -18.9, 0.3685, "]]__ZUSfQTXTRSRRMSYVWXYTZYUWXYXTTW[^_b^Zg' %aKMJOTTbx~ykXU[WPFFL");
+unpack(214, -9.488, 0.3078, "EG[qMKCQ <D:>;31g~;FFIIH21;NB97C?79=6?7:>=ID@PI\\5/>]F;89C@IPMECD");
+unpack(215, -5.576, 0.3698, "U351221LD<@<@>=6B??9?;50lc\\VD@A8~{wpi\\SHGC?@=@>> ! !!!!\"EIJJIJID");
+unpack(216, -3.006, 0.4108, "2XxYZ,+F(*+,**&+)**,(&$%%$$'*)()&(')'$$#**,,*'*''''+~+'''((#D ))");
+unpack(217, -14.4, 0.3184, "^86XPEF~7>gW7BEG=g#p m8_RKTJUXOZ_HLQ?i=VS<OJ9{2oFW@[?[ETTDVDVDUE");
+unpack(218, -5.28, 1.164, "*:<A51.(%$%%%$%%%,%%%%%$%%%%%%%%.%%%&%6?/)'(' !/$$$%%%e~%&&''%# ");
+unpack(219, -15.13, 0.3074, "WMUOZ5uvQMQRTUGGv2q.y ~#QQPRKWJ]ZI]D[GXQSMVJU^2l<l6l5m5kQSLWKXLT");
+unpack(220, -19.92, 0.8318, ">+/45778!546;;9<&404456879;>>AAA;58:9:;=~0, 8:9888765778BA@=9ACE");
+unpack(221, -10.71, 0.6496, "8668:97>:;<>AUCU\\]]^^[XYxx}{{J~xeffifHcj,,,,/4<:addfcca`! !!!   ");
+unpack(222, -3.637, 0.7248, ".''>JA?6'(((('('&&('((**&'''&%%$6@;=C=>>GGFB=;97t~_:5310  \"#&(+(");
+unpack(223, -5.131, 0.2339, "IGEHLJ};=GMV\\DF~%5>Ca*7K/8=73L3q $/3B<?@4MEO]OIhBAOOeK=8...25/10");
+unpack(224, -3.496, 0.3058, "414fbzR70//,301-6&$(1-,;/.//,%'()%#,/+-.#)/21p32,. R$-.+++3~2+,*");
+unpack(225, -12.03, 1.023, "/GA9+++33,,,,+++11-,,+,+--/0///.,,,,,,,,x~33-/,+v/,,,,,, ++,,,,,");
+unpack(226, -12.26, 0.4431, "\\>ACCCER:????=<:<A@>?AB>9=@>>==>;<>=>@A>pv{~qd`a\"! !GSPG<=?@KMLL");
+unpack(227, -8.299, 1.053, "7~'(((().72)('''027;'''&/(/..(0/()*)-),'53(((('%((()?KYm(()'$#\" ");
+unpack(228, -13.01, 0.3995, "hJLLYYSF9><35BJNJJIGK[~zKFC;ENaVOOJEJ\\xxIC=5* ;;CMSYXSMD;9::<:::");
+unpack(229, -18.14, 0.6395, "T^C998:J:<>;<>8?@?@:<8=<^BA>=><>E@>=><<@6~M>;6:<<>=:;=o2;<<886 6");
+unpack(230, -8.912, 0.3156, "D7;7Dc~R6887KVS32<;AGl18B@@AJDXN<;<<BCA?@:BALI07A\\;^@>F<;B D89<;");
+unpack(231, -11.52, 0.2767, "ZSTRRVVlcWRQLMIJXKKRQPJISOKLNLKQtpxzxshbmn~rv *)`[[`][VW\\^k{wjDD");
+unpack(232, -15.98, 0.8874, "<,,679:6.5311;4)123435356432J2UO?BACQFWZ503.0.') 1457655~5566757");
+unpack(233, -10.85, 0.3722, "F~j[=8<D>6CDB:;@:G;=:@==FAC>??<==A=>=?=;nf`Q<<=?=>>A?>>>A3_ ],H6");
+unpack(234, -5.983, 0.2063, "mLgj\\;*sAA^_Wp1@8 6@X_I1?E(broJJ=%&CW_F?=?Tfp~aL:35G[mhW=1:>FV\\K");
+unpack(235, -11.3, 0.2849, "s|?@=NFz+K~f @LN K{>Q:W=KFPQGMCICLTKKGJHDV\\PIDEDJAM@R=QCS=S9\\5[8");
+unpack(236, -10.03, 0.375, "`ANE--2@=JWRH?7/CPaOJIA9JDQ\\VOFE8DQJC>, $%\\~M>/09@DILHD::41.-.28");
+unpack(237, -21.17, 1.093, "?334459<3222224844443233322223332111100/33333r{~ !%45ACI22235675");
+unpack(238, -13.7, 0.478, "Z?AAAA@YQQRPPPPPRRRQQQRSVXYXWXWVz{||{||~8:99::98\"!!!   \"^_^^^^^^");
+unpack(239, -7.528, 0.5736, "I2335327--...065.0/00033GJIGGHFI2~mflc`_-../-**'V\\]d*$ $CFFGA@@>");
+unpack(240, -18.43, 1.009, "@FFF@::63C3DUYg2 3333<2212232%+,15444543 12JWS9_5544432m1122224~");
+unpack(241, -8.207, 0.3564, ";FXXTDFT55299B@7<10:4. 2<=>=?AC>873960588679*2:758.~47:3==125<=;");
+unpack(242, -27.81, 0.4446, "i`eanLbczuk`iba]xpq\\hmegmkyoYRng~x~pkhnlKTw QgotYXWWWXXVfflllmhg");
+unpack(243, -63.26, 0.8333, "uqtqsmsromnqnnmjllqsqnmtlqtxxotnmorxvrtrhif6 nlgkjkkmnpmkllmqw~|");
+unpack(244, 0.1012, 0.1671, "cq>67*H_wcoI]+G1cogeZT%8I30$AqDzRYe HP{KAWY#5J6#zP`HrN[4`a5~#D0U");
+unpack(245, -21.95, 0.6876, "Bqwy~~JE^^^bbcdZe`[a`aciWUX1WVZY ltqxg_X643220/*qgdehefpaopsokj^");
+unpack(246, -13.14, 0.4212, "N=??@=3XCFFFCHNT>FCEE?FaQVRSQVR~kholpqx}JMPTQQ. [\\a]_c^Z9;;<=<<:");
+unpack(247, -20.42, 0.4286, "`XURNNMomkgad```fhd`c``bomjeghjf~|{wvuut# )C[pxw76799889rttttruw");
+unpack(248, -6.914, 0.3082, "X)-,.13KWMPMNOQT~vbWOKOOC>FHGFKM_]YY[^`^_`EOKQLL!)-,.+) QPQUUQMM");
+unpack(249, -20.35, 0.4028, "mPPONB?aQUSUVSORTUVUSNKPXWXZWYXXprutooo~``_]1 (0aacdefmpPMONPTle");
+unpack(250, -0.4633, 0.8248, ".ZmtsZ''\"\"####\"#!!!\"\"\"! !! !!!\"\" #$&&#\"!>&%%%%#%   $%&%$!!!CVry~");
+unpack(251, -0.4761, 0.8879, "*6<VYWL*!\"\"\"##\"\"   !!\"!!      !  @!!!! !\"#$%$$$$#%&$\"!!  ~s~   !");
+unpack(252, -8.223, 0.5437, "DC<9::4//L51-.7,2>537040w1~0aS27R13/6D36>APBD0+)qo123322 3343234");
+unpack(253, -25.22, 1.152, "66678;A=66655545666555566666556655544466666655~z678766( 666667<B");
+unpack(254, 1.629, 0.1633, "Eg5yhYZ>`\" LN@//`8r?^QUoEPc\"6bJP:IpImTZ9..hU{Ypp})k1YE\\caPDX5~4N");
+unpack(255, 0.2934, 0.1583, ",X=yFKG?K{N;N*2k'?g.w4 -In*XI,G}6n\"kzomjWu~]V6SmSt5nq=}a-Ys]M.J=");
 
     // Zobrist keys
 #ifdef OPENBENCH
