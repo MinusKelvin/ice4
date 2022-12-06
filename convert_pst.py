@@ -1,38 +1,28 @@
 #!/usr/bin/python3
 
 import json, math
+from scipy.optimize import least_squares
+import numpy as np
+
 with open("0-45.json", "r") as f:
     data = json.load(f)
 
-def dump_string(piece_data, stuff):
-    smallest = float("inf")
-    largest = -smallest
-    average = 0
-    for value in piece_data:
-        smallest = smallest if smallest < value else value
-        largest = largest if largest > value else value
-        average += value / len(piece_data)
+def quantize(vector):
+    smallest = vector.min()
+    largest = vector.max()
+    scale_factor = 94 / (largest - smallest)
+    values = np.around((vector - smallest) * scale_factor)
+    unquantized = values / scale_factor + smallest
+    return smallest, scale_factor, values, unquantized
 
-    scale_factor = max((largest - smallest) / 94, 1.0)
-    print(f"unpack({stuff}, \"", end="")
-    for value in piece_data:
-        c = chr(round((value - smallest) / scale_factor) + 32)
-        if c == "\\" or c == "\"":
+for f, r in zip(data["files"], data["ranks"]):
+    v = np.concatenate((np.array(f), np.array(r))) * -12.65
+    smallest, scale, quant, unquant = quantize(v)
+
+    print(f"unpack({smallest:.4}, {1/scale:.4}, \"", end="")
+    for v in quant:
+        c = chr(int(v) + 32)
+        if c == "\"" or c == "\\":
             print("\\", end="")
         print(c, end="")
-    print(f"\", {scale_factor:.4}, {round(smallest)}); // average: {average:.0f}")
-
-scaled = [v[0] * -160 for v in data["pst.weight"]]
-
-dump_string(scaled[0:64], "0, PAWN")
-dump_string(scaled[64:128], "0, KNIGHT")
-dump_string(scaled[128:192], "0, BISHOP")
-dump_string(scaled[192:256], "0, ROOK")
-dump_string(scaled[256:320], "0, QUEEN")
-dump_string(scaled[320:384], "0, KING")
-dump_string(scaled[384:448], "1, PAWN")
-dump_string(scaled[448:512], "1, KNIGHT")
-dump_string(scaled[512:576], "1, BISHOP")
-dump_string(scaled[576:640], "1, ROOK")
-dump_string(scaled[640:704], "1, QUEEN")
-dump_string(scaled[704:768], "1, KING")
+    print("\");")
