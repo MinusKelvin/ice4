@@ -1,14 +1,18 @@
-int16_t PST[2][25][SQUARE_SPAN];
-int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int16_t FT[25][SQUARE_SPAN][12];
+int16_t BIAS[12] = {-57, -122, 220, 251, 163, -6, 87, 112, -16, -192, 159, 270};
+int OUT_W[24] = {-54, 65, 52, 71, 72, -72, -199, 51, 121, -152, 69, 69, 56, -65, -49, -67, -79, 72, 197, -53, -119, 151, -70, -69};
+int OUT_B = 1382;
 
-void unpack(int phase, int piece, const char *data, double scale, int offset) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
-    for (int rank = 0; rank < 80; rank+=10) {
-        for (int file = 0; file < 8; file++) {
-            int v = (*data++ - ' ') * scale + offset;
-            white_section[rank+file] = v;
-            black_section[70-rank+file] = -v;
+void unpack(int neuron, double base, double scale, const char *data) {
+    for (int r = 0; r < 48; r++) {
+        for (int f = 0; f < 16; f++) {
+            double r_value = (data[r] - ' ') * scale + base;
+            double f_value = (data[f+48] - ' ') * scale + base;
+            int rank = (r % 8) * 10;
+            int file = f % 8;
+            int color = f / 8 ? BLACK : WHITE;
+            int piece = r / 8 + 1;
+            FT[piece | color][rank + file][neuron] = r_value * f_value;
         }
     }
 }
@@ -29,25 +33,24 @@ uint64_t rng() {
 }
 #endif
 
-uint64_t ZOBRIST_PIECES[23][SQUARE_SPAN];
+uint64_t ZOBRIST_PIECES[25][SQUARE_SPAN];
 uint64_t ZOBRIST_CASTLE_RIGHTS[4];
 uint64_t ZOBRIST_STM;
 
-
 void init_tables() {
-    // Piece-square tables
-unpack(0, PAWN, "$!!&'$ !3EA=?NQ88FEBFFS<7DGKMKJ9<LJQSRO;AUYec`TAtlr~t[5N# &%'!!'", 1.602, -6); // average: 50
-unpack(0, KNIGHT, "FHKKLHIDFGNNORLJJRSWVUTMRWXXZ[[WXXac`f]^Yiks~zp]QTfrktU\\ /8Pl\"96", 2.074, 135); // average: 244
-unpack(0, BISHOP, "OPMLIKJOZ[XRUWZSW_\\\\Y\\]W\\Z_dd][\\X[gnlj_]Tjhxx~rfWY^[`ed[C;C1G AP", 1.538, 177); // average: 265
-unpack(0, ROOK, "-4<?C9:4!*03421 )0-.31:./17:=:<8<BIRVRPHIY[kwqoYXWm{wx_hqsy}|}|~", 1.258, 267); // average: 322
-unpack(0, QUEEN, "\")+-)%, .0513891040005;92//-345:9/45<>9E8B:HL[VOB*;9<UDN3I`dl~XJ", 1.021, 671); // average: 699
-unpack(0, KING, "BGC5;6JLD=4++4=C02%#\"%/-+-+)''*!/4/5/0.$550841*,D06<5. 4~ejbSQR[", 2.548, -68); // average: -7
-unpack(1, PAWN, "!#\"#\"!\" IJIJIIJGFHDEEFGDHJECDEJFOOKHHIML_a[UVW`Zy}vlmv~y#! # ! #", 3.803, -5); // average: 142
-unpack(1, KNIGHT, "*3GMMJ:'@XX__VUBJ]enne`NZguuwuh[]ovz~xtb[gstloh\\O`fjla`O fpf]td&", 1.519, 326); // average: 419
-unpack(1, BISHOP, "*6 6635\"9?IEEAA2@OWXWRH@=O\\^\\YN9>[T_aZ[CIQZORUWD:WSYRSQ<UUX^Z`SI", 1.0, 431); // average: 474
-unpack(1, ROOK, "/:::553 37==;3,,9@EEA?40JQROJJD>V^\\VQRPL^Y[SKNKP\\b]ZYQXPNSQQQOMH", 1.0, 727); // average: 767
-unpack(1, QUEEN, "@2*'*\" 58=5:6-%7@DOILJD;EW[ja_WSLclrvpqZReptvwpbOotz~oua\\`YYWSdd", 1.795, 1420); // average: 1513
-unpack(1, KING, "+./*%-+ 08>BB=6/:BIMMIA;CLRUTRMEMZ][]]\\QYjlegmo^Svqikr~[-UWWZ]`4", 2.156, -90); // average: 9
+    // Feature Transformer
+    unpack(0, -0.994, 0.33, ">F:%!!!%\"%$$\"   67101111$$\" !\"\"#npu|~}~|/75/+)(+#\"\"!!!%$RPPNMNRV");
+    unpack(1, -9.467, 0.2691, "~YSNPRNYIJPSZ[btFFKTZQRdLHFKWalpNPTbhepz .0;K>7;MNU[[UMKTQONLLKR");
+    unpack(2, -10.59, 0.3815, "GDCCEFH`SVY\\[ZYXW[^^^^__xz|}~{y|38>AA><>8?FHJOMIQSTSSSSQ\" !!! !\"");
+    unpack(3, -10.59, 0.3727, "U?==>@@KOMLMNMNNNKKJJIIIhigfedde}}|||||~ %+1;>?>\\\\[[\\[\\\\!!!\"\"\"\"\"");
+    unpack(4, -10.21, 0.4726, "J578887QKIILLNOPIIHJJKKMQPPRSTTT~{yzz{|}LKJLMPQOONONNNNN !!   \"!");
+    unpack(5, -8.451, 0.2489, "m~|`O:;[VSVOIIDIPPSKD<48XLPOQRVRo\\^VRNSS =^SIKNQPKKGD@88+,5AILIQ");
+    unpack(6, -8.289, 0.2326, "Ihji[TY~WVaVYRK?IRYZWXNKY_ZUPPPLcb^[X^XVshjYE6- =89:;@AHSWVUTYYT");
+    unpack(7, -8.727, 0.3344, "h?AADFGCMKIFIORUONKKMPVU^\\]]aacdqrqpu{~|GDAB/(*-`^^]\\[\\^ !\"!\"\"!!");
+    unpack(8, -20.93, 0.361, "sUUPG: qiifgg_[Dryuvstmo_\\]^]\\Y\\Yde^WVPV~vndY@6FggfffhhkYYYXWYWV");
+    unpack(9, -2.235, 0.2273, "1Q5'%'(1$./+((((&1-+++,+( \"!!! #V\\_a_UTU~~pkinw}*)*,,))*ZXVVUTX\\");
+    unpack(10, -4.796, 0.1804, "c^]]\\PF~;9<=;-, ;6<9531=TUPLGJKCNB><:6<:25=8(,)!Z>=78>F}(-8<97/0");
+    unpack(11, -7.075, 0.3292, "V:::BPUN41431:788:9886A28879886,3-,+*&' 4286@[e~FFA:6,(!;>=83.(,");
 
     // Zobrist keys
 #ifdef OPENBENCH
