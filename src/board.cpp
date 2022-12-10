@@ -240,32 +240,36 @@ struct Board {
         // bits 2,3 = black pawn attacks
         // bit 4 = white passed square
         // bit 5 = black passed square
-        int PAWN_STRUCTURE[120] = {0};
+        int pawn_structure[120] = {0};
         for (int file = 1; file < 9; file++) {
+            int kind = BLACK_PASSED_SQ | BLACK_OUTPOST_SQ;
             for (int rank = 20; rank < 90; rank += 10) {
-                PAWN_STRUCTURE[file+rank] |= BLACK_PASSED_SQ;
-                for (int i = -1; i < 2; i++) {
-                    if (PAWN_STRUCTURE[file+rank+i] == WHITE_PAWN) {
-                        break;
-                    }
+                pawn_structure[file+rank] |= kind;
+                if (pawn_structure[file+rank] == WHITE_PAWN) {
+                    kind &= ~WHITE_PASSED_SQ;
+                }
+                if (pawn_structure[file+rank-1] == WHITE_PAWN && pawn_structure[file+rank+1] == WHITE_PAWN) {
+                    break;
                 }
             }
+            kind = WHITE_PASSED_SQ | WHITE_OUTPOST_SQ;
             for (int rank = 90; rank >= 30; rank -= 10) {
-                PAWN_STRUCTURE[file+rank] |= WHITE_PASSED_SQ;
-                for (int i = -1; i < 2; i++) {
-                    if (PAWN_STRUCTURE[file+rank+i] == BLACK_PAWN) {
-                        break;
-                    }
+                pawn_structure[file+rank] |= kind;
+                if (pawn_structure[file+rank] == BLACK_PAWN) {
+                    kind &= ~BLACK_PASSED_SQ;
+                }
+                if (pawn_structure[file+rank-1] == BLACK_PAWN && pawn_structure[file+rank+1] == BLACK_PAWN) {
+                    break;
                 }
             }
             for (int rank = 20; rank < 100; rank += 10) {
                 if (board[file+rank] == WHITE_PAWN) {
-                    PAWN_STRUCTURE[file+rank+11] += 1;
-                    PAWN_STRUCTURE[file+rank+9] += 1;
+                    pawn_structure[file+rank+11] += 1;
+                    pawn_structure[file+rank+9] += 1;
                 }
                 if (board[file+rank] == BLACK_PAWN) {
-                    PAWN_STRUCTURE[file+rank-11] += 0b100;
-                    PAWN_STRUCTURE[file+rank-9] += 0b100;
+                    pawn_structure[file+rank-11] += 0b100;
+                    pawn_structure[file+rank-9] += 0b100;
                 }
             }
         }
@@ -277,6 +281,24 @@ struct Board {
             mg += PST[0][board[sq]][sq-A1];
             eg += PST[1][board[sq]][sq-A1];
             phase += PHASE[board[sq] & 7];
+
+            if (pawn_structure[sq] & WHITE_ATTACK_MASK
+                && pawn_structure[sq] & WHITE_OUTPOST_SQ
+                && board[sq] & WHITE
+            ) {
+                // protected, passed
+                mg += MG_OUTPOST_BONUS[board[sq] & 7];
+                eg += EG_OUTPOST_BONUS[board[sq] & 7];
+            }
+
+            if (pawn_structure[sq] & BLACK_ATTACK_MASK
+                && pawn_structure[sq] & BLACK_OUTPOST_SQ
+                && board[sq] & BLACK
+            ) {
+                // protected, passed
+                mg -= MG_OUTPOST_BONUS[board[sq] & 7];
+                eg -= EG_OUTPOST_BONUS[board[sq] & 7];
+            }
         }
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
