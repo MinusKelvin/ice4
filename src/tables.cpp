@@ -1,5 +1,7 @@
 int16_t PST[2][25][SQUARE_SPAN];
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int MG_OUTPOST_BONUS[] = {0, 0, 30, 20, 0, 0, 0};
+int EG_OUTPOST_BONUS[] = {0, 0, 0, 0, 0, 0, 0};
 
 void unpack(int phase, int piece, const char *data, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
