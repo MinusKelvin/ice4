@@ -243,6 +243,13 @@ struct Board {
             mg += PST[0][board[sq]][sq-A1];
             eg += PST[1][board[sq]][sq-A1];
             phase += PHASE[board[sq] & 7];
+
+            if (board[sq] == (WHITE | KNIGHT) && (board[sq-9] == (WHITE | PAWN) || board[sq-11] == (WHITE | PAWN))) {
+                mg += 20;
+            }
+            if (board[sq] == (BLACK | KNIGHT) && (board[sq+9] == (BLACK | PAWN) || board[sq+11] == (BLACK | PAWN))) {
+                mg -= 20;
+            }
         }
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
