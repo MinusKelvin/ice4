@@ -8,7 +8,13 @@
 #define ROOK 4
 #define QUEEN 5
 #define KING 6
-#define CASTLE_CHECK 7
+
+#define WHITE_PAWN 9
+#define BLACK_PAWN 17
+#define WHITE_ATTACK_MASK 0b000011
+#define BLACK_ATTACK_MASK 0b001100
+#define WHITE_PASSED_SQ   0b010000
+#define BLACK_PASSED_SQ   0b100000
 
 #define WHITE 8
 #define BLACK 16

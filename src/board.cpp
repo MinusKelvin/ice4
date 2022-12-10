@@ -236,6 +236,40 @@ struct Board {
     }
 
     int eval() {
+        // bits 0,1 = white pawn attacks
+        // bits 2,3 = black pawn attacks
+        // bit 4 = white passed square
+        // bit 5 = black passed square
+        int PAWN_STRUCTURE[120] = {0};
+        for (int file = 1; file < 9; file++) {
+            for (int rank = 20; rank < 90; rank += 10) {
+                PAWN_STRUCTURE[file+rank] |= BLACK_PASSED_SQ;
+                for (int i = -1; i < 2; i++) {
+                    if (PAWN_STRUCTURE[file+rank+i] == WHITE_PAWN) {
+                        break;
+                    }
+                }
+            }
+            for (int rank = 90; rank >= 30; rank -= 10) {
+                PAWN_STRUCTURE[file+rank] |= WHITE_PASSED_SQ;
+                for (int i = -1; i < 2; i++) {
+                    if (PAWN_STRUCTURE[file+rank+i] == BLACK_PAWN) {
+                        break;
+                    }
+                }
+            }
+            for (int rank = 20; rank < 100; rank += 10) {
+                if (board[file+rank] == WHITE_PAWN) {
+                    PAWN_STRUCTURE[file+rank+11] += 1;
+                    PAWN_STRUCTURE[file+rank+9] += 1;
+                }
+                if (board[file+rank] == BLACK_PAWN) {
+                    PAWN_STRUCTURE[file+rank-11] += 0b100;
+                    PAWN_STRUCTURE[file+rank-9] += 0b100;
+                }
+            }
+        }
+
         int mg = 0;
         int eg = 0;
         int phase = 0;
