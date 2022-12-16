@@ -49,11 +49,12 @@ struct Board {
     uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
+    uint8_t active_bishops;
     int16_t mg_eval;
     int16_t eg_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0),
-              stm(WHITE), phase(24), mg_eval(0), eg_eval(0)
+              stm(WHITE), phase(24), active_bishops(0b1111), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -74,11 +75,17 @@ struct Board {
         mg_eval -= PST[0][board[square]][square-A1];
         eg_eval -= PST[1][board[square]][square-A1];
         phase -= PHASE[board[square] & 7];
+        if ((board[square] & 7) == BISHOP) {
+            active_bishops &= ~(1 << (board[square] & WHITE) / 4 + (square + square/10) % 2);
+        }
         board[square] = piece;
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         mg_eval += PST[0][board[square]][square-A1];
         eg_eval += PST[1][board[square]][square-A1];
         phase += PHASE[board[square] & 7];
+        if ((board[square] & 7) == BISHOP) {
+            active_bishops |= 1 << (board[square] & WHITE) / 4 + (square + square/10) % 2;
+        }
     }
 
     void null_move() {
@@ -246,7 +253,19 @@ struct Board {
     }
 
     int eval() {
-        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
+        int mg = mg_eval;
+        int eg = eg_eval;
+
+        if ((active_bishops & 0b1100) == 0b1100) {
+            mg += BISHOP_PAIR_MG;
+            eg += BISHOP_PAIR_EG;
+        }
+        if ((active_bishops & 0b11) == 0b11) {
+            mg -= BISHOP_PAIR_MG;
+            eg -= BISHOP_PAIR_EG;
+        }
+
+        int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
 } ROOT;
