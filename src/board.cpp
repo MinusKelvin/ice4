@@ -49,7 +49,7 @@ struct Board {
     uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
-    int16_t accumulator[2][12];
+    int16_t accumulator[2][NEURONS];
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE)
     {
@@ -72,13 +72,13 @@ struct Board {
     void edit(int square, int piece) {
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         int flipped = (11 - square / 10) * 10 + square % 10;
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < NEURONS; i++) {
             accumulator[0][i] -= FT[board[square]][square-A1][i];
             accumulator[1][i] -= FT[board[square] ^ INVALID][flipped-A1][i];
         }
         board[square] = piece;
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < NEURONS; i++) {
             accumulator[0][i] += FT[board[square]][square-A1][i];
             accumulator[1][i] += FT[board[square] ^ INVALID][flipped-A1][i];
         }
@@ -251,13 +251,13 @@ struct Board {
     int eval() {
         int value = OUT_B;
         int black_first = stm == BLACK;
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < NEURONS; i++) {
             int v = accumulator[black_first][i];
             v = v < 0 ? 0 : v > 256 ? 256 : v;
             value += OUT_W[i] * v;
             v = accumulator[!black_first][i];
             v = v < 0 ? 0 : v > 256 ? 256 : v;
-            value += OUT_W[i+12] * v;
+            value += OUT_W[i+NEURONS] * v;
         }
         return value / 64;
     }

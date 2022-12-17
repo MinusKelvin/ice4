@@ -1,19 +1,16 @@
-int16_t FT[25][SQUARE_SPAN][12];
-int16_t BIAS[12] = {309, 117, 44, -25, -183, 279, 164, 243, -67, 207, 17, 179};
-int OUT_W[24] = {-141, 113, 149, -65, 61, -53, 92, 12, -55, -64, -84, 34, 122, -132, -151, 68, -64, 53, -88, 9, 54, 64, 83, -38};
-int OUT_B = 2767;
+#define NEURONS 8
+int16_t FT[25][SQUARE_SPAN][8];
+int16_t BIAS[NEURONS] = {169, 155, 20, 72, -50, 3, -7, -12};
+int OUT_W[2*NEURONS] = {-65, -84, 91, 115, 59, -72, -45, 77, 64, 85, -92, -163, -59, 75, 46, -74};
+int OUT_B = 6554;
 
 void unpack(int neuron, double base, double scale, const char *data) {
-    for (int r = 0; r < 48; r++) {
-        for (int f = 0; f < 16; f++) {
-            double r_value = (data[r] - ' ') * scale + base;
-            double f_value = (data[f+48] - ' ') * scale + base;
-            int rank = (f % 8) * 10;
-            int file = r % 8;
-            int color = f / 8 ? BLACK : WHITE;
-            int piece = r / 8 + 1;
-            FT[piece | color][rank + file][neuron] = r_value * f_value;
-        }
+    for (int i = 0; i < 768; i++) {
+        int piece = i / 64 % 6 + 1;
+        int color = i / 384 ? BLACK : WHITE;
+        int rank = (i / 8 % 8) * 10;
+        int file = i % 8;
+        FT[piece | color][rank + file][neuron] = (data[i] - ' ') * scale + base;
     }
 }
 
@@ -39,18 +36,14 @@ uint64_t ZOBRIST_STM;
 
 void init_tables() {
     // Feature Transformer
-        unpack(0, -13.6, 0.2834, "fjidejniPOPQQQPPRRRPQQSRKKLLNNLKJOUWXVSKwyy{}}~zOIIB8, )SV\\ZX[aa");
-    unpack(1, -16.07, 0.3733, "QMLYUOW^\\]Z\\\\\\^\\VTZ\\[[WUZUSPPOQS~zyyxxuw &,13991INQRTVUMHABDFGIL");
-    unpack(2, -7.454, 0.3152, "<C>:6A<9PSWWWXVT\\`^]]]_]`egkklidvy{{}~~}jg`WUUZ_LLMMLLMM \"#%(('%");
-    unpack(3, -15.16, 0.4864, "CCCBCCCCNOOOPPONMNNOOOONZZZYYZZZ}~~~~~~~hhhiihgf%$\"!!! !cbbbbaab");
-    unpack(4, -9.704, 0.3308, "EBBAABACHHHGGGGGKJJJJIIJba`____bqsssrqqpxy|~~|yxvvxxurpq$ !!  !\"");
-    unpack(5, -14.85, 0.2949, "g>}#~ j8WSVRUQROPRRUPSRSYQ\\LZH]LWSTSSOPJDEFHGJJERTTRPOUYcb\\]`a_d");
-    unpack(6, -6.992, 0.3199, "[Q^af]ZZ),,...,*0.---0//6554344320...---$''\"!$(&@<999=_~I).4643 ");
-    unpack(7, 0.341, 0.1647, "+REVzOGX~:k,:$b#7>Y[-5?j5cm4] Tkp/v`N2Zk){UFZ(M)[8^bo*EVLA2AjyWh");
-    unpack(8, -13.54, 0.346, "<AZt~g?5h\\ababSd<4>IJ<6Bf\\TGEQ[sHBBJHCEM 2A]fM:5BHGFFGGBTRRQQNMP");
-    unpack(9, -12.81, 0.4009, ">??CA;<?BB@AA>A?FEEFEFCFA?@AA>?@||}~}||} \"',--&$*168>CB5VGFLQSX^");
-    unpack(10, -12.52, 0.5703, "CHG95* (7596534627554508014669>>(+0159=@~wiD91#&66553-(64003321,");
-    unpack(11, -11.98, 0.967, "/0////0.8776666777666677;::9999;CCBBBBCC2234443398789:::@~H&#!  ");
+    unpack(0, -218.8, 5.032, "LJMLLKMLHKIAADHGJJJDABGGIJHEBACDIIGBA?@AHHC?;:;@LJD>97;BMKJKLKMMHKGFEFHJGFEBABCEHDC>>>ADDB?;::<BDA><:;<ACD@=>=?>DAA?<@>?DD<;<6:BFIPJIJKLHKIGFGJMHFFDCDFHGFDA@BCFGDE@?@BDFGEDABAEIHFCCBEFHECBCBCE:8;>??;<89:;<<;;:::;;;<>::::99:<9898778:766666775234341478999877*+.221.,*+-./1//)+*+*+,-*('&%&(*(&%$!#%*&%#$#$%'&!\"! %#($$#\"$'#\"`_^YYYZ[^\\YVSTUV]ZVSOOOQ]YUQMKJL[ZVPKGFH_\\VLEDCEdaXKCAAEe_WLGBALKKJLJJMJb_hY[Z`]YXXNLHMMUQQKHHJMQOOJJKLOONLOMPLQPNORQRNQJJLKJMJMW\\^\\Y_`XVWVWWVYVVSVVWXVWVXYZ[\\YVWXZ[[[ZWWWYZZXXXVXWXYWXXTVWXWYWUZ[[]Y\\WTVTVWVURTWUVUWVUTUWVWXXWUVVWWXVVTUUUXWVRTQSUVXTTRPTWWWWVQ_\\]\\]__`___^_^__a^`_``__a_a`a`_\\a`a`__^\\a_a_]^\\]a__^]]]]b___]`^^urtuvz~~qrsuwtvsqprsyusrprsvxwuqqqrsrsrqppqrrppnooprrpoopoqrqqppJBEOXZTNGCOT]ZZWKMRX__]WOSVZ^`]YQTVY\\][YRSTXZ[YVOPQTVUSRNOOONQPM");
+    unpack(1, -185.3, 5.983, "??@???@>:89<>?@=:89;>=?>979;=>>>979;=?@@9779=@CB977;BEGF>?@>>?@@<:89999;9678898987667898745567787555667877657798867669::>857789?>;8898:::86789:976567888755667787555677876666888987677:::876667:7754333375321221542221322211122200011111/0/00110-...//00/0111221/.*+((('-*(&&&%#*)%$$$$#)&#\"\"###'$\"!!\"#$'%\" !!\"$&$!  \"\"$&#\"\"!!!\"==>FJLPP::;CGKNO89;@FILN8:>BGJLO;<?BHLNP<=?BHLPQ==:@FOUXE>@EHORT@>?>?@??=><=KU~[678<BEKI99:=ABDE===?AADC?>?AA@BA??@ACABB>>@@=@>@FLMKHONMHHGHHGKGIHKIGGGGJHJHIHIGHIHHIHHIHHGHHHHHIHHHGGHGHHHGGGGFHJJIINKJFHIHIGIGJIIHGHHIHHHHIIJHGHHHIJJIHFHHHHJJGHHHHIIIHIIHIIJGMNNNOOPPMOOPPNOONOPOONNOLNNNOOOOLMMNOONOLLMMONNNLLLMNNNNNNMMNONMfgdcaa``hgdcb```gfgcaaabedcbbbacdcbbbbbbdcbaababdccbbbbbedcccdeeYYTSKKC@WbYSPHCBT[WRMHECQRQNKHFFLMLJHFFEHHGFDCCBFEDBAA@@DDC@??@>");
+    unpack(2, -202.2, 4.938, "JHIHHJJISOPNOONPRNPMONOPROQOQOQQRQTRSPSQSRUSURVSSTZWZXdWHJHHGIJKSVRRQQSSRSSRSRQQRRSRRSRRQPRRRRQQPQPPRPRQRQOPPOPPQQPPOPQQPQQQPTQQZVXVWTXXXXUWUVUWXVWUVVVUVVVVUVUWWUUTUTVVTUUTTTTVYUWUWUXUVWVYWZVXjhgfgfhhjigffffgjhhgggggkihghhiikhgfffhiifedcbdggecccbdecccbb`ca|{{|yy}~{|{zzxz}|||{{{{{}}|}|||||}~{|{~}|}|}|}}||}~|~z|}}|{{zy{}GHJMOMHGGJKMMMKKJKMNOOONKLMNOPOPKJKKLLNMJIKKKJIKLILLNIKHINLMNJHFHJGIHJHJ;EGKEEA=:AIKJHB>?DHLKIEACEHJKIGEEFHHIIGGDEGFGGGFIHGJJIJIFDDFHCBDHGFHFGDGIHHIJIHFGFHHIIGFFEFFGGGEDCCEEDDDCDCCCCCDCEBAABDD<??A@>>>A@CBCAA?BBCEEECCDBCEFCDBCBBDCCBDCABAAABB@A@@@A@A@=A?@A@?;9:9::9:;8:::::;:788:9::9677889964545567544334554443345565534555&&&('*-s' #!\"\"%($!!!!%%&%!  #\"\"$%! ! !\"#$\"!   \"#$\"#\"\"\"\"$%$%'$$$%NK?<NKKMKNKROLKNNMMRPMKLKLMONMLKLLLMLMMMLLLKKLNNNMMLLNOPNNOMMNPO");
+    unpack(3, -131.8, 2.953, "KNNNKLJMRUUPSSSPRTUPTQTPRRURUSTPUVXUYVXS[\\_]^\\\\X`]b`cX[TNPMKNOOJZW[[[ZYY[Z^\\]\\[ZZ]_`__^]^aaaaba_`bcdedcabfggiffaa`eheg__c^\\_cXY[aa``__`cdedbbbdbdeeedeeccdeggfddcdfhjggcdghhhkfeehgfgfieb`a_b]ac^`bbdceb^`babbc`bcbabbecbcdccdecbedeeffecedefgfedeegffdfghjjiiifnprsttussuwvvvwuvxxwwwxwwwxyyyxxxxx{zzzyy{||{{zyy|{{y{yxx|~~~{xva_[YUTUY\\[YVSSUTWWTRQPQPPSTSQONLNRSRSPNMQQSRTSQNUNVNSOTLWWSMTPSMKKMKJNLN/2/33<9?<97:;?>BCB@DBDCGGFEGFHGJHFFJGJFJHEEIHHFJPKNMOMJN0;@><BB<9:8775<<9545466:;:87689:=;:999<;?<::;;;<@?<=<=>@?A>>>?@?6>=?<@=7645876568442335887443557775454877656665765678768899::::63310011376667575:7766657;9877787::99998898999967<9898879:9765656#! !!!\"\"! !#%#%##!! $#$$$%$#$$$#$$$#$#%$$#$####$&%#####%*(&&%%$%SOTXPTSWQRPTQSOXUTSRSTW[XVUUVZZ]XWVXZ\\\\^TTWYZZYZMORTWVUTLLNQSUSP");
+    unpack(4, -288.9, 4.775, "]]]\\^[[[`\\[ZZ\\jg^]\\ZX[eg`_\\ZXY`cb`^\\YWY\\eca\\XVX\\ee]XRTRW[^^[]]\\[^`__`bc]_a`ba_dbbbabababbccbbbbbbddcccdbcadcbba_bccddc`_`ehdddaY``abbgeWa_aaacfdbbbabcdgcdbcccecbdddcdcdddfdcccdadeecb\\\\ceggfeb_fhhhhdV>hhiihe_Bghiiigd]giijjhhegjijjihihijkljjljlllljkmgiijkhjnzzyyzxnB{zxwyxrkzzzyzyxsz}|{{zyw|~}}|{zw|{|{{|zv{||}}y~{}zzyy|||\\]]\\[eke_]]]^`fh]^^^_`cg]^^__abd^]]]^`bc]^^\\\\^aa[daZ[Y\\]Y_^[ZXS[^^[[[]\\^QPHKEZne]\\YYW]gj[\\[\\Z]ddYZ[[Z[_cYY[YYZacWYXWWZ_b]\\\\^][\\^[[USVTWXYYVUW^[UZXVXVRYXWVUTWUUVVUUUUVTWUVVUUVVWWWVVVVVTXUWWWVWYYWXVVURUX[XXWSWVVXWXXWRSWUVSVVWWWUTTUWWXVTTTUUWUUWTVUUVUUSUVVTTUKLLNNMQSJKJJJLMTJLKLMNOSJLKLMOOTMLLKMNQSMNMLLNPRKNMLMNPSKLMMOLPSFHHIIEDJIKJHHDFGIJKKJFDDHGGGGFFFGGFDFFDEGFDEEEEEEFEDFFDFACDDEEEFRVYVUM+*WZX[TG% XZ\\^[SJH][]_^[ZX^]___a`_^^``acdc`abdecbacceijgce");
+    unpack(5, -428.1, 6.464, "cccccaacghfc`^]aggcaa`^aecbaabbbdaa`accdda``beefc]_^`deecbbbcbcadbba`__`caba_^_^aa``__^_ba```__^```__^^_a`__^]]^`a_^^]_^b_^^^__`c`a`a`b_bca`__^`baa_`^_^ab_`_`^`a_`_`_`_a_^`_`_`a___a`b`a_^``b`a_```__^_a`a^^^]^bb`___]]cba_^^^]cba_]]]]ca`^]\\]\\ba_^]\\\\\\b^_^]\\\\\\ZZ[\\]`b_[\\^][[[[_^\\[[ZZZ_]\\ZZ[[Z_][ZZZZZ`_]ZZYZ[__\\[ZZZZ_[[ZYWXY}|ynb`][zxukd`^\\wtpjda^^ilkhda```cddcbac][_bb`_aIU]_^^\\_C9@LZZQNabbaaaabE MW_bcdTQTZbfff[Z[_cfee___abcdcbbbbbccbbcbbaccbbacbdbacNV]bebei_abddeehabbdfgghbcdeehhidcddfghhdddeffggdeeeefgfedeeefefbcdgffghb`cdeeghbcbeffhiedddegfgefeeeefgfffeedeeghgededehgfefdfdkgggghghjhhiijijkhhiikjkigggijkjgffghjjjdefghjkiddefhikieffghhjivqswxxx{ursuz||~vusuy~~~wvuuy{{{wvvvwyz{vwwvwwxzvvwvwwyzxxwxxxz{YMVY`eidVQUY_eigUVY[afhiUXZ^bgij]]^aehijcbbcfghifeeeeghhgfffffgh");
+    unpack(6, -584.9, 9.088, "``a``a`_b\\dXf[d]b\\fWgXd\\b[eWgXe\\b\\fXgVd\\c[eXeSd[h'h i'h+aa``a`a`^]^]^]^^^\\^]^\\^]]]^^]^^_^]]]]]^]^[_Z`\\_\\_[_[_[_\\\\^Z_\\_\\]\\]Z]Z\\Y^]]^\\]\\^]\\]\\_[^\\]]\\]\\]\\^\\\\][^\\_[^^[_Z`[_[Z]Z][^[^_Z`Y^Z_ZZ]Z\\Y\\Z^[Z\\Y\\Z]Z[Y\\Y]Y]Z[Z[Y\\Z\\Z[Y[Z\\Y\\Z[Y[Z\\Z[Z[Z[Z[Z[Z[Z[[[Z[Z]W\\Y\\X^XRRRRRQSQRQRRRQSPRRQRRRQQRRQRQSQQRQQRQRRQQQQQQRQPRPQQRQRPROQQSQQPba`bababcaaaabbbbbaaabbabaaabbbbaacafcdbd_ecjjh_yJxGyguVz{~x~zxEa```a`_``b`cbcbc`c`aabacab`c_bbcabaabacbabaabbbcabb`cacb`_aaa```acacab_`bebc`babeccbbcb`fbead`c`ebeaead`edddcccbcebebebdcecebdbd`fbdbcaeeaeadadacdcdbcbcecdaebdacdbdbebddbecdcecbecdcdcfebebecebfbfcebebgcgcfbfbfcfcfcfbgdfdfcecfdfeedededeeeedceeeefeddedeeeeddknllmllnoloknjnknnnlnllknmnlnlllnnmmmmmmnmnmnmmmmnnmnmmnmmnmnmnmjeieghfagfgeifhfgeeffefeeedddcccddbdacaaebcbbab`bbbabaa`cabab`a_");
+    unpack(7, -298.5, 5.199, "[YXZYYXZ[[\\^__][[\\]^``_[[\\]^`_\\Z[ZYZ[XWVWQNNLLKPTLFFCEENYYYZYXZ[kljjkjjhjiiiiiihjihggggfgedeccadecb``a_ba`^_^^`^a_\\\\\\\\]ZQ]WYY<TIefehhhfeecfehffdbdceefdcdbbcdccbbcaa_aabbb``_]a_ecba^a]badc`aX_[onmljjhlqnmmkjhkomlkjiijonnlkkjknnmljijklljiggghggggeeeeefecbcdc~~}~||{{|||}||zz|{{|{zyx|{zzyxwv{zxwttttyyvvtqrqxvurprqsuusponhX[^`cdd_]\\_befea^^`ceedb_[]_bba`^YY[\\^^][UTRUYZXY #0/85.0?4<7:L6&YXXXZ[YZSW]ble\\SVWZ^a`\\ZUUVYY[YYUUVYXZXYTUVZX\\Y[VWY[[^\\]X[XZZZYZHCBDDA@HFFFHIGEGGFIKJJIJIKLMONOLHLMNOPNMIKLNNONNHIKLMNLLHGJKLMLJJIJGIEJLJJJJGIFLJJKJIILJHLJMMMLKIIMOPNMJILMOMONMJJMJMLMJIKIKJKKL;<<;;;=;?@@@B@BB@AABCBCDACCDFFHE@CDFGHGF@BCDEFGE>@ACDFFF=?ACCEFC%&')(&(''&((+$&('()*',*)()++/..+(*,/0/-+'*,----+&)**++,*$''*)*+*IQF= 3I5OJH)5):JXSQOIJNS_\\XXXXZYa`_aaba]bbdefedafddccccdhda`a`cd");
 
     // Zobrist keys
 #ifdef OPENBENCH

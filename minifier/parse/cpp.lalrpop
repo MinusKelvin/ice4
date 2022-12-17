@@ -263,7 +263,7 @@ ArrayInit: ArrayInit = {
 DeclForm = DeclForm1;
 
 DeclForm1: DeclForm = {
-    <f:DeclForm1> "[" <s:Number?> "]" => DeclForm::Array(Box::new(f), s),
+    <f:DeclForm1> "[" <s:CommaExpression?> "]" => DeclForm::Array(Box::new(f), s),
     DeclForm2
 };
 

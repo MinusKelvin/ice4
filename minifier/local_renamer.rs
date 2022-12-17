@@ -93,8 +93,13 @@ fn count_occurances_declform<'a>(counts: &mut HashMap<&'a str, usize>, form: &'a
         }
         DeclForm::Pointer(f)
         | DeclForm::LReference(f)
-        | DeclForm::RReference(f)
-        | DeclForm::Array(f, _) => count_occurances_declform(counts, f),
+        | DeclForm::RReference(f) => count_occurances_declform(counts, f),
+        DeclForm::Array(f, n) => {
+            count_occurances_declform(counts, f);
+            if let Some(n) = n {
+                count_occurances_expr(counts, n);
+            }
+        },
     }
 }
 
@@ -285,8 +290,13 @@ fn rename_declform(translation: &HashMap<String, String>, form: &mut DeclForm) {
         }
         DeclForm::Pointer(f)
         | DeclForm::LReference(f)
-        | DeclForm::RReference(f)
-        | DeclForm::Array(f, _) => rename_declform(translation, f),
+        | DeclForm::RReference(f) => rename_declform(translation, f),
+        DeclForm::Array(f, n) => {
+            rename_declform(translation, f);
+            if let Some(n) = n {
+                rename_expr(translation, n);
+            }
+        }
     }
 }
 

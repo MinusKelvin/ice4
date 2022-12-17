@@ -199,7 +199,7 @@ impl DeclForm {
                 form.tokenize(result);
                 result.push(LeftBracket);
                 if let Some(l) = len {
-                    result.push(number(l));
+                    l.tokenize(result, Precedence::Comma);
                 }
                 result.push(RightBracket);
             }

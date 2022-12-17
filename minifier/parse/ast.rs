@@ -82,7 +82,7 @@ pub enum DeclForm {
     Pointer(Box<DeclForm>),
     LReference(Box<DeclForm>),
     RReference(Box<DeclForm>),
-    Array(Box<DeclForm>, Option<Result<ParsedNumber, String>>),
+    Array(Box<DeclForm>, Option<Expression>),
 }
 
 #[derive(Debug)]

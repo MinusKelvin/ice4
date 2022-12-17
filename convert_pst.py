@@ -15,8 +15,8 @@ def quantize(vector):
     unquantized = values / scale_factor + smallest
     return smallest, scale_factor, values, unquantized
 
-for i, (f, r) in enumerate(zip(data["files"], data["ranks"])):
-    v = np.concatenate((np.array(f), np.array(r))) * 16
+for i, v in enumerate(data["ft.weight"]):
+    v = np.array(v) * 256
     smallest, scale, quant, unquant = quantize(v)
 
     print(f"unpack({i}, {smallest:.4}, {1/scale:.4}, \"", end="")
@@ -27,7 +27,7 @@ for i, (f, r) in enumerate(zip(data["files"], data["ranks"])):
         print(c, end="")
     print("\");")
 
-for v in data["bias"]:
+for v in data["ft.bias"]:
     print(f"{round(v*256)}, ", end="")
 print()
 
