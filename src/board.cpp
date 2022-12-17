@@ -259,7 +259,7 @@ struct Board {
             v = v < 0 ? 0 : v > 256 ? 256 : v;
             value += OUT_W[i+NEURONS] * v;
         }
-        return value / 64;
+        return value / 6;
     }
 } ROOT;
 
