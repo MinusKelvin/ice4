@@ -10,14 +10,17 @@ with open("0-45.json", "r") as f:
 def quantize(vector):
     smallest = vector.min()
     largest = vector.max()
-    scale_factor = 94 / (largest - smallest)
+    scale_factor = 94 / (largest - smallest) if largest > smallest else 1
     values = np.around((vector - smallest) * scale_factor)
     unquantized = values / scale_factor + smallest
     return smallest, scale_factor, values, unquantized
 
-for i, v in enumerate(data["ft.weight"]):
-    v = np.array(v) * 256
-    smallest, scale, quant, unquant = quantize(v)
+for i, (v, g, f) in enumerate(zip(data["ft.weight"], data["gate"], data["material_fact.weight"])):
+    g = np.array(g) > 0.5
+    v = np.array(v) * g
+    f = np.array(f).reshape((12, 1))
+    v = v + np.pad(f, ((0, 0), (0, 63)), "edge").ravel()
+    smallest, scale, quant, unquant = quantize(v * 256)
 
     print(f"unpack({i}, {smallest:.4}, {1/scale:.4}, \"", end="")
     for v in quant:
