@@ -4,7 +4,7 @@ import json, math
 from scipy.optimize import least_squares
 import numpy as np
 
-with open("0-45.json", "r") as f:
+with open("0-31.json", "r") as f:
     data = json.load(f)
 
 def quantize(vector):
@@ -15,8 +15,9 @@ def quantize(vector):
     unquantized = values / scale_factor + smallest
     return smallest, scale_factor, values, unquantized
 
-for i, v in enumerate(data["ft.weight"]):
-    v = np.array(v) * 256
+for i, (v, g) in enumerate(zip(data["ft.weight"], data["gate"])):
+    g = np.array(g) > 0.5
+    v = np.array(v) * g * 256
     smallest, scale, quant, unquant = quantize(v)
 
     print(f"unpack({i}, {smallest:.4}, {1/scale:.4}, \"", end="")
