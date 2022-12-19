@@ -247,7 +247,7 @@ struct Board {
 
     int eval() {
         int mg = mg_eval;
-        for (int sq : {A1, B1, C1, F1, G1, H1}) {
+        for (int sq : {A1, B1, G1, H1}) {
             if (board[sq] == (WHITE | KING)) {
                 for (int ofs : {9, 10, 11}) {
                     mg += 5 * (board[sq + ofs] == (WHITE | PAWN));
