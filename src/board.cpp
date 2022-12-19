@@ -246,7 +246,21 @@ struct Board {
     }
 
     int eval() {
-        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
+        int mg = mg_eval;
+        for (int sq : {A1, B1, C1, F1, G1, H1}) {
+            if (board[sq] == (WHITE | KING)) {
+                for (int ofs : {9, 10, 11}) {
+                    mg += 5 * (board[sq + ofs] == (WHITE | PAWN));
+                }
+            }
+            if (board[sq+70] == (BLACK | KING)) {
+                for (int ofs : {61, 60, 59}) {
+                    mg -= 5 * (board[sq + ofs] == (BLACK | PAWN));
+                }
+            }
+        }
+
+        int value = (mg * phase + eg_eval * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
 } ROOT;
