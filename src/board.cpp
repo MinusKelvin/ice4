@@ -250,12 +250,12 @@ struct Board {
         for (int sq : {A1, B1, C1, F1, G1, H1}) {
             if (board[sq] == (WHITE | KING)) {
                 for (int ofs : {9, 10, 11}) {
-                    mg += 5 * (board[sq + ofs] == (WHITE | PAWN));
+                    mg += 8 * (board[sq + ofs] == (WHITE | PAWN));
                 }
             }
             if (board[sq+70] == (BLACK | KING)) {
                 for (int ofs : {61, 60, 59}) {
-                    mg -= 5 * (board[sq + ofs] == (BLACK | PAWN));
+                    mg -= 8 * (board[sq + ofs] == (BLACK | PAWN));
                 }
             }
         }
