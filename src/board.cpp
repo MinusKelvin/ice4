@@ -251,11 +251,13 @@ struct Board {
             if (board[sq] == (WHITE | KING)) {
                 for (int ofs : {9, 10, 11}) {
                     mg += 5 * (board[sq + ofs] == (WHITE | PAWN));
+                    mg += 5 * (board[sq + ofs+10] == (WHITE | PAWN));
                 }
             }
             if (board[sq+70] == (BLACK | KING)) {
                 for (int ofs : {61, 60, 59}) {
                     mg -= 5 * (board[sq + ofs] == (BLACK | PAWN));
+                    mg -= 5 * (board[sq + ofs-10] == (BLACK | PAWN));
                 }
             }
         }
