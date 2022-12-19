@@ -15,6 +15,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t history[2][7][SQUARE_SPAN];
+    int16_t eval_stack[256];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -22,10 +23,11 @@ struct Searcher {
         Move scratch, hashmv(0);
 
         int pv = beta > alpha+1;
-
         int static_eval = board.eval();
+        int improving = ply > 1 && eval_stack[ply - 2] < static_eval;
+        eval_stack[ply] = static_eval;
 
-        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
+        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth - 50 * improving) {
             return static_eval;
         }
 
