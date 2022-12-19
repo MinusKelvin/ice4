@@ -143,7 +143,7 @@ struct Searcher {
                     reduction = legals;
                 }
                 reduction += legals > 3;
-                reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 300;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
