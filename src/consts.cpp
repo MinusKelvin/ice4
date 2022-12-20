@@ -8,11 +8,16 @@
 #define ROOK 4
 #define QUEEN 5
 #define KING 6
+// not actually a board piece
+#define PASSED_PAWN 7
 
 #define WHITE 8
 #define BLACK 16
 
 #define INVALID 24
+
+#define WHITE_PAWN 9
+#define BLACK_PAWN 17
 
 #define SHORT_CASTLE 1
 #define LONG_CASTLE 2

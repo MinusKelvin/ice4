@@ -41,22 +41,28 @@ struct TtEntry {
 
 vector<TtEntry> TT(524288); // 8MB
 
+struct PawnEntry {
+    uint32_t hash;
+    int16_t mg;
+    int16_t eg;
+};
+
+#define PAWN_HASH_SIZE 131072
+
 struct Board {
     uint64_t zobrist;
+    uint32_t pawn_hash;
     uint8_t board[120];
     uint8_t castle_rights[2];
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
-    uint8_t pawn_eval_dirty;
     int16_t mg_eval;
     int16_t eg_eval;
-    int16_t mg_pawn_eval;
-    int16_t eg_pawn_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE),
-        phase(24), pawn_eval_dirty(1), mg_eval(0), eg_eval(0), mg_pawn_eval(0), eg_pawn_eval(0)
+        phase(24), mg_eval(0), eg_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -73,14 +79,17 @@ struct Board {
     }
 
     void edit(int square, int piece) {
-        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN) {
-            pawn_eval_dirty = 1;
+        if ((board[square] & 7) == PAWN) {
+            pawn_hash ^= ZOBRIST_PIECES[board[square]][square-A1];
         }
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         mg_eval -= PST[0][board[square]][square-A1];
         eg_eval -= PST[1][board[square]][square-A1];
         phase -= PHASE[board[square] & 7];
         board[square] = piece;
+        if ((board[square] & 7) == PAWN) {
+            pawn_hash ^= ZOBRIST_PIECES[board[square]][square-A1];
+        }
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         mg_eval += PST[0][board[square]][square-A1];
         eg_eval += PST[1][board[square]][square-A1];
@@ -251,38 +260,35 @@ struct Board {
         return 1;
     }
 
-    void update_pawn_eval() {
-        eg_pawn_eval = 0;
-        mg_pawn_eval = 0;
-        for (int file = 1; file < 9; file++) {
-            for (int rank = 30; rank < 90; rank += 10) {
-                if (board[file+rank] == (PAWN | BLACK)) {
-                    mg_pawn_eval += PST[0][BLACK | KING+1][file+rank-A1];
-                    eg_pawn_eval += PST[1][BLACK | KING+1][file+rank-A1];
+    int eval(PawnEntry *ph) {
+        PawnEntry &entry = ph[pawn_hash % PAWN_HASH_SIZE];
+        if (entry.hash != pawn_hash) {
+            entry.hash = pawn_hash;
+            entry.mg = 0;
+            entry.eg = 0;
+            for (int file = 1; file < 9; file++) {
+                for (int rank = 30; rank < 90; rank += 10) {
+                    if (board[file+rank] == BLACK_PAWN) {
+                        entry.mg += PST[0][BLACK | PASSED_PAWN][file+rank-A1];
+                        entry.eg += PST[1][BLACK | PASSED_PAWN][file+rank-A1];
+                    }
+                    if (board[file+rank] == WHITE_PAWN || board[file+rank-1] == WHITE_PAWN || board[file+rank+1] == WHITE_PAWN) {
+                        break;
+                    }
                 }
-                if (board[file+rank] == (PAWN | WHITE) || board[file+rank-1] == (PAWN | WHITE) || board[file+rank+1] == (PAWN | WHITE)) {
-                    break;
-                }
-            }
-            for (int rank = 80; rank >= 30; rank -= 10) {
-                if (board[file+rank] == (PAWN | WHITE)) {
-                    mg_pawn_eval += PST[0][WHITE | KING+1][file+rank-A1];
-                    eg_pawn_eval += PST[1][WHITE | KING+1][file+rank-A1];
-                }
-                if (board[file+rank] == (PAWN | BLACK) || board[file+rank-1] == (PAWN | BLACK) || board[file+rank+1] == (PAWN | BLACK)) {
-                    break;
+                for (int rank = 80; rank >= 30; rank -= 10) {
+                    if (board[file+rank] == WHITE_PAWN) {
+                        entry.mg += PST[0][WHITE | PASSED_PAWN][file+rank-A1];
+                        entry.eg += PST[1][WHITE | PASSED_PAWN][file+rank-A1];
+                    }
+                    if (board[file+rank] == BLACK_PAWN || board[file+rank-1] == BLACK_PAWN || board[file+rank+1] == BLACK_PAWN) {
+                        break;
+                    }
                 }
             }
         }
-    }
-
-    int eval() {
-        if (pawn_eval_dirty) {
-            update_pawn_eval();
-            pawn_eval_dirty = 0;
-        }
-        int mg = mg_eval + mg_pawn_eval;
-        int eg = eg_eval + eg_pawn_eval;
+        int eg = eg_eval + entry.eg;
+        int mg = mg_eval + entry.mg;
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
