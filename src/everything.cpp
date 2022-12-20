@@ -1,12 +1,4 @@
-#include <cstdio>
-#include <cstdint>
-#include <cstring>
-#include <cstdlib>
-#include <ctime>
-#include <vector>
-#include <atomic>
-#include <mutex>
-#include <thread>
+#include <bits/stdc++.h>
 using namespace std;
 
 #include "consts.cpp"
