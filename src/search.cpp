@@ -17,13 +17,14 @@ struct Searcher {
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
+    PawnEntry pawn_hash[PAWN_HASH_SIZE];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
 
         int pv = beta > alpha+1;
 
-        int static_eval = board.eval();
+        int static_eval = board.eval(pawn_hash);
 
         if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
             return static_eval;
@@ -222,6 +223,7 @@ struct Searcher {
     void iterative_deepening(double time_alotment, int max_depth=250) {
         memset(history, 0, sizeof(history));
         memset(killers, 0, sizeof(killers));
+        memset(pawn_hash, 0, sizeof(pawn_hash));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.02;

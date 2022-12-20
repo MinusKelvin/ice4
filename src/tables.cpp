@@ -48,8 +48,8 @@ void init_tables() {
     unpack(1, ROOK, "/9:9443 79=<92,.<BFFA?52LRSNJJE@W]YSNPOL_WXPGKHP]a\\XWOXPNTRRQPOI", 1.0, 736); // average: 776
     unpack(1, QUEEN, "@2*'*! 5;=5:6-%8BEPJLKE<GX[ja_XUNbkruoq[ScosvwpcQpsz~puc^`XYXSee", 1.811, 1433); // average: 1528
     unpack(1, KING, "-01+&.+ 4;ADD?80=EMPPLD=DNTWWTNFM[^]_]\\PXjnfgmn\\Qxsklr~W+VYZ\\]_0", 2.038, -89); // average: 7
-    unpack(0, KING+1, ";67:53415-79:7?31) \")&+291')'&)3C@9;9357dSMF?@5IC~aWPKR^63163:36", 1.034, -23); // average: 4
-    unpack(1, KING+1, ")*(***&( $ !! !\"%&'%%&(%330,/053C=:44:@@UNE:9HJOPSJ<<U~f')((&(**", 2.449, -20); // average: 29
+    unpack(0, PASSED_PAWN, ";67:53415-79:7?31) \")&+291')'&)3C@9;9357dSMF?@5IC~aWPKR^63163:36", 1.034, -23); // average: 4
+    unpack(1, PASSED_PAWN, ")*(***&( $ !! !\"%&'%%&(%330,/053C=:44:@@UNE:9HJOPSJ<<U~f')((&(**", 2.449, -20); // average: 29
 
     // Zobrist keys
 #ifdef OPENBENCH

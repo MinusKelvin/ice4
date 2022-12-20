@@ -8,6 +8,8 @@
 #define ROOK 4
 #define QUEEN 5
 #define KING 6
+// not actually a board piece
+#define PASSED_PAWN 7
 
 #define WHITE 8
 #define BLACK 16
