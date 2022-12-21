@@ -20,6 +20,8 @@ struct Searcher {
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
+        Move moves[256];
+        int mvcount;
 
         int pv = beta > alpha+1;
 
@@ -60,9 +62,13 @@ struct Searcher {
             }
         }
 
-        Move moves[256];
+        if (pv && depth > 0) {
+            Board mkmove = board;
+            mkmove.null_move();
+            depth += !mkmove.movegen(moves, mvcount);
+        }
+
         int score[256];
-        int mvcount;
         if (!board.movegen(moves, mvcount, depth > 0)) {
             return WON;
         }
