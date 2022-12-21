@@ -48,20 +48,20 @@ uint64_t ZOBRIST_STM;
 
 void init_tables() {
     // Piece-square tables
-    unpack_full(0, PAWN, "        9RMHI_dC@SRNSTfG>PU[]Z[EC[YbefbHEaduv{lR~Qh}z_6@        ", 1.227, -6); // average: 47
+    unpack_full(0, PAWN, "        $B<68SY1-DB>DE[5+@FMPMN21NKVZ[V72UYnnucByA^wsS ,        ", 1.0, 21); // average: 52
     unpack_half(0, KNIGHT, "CFHKGHPNJSTWUZ[Z]\\ge]sw~WUpt .&a", 1.754, 149); // average: 242
     unpack_half(0, BISHOP, "IFECRXTOS\\YXZX[dY\\jq_rv~V\\_\\A1 0", 1.182, 177); // average: 241
     unpack_half(0, ROOK, "/7:B -13+6/0269<BJPVOdgt`[u|yx|~", 1.201, 265); // average: 318
     unpack_half(0, QUEEN, " *(,/451453/321.B397DOEIG1E9>Pjh", 1.0, 672); // average: 699
     unpack_full(0, KING, "DID6=8LNE>4++6?F/1\"!!$1-),**'(+!.528241%581;85-/D.8@:0 5~ejcWSV^", 2.354, -65); // average: -5
-    unpack_full(0, KING+1, "        5,7:<:C62* #+).5:2()*(+6DB;=:578fTPGAA6KF~aZQNV_        ", 1.033, -25); // average: 4
-    unpack_full(1, PAWN, "        TWXYYXXRPUQSTTTOSXRPQSWQW[VSTTXT\\b`^_ZdZ~~||}s[i        ", 2.721, -6); // average: 117
+    unpack_full(0, KING+1, "        5,7:<:C62* #+).5:2()*(+6DB;=:578fTPGAA6KF~aZQNV_        ", 1.033, -25); // average: -2
+    unpack_full(1, PAWN, "        +014422%#-%)*** (1&#$(0#08-(**2*:FA=?6I7~}zz|i8S        ", 1.36, 122); // average: 148
     unpack_half(1, KNIGHT, "(7JNEXYaN`hp]iwx`sx~ZfqpO_cj dra", 1.477, 335); // average: 426
     unpack_half(1, BISHOP, " 2\"/7;A><IPS8JV[:TR]>LSL7POPMSXU", 1.0, 440); // average: 478
     unpack_half(1, ROOK, " ./.**/2/3::>CECINLGPHIBOUNNCIHI", 1.0, 748); // average: 779
     unpack_half(1, QUEEN, "9%  4--3;CIGLV\\eQjmuWfvvUrr~^`UV", 1.638, 1450); // average: 1532
     unpack_full(1, KING, ",00*%-+ 4;ADD?70=ELPPKC=DNSWVSMFMZ]\\^][PXjmffmn\\Qwrjlr~W*VYZ[]^0", 2.037, -87); // average: 8
-    unpack_full(1, KING+1, "        !%!\"! !\"%'(%%&(%331-/053C=:55:A@UNE::HJONSK<=U~g        ", 2.464, -21); // average: 29
+    unpack_full(1, KING+1, "        !%!\"! !\"%'(%%&(%331-/053C=:55:A@UNE::HJONSK<=U~g        ", 2.464, -21); // average: 23
 
     // Zobrist keys
 #ifdef OPENBENCH

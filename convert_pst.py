@@ -31,6 +31,15 @@ for s in sizes:
     sections.append(scaled[acc:acc+s])
     acc += s
 
+for s in [sections[0], sections[6], sections[8], sections[14]]:
+    m = float("inf")
+    for i in range(8, 56):
+        m = min(m, s[i])
+    for i in range(8):
+        s[i] = m
+    for i in range(56, 64):
+        s[i] = m
+
 dump_string(sections[0], "unpack_full(0, PAWN")
 dump_string(sections[1], "unpack_half(0, KNIGHT")
 dump_string(sections[2], "unpack_half(0, BISHOP")
