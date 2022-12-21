@@ -271,30 +271,48 @@ struct Board {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
         for (int file = 1; file < 9; file++) {
+            int doubling = 0;
+            int passing = 1;
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;
                 if (board[sq] == (PAWN | BLACK)) {
-                    if (king_sq[1] % 10 > 4) {
-                        sq = 9 + rank - file;
+                    if (doubling) {
+                        mg_pawn_eval -= DOUBLED_MG[file-1];
+                        eg_pawn_eval -= DOUBLED_EG[file-1];
                     }
-                    mg_pawn_eval += PST[0][BLACK | KING+1][sq-A1];
-                    eg_pawn_eval += PST[1][BLACK | KING+1][sq-A1];
+                    if (passing) {
+                        if (king_sq[1] % 10 > 4) {
+                            sq = 9 + rank - file;
+                        }
+                        mg_pawn_eval += PST[0][BLACK | KING+1][sq-A1];
+                        eg_pawn_eval += PST[1][BLACK | KING+1][sq-A1];
+                    }
+                    doubling = 1;
                 }
                 if (board[file+rank] == (PAWN | WHITE) || board[file+rank-1] == (PAWN | WHITE) || board[file+rank+1] == (PAWN | WHITE)) {
-                    break;
+                    passing = 0;
                 }
             }
+            doubling = 0;
+            passing = 1;
             for (int rank = 80; rank >= 30; rank -= 10) {
                 int sq = file+rank;
                 if (board[sq] == (PAWN | WHITE)) {
-                    if (king_sq[0] % 10 > 4) {
-                        sq = 9 + rank - file;
+                    if (doubling) {
+                        mg_pawn_eval += DOUBLED_MG[file-1];
+                        eg_pawn_eval += DOUBLED_EG[file-1];
                     }
-                    mg_pawn_eval += PST[0][WHITE | KING+1][sq-A1];
-                    eg_pawn_eval += PST[1][WHITE | KING+1][sq-A1];
+                    if (passing) {
+                        if (king_sq[0] % 10 > 4) {
+                            sq = 9 + rank - file;
+                        }
+                        mg_pawn_eval += PST[0][WHITE | KING+1][sq-A1];
+                        eg_pawn_eval += PST[1][WHITE | KING+1][sq-A1];
+                    }
+                    doubling = 1;
                 }
                 if (board[file+rank] == (PAWN | BLACK) || board[file+rank-1] == (PAWN | BLACK) || board[file+rank+1] == (PAWN | BLACK)) {
-                    break;
+                    passing = 0;
                 }
             }
         }
@@ -320,7 +338,7 @@ struct Board {
         }
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
         int mg = mg_eval + mg_pawn_eval + 22 * bishop_pair;
-        int eg = eg_eval + eg_pawn_eval + 48 * bishop_pair;
+        int eg = eg_eval + eg_pawn_eval + 49 * bishop_pair;
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
