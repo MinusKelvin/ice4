@@ -238,11 +238,11 @@ struct Board {
                 int end = count;
                 for (int i = orig; promo && i < end; i++) {
                     list[count] = list[i];
-                    list[count++].promo = stm | ROOK;
+                    list[count++].promo = ROOK;
                     list[count] = list[i];
-                    list[count++].promo = stm | BISHOP;
+                    list[count++].promo = BISHOP;
                     list[count] = list[i];
-                    list[count++].promo = stm | KNIGHT;
+                    list[count++].promo = KNIGHT;
                 }
             } else {
                 int starts[] = {0,0,8,4,0,0,0};
@@ -287,27 +287,27 @@ struct Board {
             }
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;
-                if (board[sq] == (PAWN | BLACK)) {
+                if (board[sq] == BLACK_PAWN) {
                     if (king_sq[1] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][BLACK | KING+1][sq-A1];
-                    eg_pawn_eval += PST[1][BLACK | KING+1][sq-A1];
+                    mg_pawn_eval += PST[0][BLACK_PASSED_PAWN][sq-A1];
+                    eg_pawn_eval += PST[1][BLACK_PASSED_PAWN][sq-A1];
                 }
-                if (board[file+rank] == (PAWN | WHITE) || board[file+rank-1] == (PAWN | WHITE) || board[file+rank+1] == (PAWN | WHITE)) {
+                if (board[file+rank] == WHITE_PAWN || board[file+rank-1] == WHITE_PAWN || board[file+rank+1] == WHITE_PAWN) {
                     break;
                 }
             }
             for (int rank = 80; rank >= 30; rank -= 10) {
                 int sq = file+rank;
-                if (board[sq] == (PAWN | WHITE)) {
+                if (board[sq] == WHITE_PAWN) {
                     if (king_sq[0] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][WHITE | KING+1][sq-A1];
-                    eg_pawn_eval += PST[1][WHITE | KING+1][sq-A1];
+                    mg_pawn_eval += PST[0][WHITE_PASSED_PAWN][sq-A1];
+                    eg_pawn_eval += PST[1][WHITE_PASSED_PAWN][sq-A1];
                 }
-                if (board[file+rank] == (PAWN | BLACK) || board[file+rank-1] == (PAWN | BLACK) || board[file+rank+1] == (PAWN | BLACK)) {
+                if (board[file+rank] == BLACK_PAWN || board[file+rank-1] == BLACK_PAWN || board[file+rank+1] == BLACK_PAWN) {
                     break;
                 }
             }

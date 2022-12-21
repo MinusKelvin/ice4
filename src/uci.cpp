@@ -17,7 +17,7 @@ void uci() {
     fgets(buf, 4096, stdin); // uci
     puts(
         "id name ice4\r\n"
-        "id author MinusKelvin\n"
+        "id author MK\n"
 #ifdef OPENBENCH
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"

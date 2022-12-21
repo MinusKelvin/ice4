@@ -17,6 +17,12 @@
 #define SHORT_CASTLE 1
 #define LONG_CASTLE 2
 
+#define WHITE_PAWN 9
+#define BLACK_PAWN 17
+#define PASSED_PAWN 7
+#define WHITE_PASSED_PAWN 15
+#define BLACK_PASSED_PAWN 23
+
 #define SQUARE_SPAN 78
 
 #define BOUND_EXACT 0
