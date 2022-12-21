@@ -51,14 +51,15 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t bishops[2];
+    uint8_t king_sq[2];
     int16_t mg_eval;
     int16_t eg_eval;
     int16_t mg_pawn_eval;
     int16_t eg_pawn_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE),
-        phase(24), pawn_eval_dirty(1), bishops{2, 2}, mg_eval(0), eg_eval(0), mg_pawn_eval(0),
-        eg_pawn_eval(0)
+        phase(24), pawn_eval_dirty(1), bishops{2, 2}, king_sq{E1, E8}, mg_eval(0), eg_eval(0),
+        mg_pawn_eval(0), eg_pawn_eval(0)
     {
         memset(board, INVALID, 120);
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
@@ -75,23 +76,30 @@ struct Board {
     }
 
     void edit(int square, int piece) {
-        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN) {
+        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
             pawn_eval_dirty = 1;
         }
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        mg_eval -= PST[0][board[square]][square-A1];
-        eg_eval -= PST[1][board[square]][square-A1];
+        if ((board[square] & 7) != PAWN) {
+            mg_eval -= PST[0][board[square]][square-A1];
+            eg_eval -= PST[1][board[square]][square-A1];
+        }
         phase -= PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
         board[square] = piece;
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        mg_eval += PST[0][board[square]][square-A1];
-        eg_eval += PST[1][board[square]][square-A1];
+        if ((board[square] & 7) != PAWN) {
+            mg_eval += PST[0][board[square]][square-A1];
+            eg_eval += PST[1][board[square]][square-A1];
+        }
         phase += PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
+        }
+        if ((board[square] & 7) == KING) {
+            king_sq[!(board[square] & WHITE)] = square;
         }
     }
 
@@ -279,6 +287,19 @@ struct Board {
                 }
                 if (board[file+rank] == (PAWN | BLACK) || board[file+rank-1] == (PAWN | BLACK) || board[file+rank+1] == (PAWN | BLACK)) {
                     break;
+                }
+            }
+        }
+        for (int rank = 30; rank < 90; rank += 10) {
+            for (int file = 1; file < 9; file++) {
+                int sq = rank+file;
+                int piece = board[sq];
+                if ((piece & 7) == PAWN) {
+                    if (king_sq[!(piece & WHITE)] % 10 > 4) {
+                        sq = 9 + rank - file;
+                    }
+                    mg_pawn_eval += PST[0][piece][sq-A1];
+                    eg_pawn_eval += PST[1][piece][sq-A1];
                 }
             }
         }
