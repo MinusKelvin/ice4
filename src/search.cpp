@@ -23,7 +23,26 @@ struct Searcher {
 
         int pv = beta > alpha+1;
 
-        int static_eval = board.eval();
+        TtEntry& slot = TT[board.zobrist % TT.size()];
+        uint64_t data = slot.data.load(memory_order_relaxed);
+        uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
+        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        TtData tt;
+        if (tt_good) {
+            memcpy(&tt, &data, sizeof(TtData));
+
+            hashmv = tt.mv;
+            if (depth <= tt.depth && (
+                tt.bound == BOUND_EXACT ||
+                tt.bound == BOUND_LOWER && tt.eval >= beta ||
+                tt.bound == BOUND_UPPER && tt.eval <= alpha
+            )) {
+                bestmv = tt.mv;
+                return tt.eval;
+            }
+        }
+
+        int static_eval = tt_good ? tt.eval : board.eval();
 
         if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
             return static_eval;
@@ -46,25 +65,6 @@ struct Searcher {
         int mvcount;
         if (!board.movegen(moves, mvcount, depth > 0)) {
             return WON;
-        }
-
-        TtEntry& slot = TT[board.zobrist % TT.size()];
-        uint64_t data = slot.data.load(memory_order_relaxed);
-        uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
-        TtData tt;
-        if (tt_good) {
-            memcpy(&tt, &data, sizeof(TtData));
-
-            hashmv = tt.mv;
-            if (depth <= tt.depth && (
-                tt.bound == BOUND_EXACT ||
-                tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                tt.bound == BOUND_UPPER && tt.eval <= alpha
-            )) {
-                bestmv = tt.mv;
-                return tt.eval;
-            }
         }
 
         if (depth >= 3 && pv && (
