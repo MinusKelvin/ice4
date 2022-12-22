@@ -1,5 +1,7 @@
 # ice4
 
+![ice4 logo](logo.png?raw=true)
+
 ice4 is a chess engine which fits in 4096 bytes.
 In particular, it is an executable text file containing a script which automatically extracts C source code from itself using `xz`, compiles it using the default system C compiler, and then executes it.
 
