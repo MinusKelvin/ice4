@@ -151,7 +151,7 @@ struct Searcher {
                 }
                 reduction += legals > 3;
                 reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                if (reduction < 0 || victim) {
+                if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
