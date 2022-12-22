@@ -24,6 +24,7 @@ struct Searcher {
         int mvcount;
 
         int pv = beta > alpha+1;
+        int in_check = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
@@ -60,9 +61,9 @@ struct Searcher {
             if (v >= beta) {
                 return v;
             }
+            in_check = v == LOST;
         }
 
-        int in_check = 0;
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
