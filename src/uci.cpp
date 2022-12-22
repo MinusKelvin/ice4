@@ -93,7 +93,13 @@ void uci() {
                     t.join();
                 }
                 printf("bestmove ");
-                BEST_MOVE.put();
+                int best = 0;
+                for (int i = 1; i < 8; i++) {
+                    if (VOTES[i] > VOTES[best]) {
+                        best = i;
+                    }
+                }
+                MOVES[best].put();
                 putchar('\n');
         }
     }

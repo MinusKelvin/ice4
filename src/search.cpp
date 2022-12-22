@@ -9,7 +9,8 @@ double now() {
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
-Move BEST_MOVE(0);
+Move MOVES[8];
+int VOTES[8];
 
 struct Searcher {
     uint64_t nodes;
@@ -239,11 +240,19 @@ struct Searcher {
                 int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
-                    BEST_MOVE = mv;
+                    memset(VOTES, 0, sizeof(VOTES));
+                    memset(MOVES, 0, sizeof(MOVES));
+                    FINISHED_DEPTH = depth;
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put();
                     putchar('\n');
-                    FINISHED_DEPTH = depth;
+                } else if (FINISHED_DEPTH == depth) {
+                    for (int i = 0; i < 8; i++) {
+                        if (!VOTES[i] || MOVES[i] == mv) {
+                            MOVES[i] = mv;
+                            VOTES[i]++;
+                        }
+                    }
                 }
                 MUTEX.unlock();
                 if (now() > time_alotment) {
