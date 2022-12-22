@@ -27,13 +27,9 @@ struct Searcher {
         int in_check = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
-        uint64_t data = slot.data.load(memory_order_relaxed);
-        uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
-        TtData tt;
+        int tt_good = board.zobrist == slot.hash.load(memory_order_relaxed);
+        TtData tt = slot.data.load(memory_order_relaxed);
         if (tt_good) {
-            memcpy(&tt, &data, sizeof(TtData));
-
             hashmv = tt.mv;
             if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
@@ -219,9 +215,8 @@ struct Searcher {
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
-            memcpy(&data, &tt, sizeof(TtData));
-            slot.data.store(data, memory_order_relaxed);
-            slot.hash_xor_data.store(data ^ board.zobrist, memory_order_relaxed);
+            slot.data.store(tt, memory_order_relaxed);
+            slot.hash.store(board.zobrist, memory_order_relaxed);
         }
 
         return best;

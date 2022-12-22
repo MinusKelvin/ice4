@@ -1,3 +1,4 @@
+atomic
 atomic_bool
 atomic_uint64_t
 char8_t

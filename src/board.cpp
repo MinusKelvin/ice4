@@ -33,10 +33,10 @@ struct TtData {
 };
 
 struct TtEntry {
-    atomic_uint64_t hash_xor_data;
-    atomic_uint64_t data;
+    atomic_uint64_t hash;
+    atomic<TtData> data;
 
-    TtEntry() : hash_xor_data(0), data(0) {}
+    TtEntry() : hash(0), data{} {}
 };
 
 vector<TtEntry> TT(524288); // 8MB
