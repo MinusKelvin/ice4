@@ -39,7 +39,9 @@ struct TtEntry {
     TtEntry() : hash_xor_data(0), data(0) {}
 };
 
-vector<TtEntry> TT(524288); // 8MB
+// 8MB. Replaced for TCEC builds by the minifier.
+#define HASH_SIZE 524288
+vector<TtEntry> TT(HASH_SIZE);
 
 struct Board {
     uint64_t zobrist;

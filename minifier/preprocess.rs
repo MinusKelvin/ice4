@@ -14,13 +14,13 @@ pub struct Preprocessed {
     pub code: String,
 }
 
-pub fn preprocess(path: &Path) -> Preprocessed {
+pub fn preprocess(path: &Path, tcec: bool) -> Preprocessed {
     let mut result = Preprocessed::default();
-    process(&mut result, &mut vec![], path);
+    process(&mut result, &mut vec![], path, tcec);
     result
 }
 
-fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &Path) {
+fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &Path, tcec: bool) {
     let content =
         std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}: {}", path.display()));
 
@@ -29,14 +29,19 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
         if let Some(captures) = LOCAL_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             let path = path.parent().unwrap().join(file);
-            process(into, defines, &path);
+            process(into, defines, &path, tcec);
         } else if let Some(captures) = LIB_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             into.lib_includes.push(file.to_owned());
         } else if let Some(captures) = DEFINE.captures(line) {
             let text = regex::escape(captures.get(1).unwrap().as_str());
             let mut replacement = " ".to_owned();
-            replacement.push_str(captures.get(2).unwrap().as_str());
+            // TCEC builds use 64 GB hash and 101 threads
+            match &*text {
+                "HASH_SIZE" if tcec => replacement.push_str("4294967296ull"),
+                "THREADS" if tcec => replacement.push_str("101"),
+                _ => replacement.push_str(captures.get(2).unwrap().as_str()),
+            }
             replacement.push(' ');
             defines.push((Regex::new(&format!("\\b{text}\\b")).unwrap(), replacement));
         } else if line == "#ifdef OPENBENCH" {

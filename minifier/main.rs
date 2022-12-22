@@ -6,7 +6,8 @@ mod preprocess;
 mod renamer;
 
 fn main() {
-    let preprocessed = preprocess::preprocess("src/main.cpp".as_ref());
+    let tcec = std::env::args().any(|s| s == "tcec");
+    let preprocessed = preprocess::preprocess("src/main.cpp".as_ref(), tcec);
     eprintln!("Raw size: {}", preprocessed.code.len());
 
     let mut ast = parse::parse(&preprocessed.code);
