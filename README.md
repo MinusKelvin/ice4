@@ -19,22 +19,25 @@ The `wtime` and `btime` parameters to the `go` command must be present immediate
 This location requirement may limit GUI compatibility.
 Only Cute Chess is known to work.
 
-Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `setoption` for setting the hash size and thread count (threading currently not implemented).
+Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `setoption` for setting the hash size and thread count.
 
 ## Features
 
 - A single executable no more than 4 KB large (notable dependencies: C++ compiler, `xz`)
 - 10x12 board representation
 - Pseudolegal movegen
-  - No castling movegen (castling by opponent supported)
 - Zobrist hashing
 - Transposition table
+- Lazy SMP
 - Twofold repetition detection
 - Principal variation search
   - Quiescense search
   - Null move pruning
   - Reverse futility pruning
   - Internal iterated deepening
+  - Late move reductions
+  - Late move pruning
+  - History reductions
 - Move Ordering
   - TT move
   - MVV-LVA captures before quiets
@@ -42,9 +45,12 @@ Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `s
 - Iterated deepening
 - Soft limit + hard limit time management
 - Evaluation
-  - Phased piece square tables
+  - Phased
+  - Horizontally mirrored piece square tables for pieces
+  - Full piece square table for king
+  - King-relative piece square tables for pawns and passed pawns
 
 ## Acknowledgements
 
 - This follows the TCEC 4K rules: https://wiki.chessdom.org/TCEC_4k_Rules
-- Thanks to Analog for coming up with the name and providing piece square tables
+- Thanks to Analog for coming up with the name, some search work, and the logo
