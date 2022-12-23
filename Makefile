@@ -8,12 +8,12 @@ endif
 DEPS := $(wildcard src/** minifier/** Cargo.toml build.rs)
 
 ice4: launcher.sh $(DEPS)
-	cargo run --release | lzma -9 -e | cat launcher.sh - >ice4
+	cargo run --release | xz --format=lzma --lzma1=preset=9e,lc=2,lp=0,pb=0,nice=100 | cat launcher.sh - >ice4
 	chmod +x ice4
 	@echo Compressed size: `du -b ice4`
 
 ice4-tcec: launcher.sh $(DEPS)
-	cargo run --release tcec | lzma -9 -e | cat launcher.sh - >ice4-tcec
+	cargo run --release tcec | xz --format=lzma --lzma1=preset=9e,lc=2,lp=0,pb=0,nice=100 | cat launcher.sh - >ice4-tcec
 	chmod +x ice4-tcec
 	@echo Compressed size: `du -b ice4-tcec`
 

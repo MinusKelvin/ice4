@@ -25,7 +25,7 @@ def dump_string(piece_data, stuff):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8] * 2
+sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -48,15 +48,16 @@ dump_string(sections[2], "unpack_half(0, BISHOP")
 dump_string(sections[3], "unpack_half(0, ROOK")
 dump_string(sections[4], "unpack_half(0, QUEEN")
 dump_string(sections[5], "unpack_full(0, KING")
-dump_string(sections[6], "unpack_full(0, KING+1")
+dump_string(sections[6], "unpack_full(0, PASSED_PAWN")
 dump_string(sections[eg+0], "unpack_full(1, PAWN")
 dump_string(sections[eg+1], "unpack_half(1, KNIGHT")
 dump_string(sections[eg+2], "unpack_half(1, BISHOP")
 dump_string(sections[eg+3], "unpack_half(1, ROOK")
 dump_string(sections[eg+4], "unpack_half(1, QUEEN")
 dump_string(sections[eg+5], "unpack_full(1, KING")
-dump_string(sections[eg+6], "unpack_full(1, KING+1")
+dump_string(sections[eg+6], "unpack_full(1, PASSED_PAWN")
 
 print(f"bishop pair: {round(sections[7][0])}, {round(sections[eg+7][0])}")
 print(f"doubled pawn mg: {[round(v) for v in sections[8]]}")
 print(f"doubled pawn eg: {[round(v) for v in sections[eg+8]]}")
+print(f"king on file with pawn: {round(sections[9][0])} {round(sections[eg+9][0])}")
