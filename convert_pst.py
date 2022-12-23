@@ -25,7 +25,7 @@ def dump_string(piece_data, stuff):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1] * 2
+sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -61,3 +61,4 @@ print(f"bishop pair: {round(sections[7][0])}, {round(sections[eg+7][0])}")
 print(f"doubled pawn mg: {[round(v) for v in sections[8]]}")
 print(f"doubled pawn eg: {[round(v) for v in sections[eg+8]]}")
 print(f"tempo: {round(sections[9][0])}, {round(sections[eg+9][0])}")
+print(f"isolated pawn: {round(sections[10][0])}, {round(sections[eg+10][0])}")
