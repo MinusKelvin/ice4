@@ -54,7 +54,7 @@ struct Board {
     uint8_t pawn_eval_dirty;
     uint8_t bishops[2];
     uint8_t king_sq[2];
-    uint8_t pawn_counts[2][8];
+    uint8_t pawn_counts[2][10];
     int16_t mg_eval;
     int16_t eg_eval;
     int16_t mg_pawn_eval;
@@ -65,7 +65,7 @@ struct Board {
         mg_pawn_eval(0), eg_pawn_eval(0)
     {
         memset(board, INVALID, 120);
-        memset(pawn_counts, 1, sizeof(pawn_counts));
+        memset(pawn_counts, 0, sizeof(pawn_counts));
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
             board[A1 + i] = layout[i] | WHITE;
@@ -76,6 +76,7 @@ struct Board {
             board[A6 + i] = EMPTY;
             board[A7 + i] = PAWN | BLACK;
             board[A8 + i] = layout[i] | BLACK;
+            pawn_counts[0][i+1] = pawn_counts[1][i+1] = 1;
         }
     }
 
@@ -85,7 +86,7 @@ struct Board {
         }
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         if ((board[square] & 7) == PAWN) {
-            pawn_counts[!(board[square] & WHITE)][square % 10 - 1]--;
+            pawn_counts[!(board[square] & WHITE)][square % 10]--;
         } else {
             mg_eval -= PST[0][board[square]][square-A1];
             eg_eval -= PST[1][board[square]][square-A1];
@@ -97,7 +98,7 @@ struct Board {
         board[square] = piece;
         zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
         if ((board[square] & 7) == PAWN) {
-            pawn_counts[!(board[square] & WHITE)][square % 10 - 1]++;
+            pawn_counts[!(board[square] & WHITE)][square % 10]++;
         } else {
             mg_eval += PST[0][board[square]][square-A1];
             eg_eval += PST[1][board[square]][square-A1];
@@ -279,13 +280,22 @@ struct Board {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
         for (int file = 1; file < 9; file++) {
-            if (pawn_counts[0][file-1]) {
-                mg_pawn_eval += (pawn_counts[0][file-1] - 1) * DOUBLED_MG[file-1];
-                eg_pawn_eval += (pawn_counts[0][file-1] - 1) * DOUBLED_EG[file-1];
+            int mg_part = 0;
+            if (pawn_counts[0][file]) {
+                mg_pawn_eval += (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
+                eg_pawn_eval += (pawn_counts[0][file] - 1) * DOUBLED_EG[file-1];
             }
-            if (pawn_counts[1][file-1]) {
-                mg_pawn_eval -= (pawn_counts[1][file-1] - 1) * DOUBLED_MG[file-1];
-                eg_pawn_eval -= (pawn_counts[1][file-1] - 1) * DOUBLED_EG[file-1];
+            if (pawn_counts[1][file]) {
+                mg_pawn_eval -= (pawn_counts[1][file] - 1) * DOUBLED_MG[file-1];
+                eg_pawn_eval -= (pawn_counts[1][file] - 1) * DOUBLED_EG[file-1];
+            }
+            if (!pawn_counts[0][file-1] && !pawn_counts[0][file+1]) {
+                mg_pawn_eval += ISOLATED_PAWN_MG * pawn_counts[0][file];
+                eg_pawn_eval += ISOLATED_PAWN_EG * pawn_counts[0][file];
+            }
+            if (!pawn_counts[1][file-1] && !pawn_counts[1][file+1]) {
+                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[1][file];
+                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[1][file];
             }
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;
