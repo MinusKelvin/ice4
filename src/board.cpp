@@ -335,8 +335,12 @@ struct Board {
             pawn_eval_dirty = 0;
         }
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int mg = mg_eval + mg_pawn_eval + 22 * bishop_pair;
-        int eg = eg_eval + eg_pawn_eval + 49 * bishop_pair;
+        int mg = mg_eval + mg_pawn_eval +
+            BISHOP_PAIR_MG * bishop_pair +
+            (stm == WHITE ? TEMPO_MG : -TEMPO_MG);
+        int eg = eg_eval + eg_pawn_eval +
+            BISHOP_PAIR_EG * bishop_pair +
+            (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
