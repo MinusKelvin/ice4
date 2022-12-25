@@ -290,12 +290,12 @@ struct Board {
                 eg_pawn_eval -= (pawn_counts[1][file] - 1) * DOUBLED_EG[file-1];
             }
             if (!pawn_counts[0][file-1] && !pawn_counts[0][file+1]) {
-                mg_pawn_eval += ISOLATED_PAWN_MG * pawn_counts[0][file];
-                eg_pawn_eval += ISOLATED_PAWN_EG * pawn_counts[0][file];
+                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[0][file];
+                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[0][file];
             }
             if (!pawn_counts[1][file-1] && !pawn_counts[1][file+1]) {
-                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[1][file];
-                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[1][file];
+                mg_pawn_eval += ISOLATED_PAWN_MG * pawn_counts[1][file];
+                eg_pawn_eval += ISOLATED_PAWN_EG * pawn_counts[1][file];
             }
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;

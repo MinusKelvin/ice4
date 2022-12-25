@@ -6,8 +6,8 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_EG 50
 #define TEMPO_MG 6
 #define TEMPO_EG 3
-#define ISOLATED_PAWN_MG -12
-#define ISOLATED_PAWN_EG -15
+#define ISOLATED_PAWN_MG 12
+#define ISOLATED_PAWN_EG 15
 
 void unpack_full(int phase, int piece, const char *data, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
@@ -84,7 +84,7 @@ void init_tables() {
     ZOBRIST_CASTLE_RIGHTS[3] = rng();
     ZOBRIST_STM = rng();
 #else
-    auto rng = fopen("/dev/random", "r");
+    auto rng = fopen("/dev/urandom", "r");
     fread(ZOBRIST_PIECES, sizeof(ZOBRIST_PIECES), 1, rng);
     fread(ZOBRIST_CASTLE_RIGHTS, sizeof(ZOBRIST_CASTLE_RIGHTS), 1, rng);
     fread(&ZOBRIST_STM, sizeof(ZOBRIST_STM), 1, rng);
