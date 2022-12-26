@@ -244,11 +244,11 @@ struct Searcher {
                     mv.put();
                     putchar('\n');
                     FINISHED_DEPTH = depth;
+                    if (now() > time_alotment) {
+                        depth = max_depth;
+                    }
                 }
                 MUTEX.unlock();
-                if (now() > time_alotment) {
-                    break;
-                }
             }
         } catch (...) {}
     }
