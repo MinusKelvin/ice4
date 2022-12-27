@@ -282,12 +282,12 @@ struct Board {
         for (int file = 1; file < 9; file++) {
             int mg_part = 0;
             if (pawn_counts[0][file]) {
-                mg_pawn_eval += (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
-                eg_pawn_eval += (pawn_counts[0][file] - 1) * DOUBLED_EG[file-1];
+                mg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
+                eg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_EG[file-1];
             }
             if (pawn_counts[1][file]) {
-                mg_pawn_eval -= (pawn_counts[1][file] - 1) * DOUBLED_MG[file-1];
-                eg_pawn_eval -= (pawn_counts[1][file] - 1) * DOUBLED_EG[file-1];
+                mg_pawn_eval += (pawn_counts[1][file] - 1) * DOUBLED_MG[file-1];
+                eg_pawn_eval += (pawn_counts[1][file] - 1) * DOUBLED_EG[file-1];
             }
             if (!pawn_counts[0][file-1] && !pawn_counts[0][file+1]) {
                 mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[0][file];

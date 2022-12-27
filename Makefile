@@ -6,7 +6,7 @@ EXE = ice4-ob
 endif
 
 DEPS := $(wildcard src/** minifier/** Cargo.toml build.rs)
-COMPRESS_ARGS := --format=lzma --lzma1=preset=9e,lc=2,lp=0,pb=0,nice=100
+COMPRESS_ARGS := --format=lzma --lzma1=preset=9e,lc=2,lp=0,pb=0,nice=75
 
 ice4: launcher.sh $(DEPS)
 	cargo run --release | xz $(COMPRESS_ARGS) | cat launcher.sh - >ice4

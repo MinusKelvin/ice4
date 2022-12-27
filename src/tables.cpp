@@ -1,6 +1,6 @@
 int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[8] = {7, 14, -13, -18, -15, -12, 8, 4};
-int16_t DOUBLED_EG[8] = {-39, -23, -14, -6, -8, -17, -23, -42};
+int16_t DOUBLED_MG[8] = {-7, -14, 13, 18, 15, 12, -8, -4};
+int16_t DOUBLED_EG[8] = {39, 23, 14, 6, 8, 17, 23, 42};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_MG 22
 #define BISHOP_PAIR_EG 50
@@ -27,8 +27,10 @@ void unpack_half(int phase, int piece, const char *data, double scale, int offse
     for (int rank = 0; rank < 80; rank+=10) {
         for (int file = 0; file < 4; file++) {
             int v = (*data++ - ' ') * scale + offset;
-            white_section[rank+file] = white_section[7+rank-file] = v;
-            black_section[70-rank+file] = black_section[77-rank-file] = -v;
+            white_section[rank+file] = v;
+            white_section[7+rank-file] = v;
+            black_section[70-rank+file] = -v;
+            black_section[77-rank-file] = -v;
         }
     }
 }
