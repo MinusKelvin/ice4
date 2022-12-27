@@ -216,7 +216,7 @@ struct Board {
 
                 int dir = stm == WHITE ? 10 : -10;
                 int upsq = sq + dir;
-                int promo = board[upsq + dir] == INVALID ? stm | QUEEN : 0;
+                int promo = board[upsq + dir] == INVALID ? QUEEN : 0;
                 if (!board[upsq] && quiets) {
                     list[count++] = Move(sq, upsq, promo);
                     if (board[sq - dir - dir] == INVALID && !board[upsq+dir]) {
