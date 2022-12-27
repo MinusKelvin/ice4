@@ -240,7 +240,7 @@ struct Searcher {
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
-                    printf("info depth %d score cp %d pv ", depth, v);
+                    printf("info depth %d score cp 100 pv ", depth);
                     mv.put();
                     putchar('\n');
                     FINISHED_DEPTH = depth;
