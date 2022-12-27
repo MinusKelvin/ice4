@@ -236,17 +236,6 @@ struct Board {
                 if (ep_square == upsq+1 || board[upsq+1] & other && ~board[upsq+1] & stm) {
                     list[count++] = Move(sq, upsq+1, promo);
                 }
-
-                // copy in underpromotion moves
-                int end = count;
-                for (int i = orig; promo && i < end; i++) {
-                    list[count] = list[i];
-                    list[count++].promo = ROOK;
-                    list[count] = list[i];
-                    list[count++].promo = BISHOP;
-                    list[count] = list[i];
-                    list[count++].promo = KNIGHT;
-                }
             } else {
                 int starts[] = {0,0,8,4,0,0,0};
                 int vals[] = {0,0,1,8,8,8,1};
