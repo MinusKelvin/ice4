@@ -646,6 +646,7 @@ impl Statement {
             Statement::While(_, b) => b.len() == 1 && b.last().unwrap().catches_else(),
             Statement::Continue => false,
             Statement::Break => false,
+            Statement::Default => false,
         }
     }
 
@@ -750,6 +751,7 @@ impl Statement {
             }
             Statement::Continue => result.extend([Keyword("continue"), Semicolon]),
             Statement::Break => result.extend([Keyword("break"), Semicolon]),
+            Statement::Default => result.extend([Keyword("default"), Colon]),
         }
     }
 }

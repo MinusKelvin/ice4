@@ -150,6 +150,7 @@ Statement: Statement = {
     <Declaration> ";" => Statement::Declaration(<>),
     <CommaExpression> ";" => Statement::Expression(<>),
     "case" <CommaExpression> ":" => Statement::Case(<>),
+    "default" ":" => Statement::Default,
     "try" "{" <Statement*> "}" "catch" "(" "..." ")" "{" "}" => Statement::Try(<>),
     "for" "(" <Declaration?> ";" <CommaExpression?> ";" <CommaExpression?> ")" "{" <Statement*> "}" => {
         Statement::For(<>)

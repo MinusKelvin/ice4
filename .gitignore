@@ -1,3 +1,5 @@
 /target
 /ice4
+/ice4-tcec
+/ice4-ob
 minifier/parse/cpp.rs

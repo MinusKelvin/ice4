@@ -163,4 +163,5 @@ pub enum Statement {
     While(Expression, Vec<Statement>),
     Continue,
     Break,
+    Default,
 }

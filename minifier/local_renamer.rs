@@ -226,6 +226,7 @@ fn count_occurances_stmt<'a>(counts: &mut HashMap<&'a str, usize>, stmts: &'a [S
             }
             Statement::Continue => {}
             Statement::Break => {}
+            Statement::Default => {}
         }
     }
 }
@@ -406,6 +407,7 @@ fn rename_stmt(translation: &HashMap<String, String>, stmts: &mut [Statement]) {
             }
             Statement::Continue => {}
             Statement::Break => {}
+            Statement::Default => {}
         }
     }
 }
