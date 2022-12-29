@@ -74,10 +74,21 @@ void uci() {
                 }
                 break;
             case 'g': // go
+#ifdef OPENBENCH
+                if (strtok(0, " \n")[0] == 'i') {
+                    // go infinite
+                    wtime = 1 << 30;
+                    btime = 1 << 30;
+                } else {
+#else
                 strtok(0, " \n"); // wtime
+#endif
                 wtime = atoi(strtok(0, " \n"));
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
+#ifdef OPENBENCH
+                }
+#endif
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
@@ -89,6 +100,12 @@ void uci() {
                         ABORT = 1;
                     });
                 }
+#ifdef OPENBENCH
+                if (wtime == 1 << 30) {
+                    fgets(buf, 4096, stdin); // stop
+                    ABORT = 1;
+                }
+#endif
                 for (auto& t : threads) {
                     t.join();
                 }

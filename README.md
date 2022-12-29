@@ -19,7 +19,11 @@ The `wtime` and `btime` parameters to the `go` command must be present immediate
 This location requirement may limit GUI compatibility.
 Only Cute Chess is known to work.
 
-Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `setoption` for setting the hash size and thread count.
+OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional UCI features:
+- `position fen <fen> moves ...`
+- `setoption name Hash value <mb>`
+- `setoption name Threads value <threads>`
+- `go infinite` (the next message will be interpreted as `stop`)
 
 ## Features
 
@@ -38,6 +42,7 @@ Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `s
   - Late move reductions
   - Late move pruning
   - History reductions
+  - Check Extensions
 - Move Ordering
   - TT move
   - MVV-LVA captures before quiets
@@ -45,10 +50,12 @@ Additionally, OpenBench builds (`make EXE=<name>`) support `position fen` and `s
 - Iterated deepening
 - Soft limit + hard limit time management
 - Evaluation
-  - Phased
+  - Phased evaluation with 598 parameters
   - Horizontally mirrored piece square tables for pieces
   - Full piece square table for king
   - King-relative piece square tables for pawns and passed pawns
+  - Doubled & isolated pawn terms
+  - Bishop pair and tempo terms
 
 ## Acknowledgements
 
