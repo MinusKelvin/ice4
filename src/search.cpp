@@ -131,14 +131,10 @@ struct Searcher {
 
             int is_rep = 0;
             for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
-                if (rep_list[i] == mkmove.zobrist) {
-                    is_rep = 1;
-                }
+                is_rep |= rep_list[i] == mkmove.zobrist;
             }
             for (int i = 0; !is_rep && i < PREHISTORY_LENGTH; i++) {
-                if (PREHISTORY[i] == mkmove.zobrist) {
-                    is_rep = 1;
-                }
+                is_rep |= PREHISTORY[i] == mkmove.zobrist;
             }
 
             int16_t v;
@@ -152,7 +148,7 @@ struct Searcher {
                 }
                 reduction += legals > 3;
                 reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                if (reduction < 0 || victim || in_check) {
+                if (reduction < 0 || victim || in_check || score[i] == 9000) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
