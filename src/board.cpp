@@ -241,10 +241,6 @@ struct Board {
                 int end = count;
                 for (int i = orig; promo && i < end; i++) {
                     list[count] = list[i];
-                    list[count++].promo = ROOK;
-                    list[count] = list[i];
-                    list[count++].promo = BISHOP;
-                    list[count] = list[i];
                     list[count++].promo = KNIGHT;
                 }
             } else {
