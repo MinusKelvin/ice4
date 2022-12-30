@@ -15,7 +15,7 @@ struct Move {
         putchar(to%10+'a'-1);
         putchar(to/10+'0'-1);
         if (promo) {
-            putchar("  nbrq"[promo]);
+            putchar('q');
         }
     }
 };
@@ -215,8 +215,6 @@ struct Board {
             }
 
             if (piece == PAWN) {
-                int orig = count; // remember start of pawn move list for underpromotions
-
                 int dir = stm == WHITE ? 10 : -10;
                 int upsq = sq + dir;
                 int promo = board[upsq + dir] == INVALID ? QUEEN : 0;
@@ -238,13 +236,6 @@ struct Board {
                 }
                 if (ep_square == upsq+1 || board[upsq+1] & other && ~board[upsq+1] & stm) {
                     list[count++] = Move(sq, upsq+1, promo);
-                }
-
-                // copy in underpromotion moves
-                int end = count;
-                for (int i = orig; quiets && promo && i < end; i++) {
-                    list[count] = list[i];
-                    list[count++].promo = KNIGHT;
                 }
             } else {
                 int starts[] = {0,0,8,4,0,0,0};
