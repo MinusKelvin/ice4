@@ -75,7 +75,8 @@ void uci() {
                 break;
             case 'g': // go
 #ifdef OPENBENCH
-                if (strtok(0, " \n")[0] == 'i') {
+                char *w = strtok(0, " \n");
+                if (!w || w[0] == 'i') {
                     // go infinite
                     wtime = 1 << 30;
                     btime = 1 << 30;
@@ -102,7 +103,20 @@ void uci() {
                 }
 #ifdef OPENBENCH
                 if (wtime == 1 << 30) {
-                    fgets(buf, 4096, stdin); // stop
+                    while (1) {
+                        fgets(buf, 4096, stdin);
+                        if (buf[0] == 's') {
+                            // stop
+                            break;
+                        } else if (buf[1] == 'q') {
+                            // quit
+                            ABORT = 1;
+                            for (auto& t : threads) {
+                                t.join();
+                            }
+                            return;
+                        }
+                    }
                     ABORT = 1;
                 }
 #endif
