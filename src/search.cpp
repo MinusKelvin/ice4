@@ -228,7 +228,7 @@ struct Searcher {
         memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
-        time_alotment = now() + time_alotment * 0.02;
+        time_alotment = now() + time_alotment * 0.03;
         Move mv(0);
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
