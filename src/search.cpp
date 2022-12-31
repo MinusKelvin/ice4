@@ -59,7 +59,10 @@ struct Searcher {
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
-                return v;
+                int verif = v < -20000 ? negamax(board, scratch, -beta, -alpha, depth - reduction, ply) : beta;
+                if (verif >= beta) {
+                    return v;
+                }
             }
             in_check = v == LOST;
         }
