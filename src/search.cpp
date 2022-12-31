@@ -58,7 +58,7 @@ struct Searcher {
             int reduction = (static_eval - beta) / 128 + depth / 3 + 2;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
-            if (v >= beta) {
+            if (v >= beta && v > -20000) {
                 return v;
             }
             in_check = v == LOST;
