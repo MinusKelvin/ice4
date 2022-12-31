@@ -1,6 +1,7 @@
 mod decl_merger;
 mod expr_merger;
 mod local_renamer;
+mod member_renamer;
 mod parse;
 mod preprocess;
 mod renamer;
@@ -12,9 +13,10 @@ fn main() {
 
     let mut ast = parse::parse(&preprocessed.code);
 
+    local_renamer::rename_locals(&mut ast);
+    member_renamer::rename_members(&mut ast);
     decl_merger::merge_decls(&mut ast);
     expr_merger::merge_exprs(&mut ast);
-    local_renamer::rename_locals(&mut ast);
 
     let mut tokens = parse::unparse(ast);
 
