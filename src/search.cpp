@@ -208,10 +208,10 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && best > LOST + ply) {
+        if ((depth > 0 || best != static_eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
-            tt.depth = depth;
+            tt.depth = depth > 0 ? depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
