@@ -2,6 +2,7 @@ int16_t PST[2][25][SQUARE_SPAN];
 int16_t DOUBLED_MG[8] = {-7, -14, 13, 18, 15, 12, -8, -4};
 int16_t DOUBLED_EG[8] = {39, 23, 14, 6, 8, 17, 23, 42};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int PIECES[] = {0, 0, 1, 1, 1, 1, 0};
 #define BISHOP_PAIR_MG 22
 #define BISHOP_PAIR_EG 50
 #define TEMPO_MG 6

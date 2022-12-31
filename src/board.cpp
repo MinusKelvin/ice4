@@ -55,14 +55,15 @@ struct Board {
     uint8_t bishops[2];
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
+    uint8_t piece_count[2];
     int16_t mg_eval;
     int16_t eg_eval;
     int16_t mg_pawn_eval;
     int16_t eg_pawn_eval;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE),
-        phase(24), pawn_eval_dirty(1), bishops{2, 2}, king_sq{E1, E8}, mg_eval(0), eg_eval(0),
-        mg_pawn_eval(0), eg_pawn_eval(0)
+        phase(24), pawn_eval_dirty(1), bishops{2, 2}, king_sq{E1, E8}, piece_count{7,7},
+        mg_eval(0), eg_eval(0), mg_pawn_eval(0), eg_pawn_eval(0)
     {
         memset(board, INVALID, 120);
         memset(pawn_counts, 0, sizeof(pawn_counts));
@@ -92,6 +93,7 @@ struct Board {
             eg_eval -= PST[1][board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
+        piece_count[!(board[square] & WHITE)] -= PIECES[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
@@ -104,6 +106,7 @@ struct Board {
             eg_eval += PST[1][board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
+        piece_count[!(board[square] & WHITE)] += PIECES[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
