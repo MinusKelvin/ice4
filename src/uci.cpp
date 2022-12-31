@@ -7,10 +7,6 @@ int THREADS = 1;
 #define THREADS 1
 #endif
 
-int atosq(char *move) {
-    return (move[1] - '1') * 10 + move[0] - 'a' + A1;
-}
-
 void uci() {
     setbuf(stdout, 0);
     char buf[4096], *move;
@@ -60,8 +56,8 @@ void uci() {
                 while (move = strtok(0, " \n")) {
                     PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     Move mv(
-                        atosq(move),
-                        atosq(move+2),
+                        (move[1] - '1') * 10 + move[0] - 'a' + A1,
+                        (move[3] - '1') * 10 + move[2] - 'a' + A1,
                         move[4] == 'q' ? QUEEN :
                         move[4] == 'r' ? ROOK :
                         move[4] == 'b' ? BISHOP :
@@ -221,7 +217,7 @@ void parse_fen() {
 
     word = strtok(0, " \n");
     if (*word != '-') {
-        ROOT.ep_square = atosq(word);
+        ROOT.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
     }
 
     strtok(0, " \n"); // halfmove clock

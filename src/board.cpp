@@ -15,11 +15,7 @@ struct Move {
         putchar(to%10+'a'-1);
         putchar(to/10+'0'-1);
         if (promo) {
-            putchar(
-                promo == QUEEN ? 'q' :
-                promo == ROOK ? 'r' :
-                promo == BISHOP ? 'b' : 'n'
-            );
+            putchar("  nbrq"[promo]);
         }
     }
 };
@@ -44,21 +40,21 @@ struct TtEntry {
 vector<TtEntry> TT(HASH_SIZE);
 
 struct Board {
-    uint64_t zobrist;
     uint8_t board[120];
     uint8_t castle_rights[2];
+    uint8_t bishops[2];
+    uint8_t king_sq[2];
+    uint8_t pawn_counts[2][10];
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
-    uint8_t bishops[2];
-    uint8_t king_sq[2];
-    uint8_t pawn_counts[2][10];
     int16_t mg_eval;
     int16_t eg_eval;
     int16_t mg_pawn_eval;
     int16_t eg_pawn_eval;
+    uint64_t zobrist;
 
     Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE),
         phase(24), pawn_eval_dirty(1), bishops{2, 2}, king_sq{E1, E8}, mg_eval(0), eg_eval(0),
@@ -69,14 +65,15 @@ struct Board {
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
             board[A1 + i] = layout[i] | WHITE;
+            board[A8 + i] = layout[i] | BLACK;
             board[A2 + i] = PAWN | WHITE;
+            board[A7 + i] = PAWN | BLACK;
             board[A3 + i] = EMPTY;
             board[A4 + i] = EMPTY;
             board[A5 + i] = EMPTY;
             board[A6 + i] = EMPTY;
-            board[A7 + i] = PAWN | BLACK;
-            board[A8 + i] = layout[i] | BLACK;
-            pawn_counts[0][i+1] = pawn_counts[1][i+1] = 1;
+            pawn_counts[0][i+1] = 1;
+            pawn_counts[1][i+1] = 1;
         }
     }
 
@@ -276,7 +273,6 @@ struct Board {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
         for (int file = 1; file < 9; file++) {
-            int mg_part = 0;
             if (pawn_counts[0][file]) {
                 mg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
                 eg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_EG[file-1];

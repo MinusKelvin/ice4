@@ -38,7 +38,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             let mut replacement = " ".to_owned();
             // TCEC builds use 64 GB hash and 101 threads
             match &*text {
-                "HASH_SIZE" if tcec => replacement.push_str("4294967296ull"),
+                "HASH_SIZE" if tcec => replacement.push_str("0x100000000ull"),
                 "THREADS" if tcec => replacement.push_str("101"),
                 _ => replacement.push_str(captures.get(2).unwrap().as_str()),
             }
