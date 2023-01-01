@@ -208,8 +208,8 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != static_eval) && best > LOST + ply) {
-            tt.mv = bestmv;
+        if (best > LOST + ply) {
+            tt.mv = depth > 0 || best != static_eval ? bestmv : Move(0);
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
