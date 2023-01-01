@@ -35,7 +35,7 @@ struct Searcher {
             memcpy(&tt, &data, sizeof(TtData));
 
             hashmv = tt.mv;
-            if (depth <= tt.depth && (
+            if (depth <= tt.depth && !(pv && tt.eval > -20000 && tt.eval < 20000) && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 tt.bound == BOUND_UPPER && tt.eval <= alpha
