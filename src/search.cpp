@@ -14,6 +14,7 @@ Move BEST_MOVE(0);
 struct Searcher {
     uint64_t nodes;
     double abort_time;
+    int prove_depth;
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
@@ -35,7 +36,7 @@ struct Searcher {
             memcpy(&tt, &data, sizeof(TtData));
 
             hashmv = tt.mv;
-            if (depth <= tt.depth && (
+            if (depth <= tt.depth && depth <= prove_depth && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 tt.bound == BOUND_UPPER && tt.eval <= alpha
@@ -51,7 +52,7 @@ struct Searcher {
             return static_eval;
         }
 
-        if (!pv && static_eval >= beta && depth > 1 && depth < 50) {
+        if (!pv && static_eval >= beta && depth > 1 && depth < prove_depth) {
             Board mkmove = board;
             mkmove.null_move();
 
@@ -148,7 +149,7 @@ struct Searcher {
                 }
                 reduction += legals > 3;
                 reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                if (reduction < 0 || victim || in_check || score[i] == 9000 || depth > prove_depth) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -227,12 +228,16 @@ struct Searcher {
         memset(history, 0, sizeof(history));
         memset(killers, 0, sizeof(killers));
         nodes = 0;
+        prove_depth = 250;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.02;
         Move mv(0);
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
                 int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                if (v > 20000 && depth < prove_depth) {
+                    prove_depth = depth;
+                }
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
