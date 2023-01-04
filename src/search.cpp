@@ -208,13 +208,17 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != static_eval) && best > LOST + ply) {
-            tt.mv = bestmv;
-            tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
-            tt.bound =
-                best >= beta ? BOUND_LOWER :
-                raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+        tt.mv = bestmv;
+        tt.eval = best;
+        tt.depth = depth > 0 ? depth : 0;
+        tt.bound =
+            best >= beta ? BOUND_LOWER :
+            raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+        if (
+            (depth > 0 || best != static_eval) &&
+            best > LOST + ply &&
+            (!tt_good || depth + 4 > tt.depth || tt.bound == BOUND_EXACT)
+        ) {
             memcpy(&data, &tt, sizeof(TtData));
             slot.data.store(data, memory_order_relaxed);
             slot.hash_xor_data.store(data ^ board.zobrist, memory_order_relaxed);
