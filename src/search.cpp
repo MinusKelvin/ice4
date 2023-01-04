@@ -227,7 +227,7 @@ struct Searcher {
         memset(history, 0, sizeof(history));
         memset(killers, 0, sizeof(killers));
         nodes = 0;
-        abort_time = now() + time_alotment * 0.5;
+        abort_time = now() + time_alotment * 0.2;
         time_alotment = now() + time_alotment * 0.02;
         Move mv(0);
         try {
