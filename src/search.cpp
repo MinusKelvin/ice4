@@ -153,6 +153,11 @@ struct Searcher {
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
+                    if (!victim) {
+                        int change = depth;
+                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
+                        hist += change - change * hist / MAX_HIST;
+                    }
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                 }
@@ -184,12 +189,12 @@ struct Searcher {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
                         int change = depth * depth;
+                        int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
                         hist -= change + change * hist / MAX_HIST;
                     }
-                    int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
                     int change = depth * depth;
+                    int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
                     hist += change - change * hist / MAX_HIST;
                     if (!(killers[ply][0] == moves[i])) {
                         killers[ply][1] = killers[ply][0];
