@@ -1,13 +1,13 @@
 int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[8] = {-7, -14, 13, 18, 15, 12, -8, -4};
-int16_t DOUBLED_EG[8] = {39, 23, 14, 6, 8, 17, 23, 42};
+int16_t DOUBLED_MG[8] = {-3, -13, 13, 19, 16, 13, -7, -1};
+int16_t DOUBLED_EG[8] = {29, 17, 11, 2, 5, 11, 18, 33};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
-#define BISHOP_PAIR_MG 22
-#define BISHOP_PAIR_EG 50
-#define TEMPO_MG 6
-#define TEMPO_EG 3
-#define ISOLATED_PAWN_MG 12
-#define ISOLATED_PAWN_EG 15
+#define BISHOP_PAIR_MG 21
+#define BISHOP_PAIR_EG 42
+#define TEMPO_MG 5
+#define TEMPO_EG 2
+#define ISOLATED_PAWN_MG 11
+#define ISOLATED_PAWN_EG 14
 
 void unpack_full(int phase, int piece, const char *data, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
@@ -58,20 +58,20 @@ uint64_t ZOBRIST_STM;
 
 void init_tables() {
     // Piece-square tables
-    unpack_full(0, PAWN, "        ?Y\\?;<4'E[PJFE7/AMVTRH6.ETb`[RD5N]wsobM;D _~qc0_        ", 1.168, 11); // average: 51
-    unpack_full(1, PAWN, "        &'161/)/\" ++)%&%%((%$'+).0-)+.33;G:?>?A?aJp||}r~        ", 1.412, 118); // average: 144
-    unpack_full(0, PASSED_PAWN, "        5B641/.724&% \"/41/$\"'*:<05/157HC<-74>HRZFF<:S`~U        ", 1.272, -19); // average: 5
-    unpack_full(1, PASSED_PAWN, "        ## \"%&.%'+'&&(+'6:30,-24EF>6249?UTN<7<FNg~]A7:MI        ", 2.607, -15); // average: 32
-    unpack_full(0, KING, ";;7/63CG:5.&)29?*-  !$.+%+(*'(* +20400-$652873,.G1:?:1#5~cf^VPU^", 2.813, -59); // average: 3
-    unpack_full(1, KING, "+/0+%-+ 2;AFE@70=ENRQLC=EOUXXTMFN\\`_a_\\OXmoiioo[Nzunos~R#TV[\\[Z&", 1.908, -83); // average: 6
-    unpack_half(0, QUEEN, " ))-.46356514321C4::EPGLH5K;;Qli", 1.0, 686); // average: 714
-    unpack_half(1, QUEEN, "6#! 2-.3:CJHKV]eNinvVeuuTqp~__TV", 1.653, 1474); // average: 1555
-    unpack_half(0, ROOK, ".69A .34+70136:=CIQWQdhta\\v{wx}~", 1.225, 275); // average: 330
-    unpack_half(1, ROOK, " ..-*)-1/3:;?DECJOLHPIJCOUNOEKJJ", 1.0, 759); // average: 790
-    unpack_half(0, BISHOP, "KIHGV[XRV_\\Z\\Z^g[^kq`rv~U]b\\@3 2", 1.26, 180); // average: 250
-    unpack_half(1, BISHOP, " 2%07<A@<IQT8KW[;US^?NUM9RQRPW\\X", 1.0, 446); // average: 486
-    unpack_half(0, KNIGHT, "FHKMJLSPLVVZW\\]]_^hf_sy~XXpu 2(a", 1.881, 145); // average: 249
-    unpack_half(1, KNIGHT, "(6KNEWY`M`hp[ivx_rx~YgqpM_cj esa", 1.477, 340); // average: 432
+    unpack_full(0, PAWN, "        B]aDAB9+I`WPLK=4FR]\\YO=4J[jhdYK<Ve}ythSBE f~sm1e        ", 1.04, 9); // average: 48
+    unpack_full(1, PAWN, "        ''0731*0$ +,*&'''((&$(,+.-+(*.238D8<<=>>]Fm~yvtw        ", 1.235, 94); // average: 117
+    unpack_full(0, PASSED_PAWN, "        3>520..623'& #/442'$'*:<281146FB;/:5=GOVOMBCWZ~T        ", 1.297, -19); // average: 5
+    unpack_full(1, PASSED_PAWN, "        #$ \"$%-$&,'&&(+'5:40,-23DF>6149?UTM;6;FMd~Y817EE        ", 2.045, -8); // average: 28
+    unpack_full(0, KING, "=>9084EI<7/%(2;A*-  \"$.+'-)+'*,\",624-11':50953.2G7::7/$8~_mb[LUT", 2.308, -53); // average: 0
+    unpack_full(1, KING, "5:<71:7+>FLRQLC;HPY[[VNHOX^aa]VOWcgfhfbU^stnots_S{xrrv~S ZY]^[]'", 1.692, -88); // average: 4
+    unpack_half(0, QUEEN, " )),,3523440211/?066?JAG@.E71G_b", 1.0, 636); // average: 660
+    unpack_half(1, QUEEN, "9% !3,+2:CJGKW]fNjqwWevvVtp~daUS", 1.359, 1259); // average: 1327
+    unpack_half(0, ROOK, "/6:C /56*60237;?DJSZRfjw`]x~uv||", 1.075, 289); // average: 338
+    unpack_half(1, ROOK, " ++)('),,/559=><AEB>E??9CJBC>CAA", 1.0, 628); // average: 653
+    unpack_half(0, BISHOP, "IHFGUZWRS^[Y[Y]fY\\jp`qv~SZa\\7/ 3", 1.111, 193); // average: 254
+    unpack_half(1, BISHOP, " 1(/38<=:DJM6FPR9NLT<HMF:KILPRVQ", 1.0, 362); // average: 397
+    unpack_half(0, KNIGHT, "ILOQNPWTPYY\\Y^__a`ig`tx~ZZqt 4+d", 1.842, 146); // average: 251
+    unpack_half(1, KNIGHT, "'8KOFVYaNahp\\ivx^rw~YeonM_ah et`", 1.228, 275); // average: 350
     
     // Zobrist keys
 #ifdef OPENBENCH
