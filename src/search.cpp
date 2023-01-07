@@ -143,6 +143,9 @@ struct Searcher {
                 v = 0;
             } else if (legals) {
                 int reduction = (legals*3 + depth*2) / 32;
+                if (depth < 3) {
+                    reduction /= 2;
+                }
                 if (reduction > legals) {
                     reduction = legals;
                 }
