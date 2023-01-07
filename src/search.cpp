@@ -64,14 +64,14 @@ struct Searcher {
             in_check = v == LOST;
         }
 
-        if (pv && depth > 0) {
+        if (pv) {
             Board mkmove = board;
             mkmove.null_move();
             in_check = !mkmove.movegen(moves, mvcount);
         }
 
         int score[256];
-        if (!board.movegen(moves, mvcount, depth > 0)) {
+        if (!board.movegen(moves, mvcount, depth > 0 || in_check && pv)) {
             return WON;
         }
 
