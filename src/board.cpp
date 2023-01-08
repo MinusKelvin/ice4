@@ -327,6 +327,21 @@ struct Board {
                 }
             }
         }
+
+        int us_mob = 0;
+        int op_mob = 0;
+        for (int d : {-1, 1, -10, 10, 11, -11, 9, -9}) {
+            int raysq = king_sq[0];
+            while (raysq += d, board[raysq] != INVALID && (board[raysq] & 7) != PAWN) {
+                us_mob++;
+            }
+            raysq = king_sq[1];
+            while (raysq += d, board[raysq] != INVALID && (board[raysq] & 7) != PAWN) {
+                op_mob++;
+            }
+        }
+        mg_pawn_eval += VIRTUAL_QUEEN_MOB_MG[us_mob] - VIRTUAL_QUEEN_MOB_MG[op_mob];
+        eg_pawn_eval += VIRTUAL_QUEEN_MOB_EG[us_mob] - VIRTUAL_QUEEN_MOB_EG[op_mob];
     }
 
     int eval() {
@@ -341,6 +356,7 @@ struct Board {
         int eg = eg_eval + eg_pawn_eval +
             BISHOP_PAIR_EG * bishop_pair +
             (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
+
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
