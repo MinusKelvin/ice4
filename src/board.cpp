@@ -194,7 +194,6 @@ struct Board {
             }
 
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
-            int8_t limits[16] = {0};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8)) {
@@ -242,13 +241,12 @@ struct Board {
                 }
             } else {
                 int starts[] = {0,0,8,4,0,0,0};
-                int vals[] = {0,0,1,8,8,8,1};
-                int lens[] = {0,0,8,4,4,8,8};
-                memset(limits+starts[piece], vals[piece], lens[piece]);
+                int limits[] = {0,0,1,8,8,8,1};
+                int ends[] = {0,0,16,8,4,8,8};
 
-                for (int i = 0; i < 16; i++) {
+                for (int i = starts[piece]; i < ends[piece]; i++) {
                     int raysq = sq;
-                    for (int j = 0; j < limits[i]; j++) {
+                    for (int j = 0; j < limits[piece]; j++) {
                         raysq += rays[i];
                         if (board[raysq] & stm) {
                             break;
