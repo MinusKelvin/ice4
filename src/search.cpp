@@ -43,7 +43,7 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 5) {
+        } else if (depth > ply / 2 + 2) {
             depth--;
         }
 
