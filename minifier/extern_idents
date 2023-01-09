@@ -1,6 +1,7 @@
 atoi
 clock_gettime
 CLOCK_MONOTONIC
+countr_zero
 emplace_back
 exit
 fclose

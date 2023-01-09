@@ -39,8 +39,25 @@ struct TtEntry {
 #define HASH_SIZE 524288
 vector<TtEntry> TT(HASH_SIZE);
 
+uint64_t n(uint64_t bb) {
+    return bb << 8;
+}
+
+uint64_t s(uint64_t bb) {
+    return bb >> 8;
+}
+
+uint64_t w(uint64_t bb) {
+    return bb << 1 & 0x7F7F7F7F7F7F7F7Full;
+}
+
+uint64_t e(uint64_t bb) {
+    return bb >> 1 & 0xFEFEFEFEFEFEFEFEull;
+}
+
 struct Board {
-    uint8_t board[120];
+    uint64_t pieces[6];
+    uint64_t colors[2];
     uint8_t castle_rights[2];
     uint8_t bishops[2];
     uint8_t king_sq[2];
@@ -56,56 +73,76 @@ struct Board {
     int16_t eg_pawn_eval;
     uint64_t zobrist;
 
-    Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(0), castle2(0), stm(WHITE),
+    Board() : zobrist(0), castle_rights{3,3}, ep_square(0), castle1(64), castle2(64), stm(WHITE),
         phase(24), pawn_eval_dirty(1), bishops{2, 2}, king_sq{E1, E8}, mg_eval(0), eg_eval(0),
         mg_pawn_eval(0), eg_pawn_eval(0)
     {
         memset(board, INVALID, 120);
-        memset(pawn_counts, 0, sizeof(pawn_counts));
-        int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
-        for (int i = 0; i < 8; i++) {
-            board[A1 + i] = layout[i] | WHITE;
-            board[A8 + i] = layout[i] | BLACK;
-            board[A2 + i] = PAWN | WHITE;
-            board[A7 + i] = PAWN | BLACK;
-            board[A3 + i] = EMPTY;
-            board[A4 + i] = EMPTY;
-            board[A5 + i] = EMPTY;
-            board[A6 + i] = EMPTY;
-            pawn_counts[0][i+1] = 1;
-            pawn_counts[1][i+1] = 1;
-        }
+        memset(pawn_counts, 1, sizeof(pawn_counts));
+        pawn_counts[WHITE][0] = 0;
+        pawn_counts[WHITE][9] = 0;
+        pawn_counts[BLACK][0] = 0;
+        pawn_counts[BLACK][9] = 0;
+        pieces[PAWN-1] = 0x00FF00000000FF00ull;
+        pieces[KNIGHT-1] = 0x4200000000000042ull;
+        pieces[BISHOP-1] = 0x2400000000000024ull;
+        pieces[ROOK-1] = 0x8100000000000081ull;
+        pieces[QUEEN-1] = 0x0800000000000008ull;
+        pieces[KING-1] = 0x1000000000000010ull;
+        colors[WHITE] = 0xFFFFull;
+        colors[BLACK] = 0xFFFF000000000000ull;
     }
 
-    void edit(int square, int piece) {
-        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
+    int piece_on(int square) {
+        for (int i = 0; i < 6; i++) {
+            if (pieces[i] & (1 << square)) {
+                return i+1;
+            }
+        }
+        return 0;
+    }
+
+    void edit(int square, int color, int piece) {
+        int old_piece = piece_on(square);
+        int old_color = !(colors[WHITE] & (1 << square));
+        if (old_piece == PAWN || piece == PAWN || piece == KING) {
             pawn_eval_dirty = 1;
         }
-        zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        if ((board[square] & 7) == PAWN) {
-            pawn_counts[!(board[square] & WHITE)][square % 10]--;
+
+        zobrist ^= ZOBRIST_PIECES[old_color][old_piece][square];
+        if (old == PAWN) {
+            pawn_counts[old_color][square % 8 + 1]--;
         } else {
-            mg_eval -= PST[0][board[square]][square-A1];
-            eg_eval -= PST[1][board[square]][square-A1];
+            mg_eval -= PST[0][old_color][old_piece][square];
+            eg_eval -= PST[1][old_color][old_piece][square];
         }
-        phase -= PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]--;
+        phase -= PHASE[old_piece];
+        if (old_piece == BISHOP) {
+            bishops[old_color]--;
         }
-        board[square] = piece;
-        zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
-        if ((board[square] & 7) == PAWN) {
-            pawn_counts[!(board[square] & WHITE)][square % 10]++;
+
+        if (old_piece) {
+            colors[old_color] ^= 1ull << square;
+            pieces[old_piece-1] ^= 1ull << square;
+        }
+        if (piece) {
+            colors[color] ^= 1ull << square;
+            pieces[piece-1] ^= 1ull << square;
+        }
+
+        zobrist ^= ZOBRIST_PIECES[color][piece][square];
+        if (piece == PAWN) {
+            pawn_counts[color][square % 8 + 1]++;
         } else {
-            mg_eval += PST[0][board[square]][square-A1];
-            eg_eval += PST[1][board[square]][square-A1];
+            mg_eval += PST[0][color][piece][square];
+            eg_eval += PST[1][color][piece][square];
         }
-        phase += PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]++;
+        phase += PHASE[piece];
+        if (piece == BISHOP) {
+            bishops[color]++;
         }
-        if ((board[square] & 7) == KING) {
-            king_sq[!(board[square] & WHITE)] = square;
+        if (piece == KING) {
+            king_sq[color] = square;
         }
     }
 
@@ -125,18 +162,17 @@ struct Board {
     }
 
     void make_move(Move mv) {
-        int piece = mv.promo ? mv.promo | stm : board[mv.from];
-        int btm = stm != WHITE;
+        int piece = mv.promo ? mv.promo : piece_on(mv.from);
         castle1 = 0;
         castle2 = 0;
-        edit(mv.to, piece);
-        edit(mv.from, EMPTY);
+        edit(mv.to, stm, piece);
+        edit(mv.from, 0, EMPTY);
 
         // handle en-passant
-        int ep = btm ? 10 : -10;
-        if ((piece & 7) == PAWN) {
+        int ep = stm ? 8 : -8;
+        if (piece == PAWN) {
             if (mv.to == ep_square) {
-                edit(mv.to + ep, EMPTY);
+                edit(mv.to + ep, 0, EMPTY);
             }
             if (mv.to + ep == mv.from - ep) {
                 ep_square = mv.to + ep;
@@ -148,22 +184,22 @@ struct Board {
         }
 
         // handle castling
-        int back_rank = btm ? A8 : A1;
-        if ((piece & 7) == KING && mv.from == back_rank + 4) {
+        int back_rank = stm ? A8 : A1;
+        if (piece == KING && mv.from == back_rank + 4) {
             if (mv.to == back_rank + 6) {
-                edit(back_rank + 7, EMPTY);
-                edit(back_rank + 5, stm | ROOK);
+                edit(back_rank + 7, 0, EMPTY);
+                edit(back_rank + 5, stm, ROOK);
                 castle1 = back_rank + 4;
                 castle2 = back_rank + 5;
             }
             if (mv.to == back_rank + 2) {
-                edit(back_rank + 0, EMPTY);
-                edit(back_rank + 3, stm | ROOK);
+                edit(back_rank + 0, 0, EMPTY);
+                edit(back_rank + 3, stm, ROOK);
                 castle1 = back_rank + 4;
                 castle2 = back_rank + 3;
             }
-            remove_castle_rights(btm, SHORT_CASTLE);
-            remove_castle_rights(btm, LONG_CASTLE);
+            remove_castle_rights(stm, SHORT_CASTLE);
+            remove_castle_rights(stm, LONG_CASTLE);
         }
 
         if (mv.from == A1 || mv.to == A1) {
@@ -179,91 +215,179 @@ struct Board {
             remove_castle_rights(1, SHORT_CASTLE);
         }
 
-        stm ^= INVALID;
+        stm ^= 1;
         zobrist ^= ZOBRIST_STM;
     }
 
     int movegen(Move list[], int& count, int quiets=1) {
         count = 0;
-        uint8_t other = stm ^ INVALID;
-        uint8_t opponent_king = other | KING;
-        for (int sq = A1; sq <= H8; sq++) {
-            // skip empty squares & opponent squares (& border squares)
-            if (!board[sq] || board[sq] & other) {
-                continue;
+        uint64_t occupied = colors[0] | colors[1];
+
+        // pawns
+        uint64_t own_pawns = piece[PAWN-1] & colors[stm];
+        int dir = stm ? -8 : 8;
+        for (uint64_t bb = (stm ? s(own_pawns) : n(own_pawns)) & ~occupied; bb; bb &= bb-1) {
+            int sq = countr_zero(bb);
+            list[count++] = Move(sq - dir, sq, sq < 8 || sq >= 56 ? QUEEN : 0);
+            if ((stm ? sq >= 48 : sq < 16) && !(occupied & 1ull << sq + dir)) {
+                list[count++] = Move(sq - dir, sq + dir, 0);
             }
-
-            int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
-            int8_t limits[16] = {0};
-            int piece = board[sq] & 7;
-
-            if (piece == KING && sq == (stm == WHITE ? E1 : E8)) {
-                if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
-                        !board[sq+1] && !board[sq+2]) {
-                    list[count++] = Move(sq, sq + 2, 0);
-                }
-                if (castle_rights[stm == BLACK] & LONG_CASTLE &&
-                        !board[sq-1] && !board[sq-2] && !board[sq-3]) {
-                    list[count++] = Move(sq, sq - 2, 0);
-                }
+        }
+        uint64_t pawn_attackable = colors[!stm] | (ep_square ? 1ull << ep_square : 0);
+        for (uint64_t bb = e(stm ? s(own_pawns) : n(own_pawns)) & pawn_attackable; bb; bb &= bb-1) {
+            int sq = countr_zero(bb);
+            list[count++] = Move(sq - dir - 1, sq, sq < 8 || sq >= 56 ? QUEEN : 0);
+        }
+        for (uint64_t bb = w(stm ? s(own_pawns) : n(own_pawns)) & pawn_attackable; bb; bb &= bb-1) {
+            int sq = countr_zero(bb);
+            list[count++] = Move(sq - dir + 1, sq, sq < 8 || sq >= 56 ? QUEEN : 0);
+        }
+        int end = count;
+        for (int i = 0; i < end; i++) {
+            if (list[i].promo) {
+                list[count] = list[i];
+                list[count++].promo = KNIGHT;
             }
+            if (list[i].to == king_sq[!stm] || list[i].to == castle1 || list[i].to == castle2) {
+                return 0;
+            }
+        }
 
-            if (piece == PAWN) {
-                int orig = count; // remember start of pawn move list for underpromotions
+        for (uint64_t bb = colors[stm] & ~piece[PAWN-1]; bb; bb &= bb - 1) {
+            int sq = countr_zero(bb);
+            int piece = piece_on(sq);
+            uint64_t attacks = 0;
+            uint64_t tmp;
 
-                int dir = stm == WHITE ? 10 : -10;
-                int upsq = sq + dir;
-                int promo = board[upsq + dir] == INVALID ? QUEEN : 0;
-                if (!board[upsq] && quiets) {
-                    list[count++] = Move(sq, upsq, promo);
-                    if (board[sq - dir - dir] == INVALID && !board[upsq+dir]) {
-                        list[count++] = Move(sq, upsq+dir, promo);
-                    }
-                }
-                if (
-                    board[upsq+1] == opponent_king || board[upsq-1] == opponent_king ||
-                    upsq+1 == castle1 || upsq+1 == castle2 ||
-                    upsq-1 == castle1 || upsq-1 == castle2
-                ) {
-                    return 0;
-                }
-                if (ep_square == upsq-1 || board[upsq-1] & other && ~board[upsq-1] & stm) {
-                    list[count++] = Move(sq, upsq-1, promo);
-                }
-                if (ep_square == upsq+1 || board[upsq+1] & other && ~board[upsq+1] & stm) {
-                    list[count++] = Move(sq, upsq+1, promo);
-                }
-
-                // copy in underpromotion moves
-                int end = count;
-                for (int i = orig; promo && i < end; i++) {
-                    list[count] = list[i];
-                    list[count++].promo = KNIGHT;
-                }
-            } else {
-                int starts[] = {0,0,8,4,0,0,0};
-                int vals[] = {0,0,1,8,8,8,1};
-                int lens[] = {0,0,8,4,4,8,8};
-                memset(limits+starts[piece], vals[piece], lens[piece]);
-
-                for (int i = 0; i < 16; i++) {
-                    int raysq = sq;
-                    for (int j = 0; j < limits[i]; j++) {
-                        raysq += rays[i];
-                        if (board[raysq] & stm) {
-                            break;
+            switch (piece) {
+                case KING:
+                    if (sq == (stm ? E8 : E1)) {
+                        if (castle_rights[stm] & SHORT_CASTLE &&
+                                occupied & (0b11 << (stm ? 61 : 5))) {
+                            list[count++] = Move(sq, sq + 2, 0);
                         }
-                        if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
-                            return 0;
-                        }
-                        if (board[raysq] & other) {
-                            list[count++] = Move(sq, raysq, 0);
-                            break;
-                        } else if (quiets) {
-                            list[count++] = Move(sq, raysq, 0);
+                        if (castle_rights[stm] & LONG_CASTLE &&
+                                occupied & (0b111 << (stm ? 57 : 1))) {
+                            list[count++] = Move(sq, sq - 2, 0);
                         }
                     }
-                }
+                    attacks = n(e(1ull << sq)) | n(1ull << sq) | n(w(1ull << sq))
+                        | e(1ull << sq) | w(1ull << sq)
+                        | s(e(1ull << sq)) | s(1ull << sq) | s(w(1ull << sq));
+                    break;
+                case KNIGHT:
+                    attacks = n(n(e(1ull << sq))) | n(n(w(1ull << sq)))
+                        | n(e(e(1ull << sq))) | s(e(e(1ull << sq)))
+                        | n(w(w(1ull << sq))) | s(w(w(1ull << sq)))
+                        | s(s(e(1ull << sq))) | s(s(w(1ull << sq)));
+                    break;
+                case ROOK:
+                    tmp = n(1ull << sq);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = s(1ull << sq);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = w(1ull << sq);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = e(1ull << sq);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    attacks |= tmp;
+                    break;
+                case QUEEN:
+                    tmp = n(1ull << sq);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    tmp |= n(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = s(1ull << sq);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    tmp |= s(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = w(1ull << sq);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    tmp |= w(tmp & ~occupied);
+                    attacks |= tmp;
+                    tmp = e(1ull << sq);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    tmp |= e(tmp & ~occupied);
+                    attacks |= tmp;
+                    // fall-through
+                case BISHOP:
+                    tmp = n(e(1ull << sq));
+                    tmp |= n(e(tmp & ~occupied));
+                    tmp |= n(e(tmp & ~occupied));
+                    tmp |= n(e(tmp & ~occupied));
+                    tmp |= n(e(tmp & ~occupied));
+                    tmp |= n(e(tmp & ~occupied));
+                    tmp |= n(e(tmp & ~occupied));
+                    attacks |= tmp;
+                    tmp = s(e(1ull << sq));
+                    tmp |= s(e(tmp & ~occupied));
+                    tmp |= s(e(tmp & ~occupied));
+                    tmp |= s(e(tmp & ~occupied));
+                    tmp |= s(e(tmp & ~occupied));
+                    tmp |= s(e(tmp & ~occupied));
+                    tmp |= s(e(tmp & ~occupied));
+                    attacks |= tmp;
+                    tmp = n(w(1ull << sq));
+                    tmp |= n(w(tmp & ~occupied));
+                    tmp |= n(w(tmp & ~occupied));
+                    tmp |= n(w(tmp & ~occupied));
+                    tmp |= n(w(tmp & ~occupied));
+                    tmp |= n(w(tmp & ~occupied));
+                    tmp |= n(w(tmp & ~occupied));
+                    attacks |= tmp;
+                    tmp = s(w(1ull << sq));
+                    tmp |= s(w(tmp & ~occupied));
+                    tmp |= s(w(tmp & ~occupied));
+                    tmp |= s(w(tmp & ~occupied));
+                    tmp |= s(w(tmp & ~occupied));
+                    tmp |= s(w(tmp & ~occupied));
+                    tmp |= s(w(tmp & ~occupied));
+                    attacks |= tmp;
+                    break;
+            }
+
+            attacks &= ~colors[stm];
+            for (; attacks; attacks &= attacks - 1) {
+                list[count++] = Move(sq, countr_zero(attacks), 0);
             }
         }
         return 1;
