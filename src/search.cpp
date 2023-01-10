@@ -43,8 +43,8 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 5) {
-            depth--;
+        } else {
+            depth -= depth / 8;
         }
 
         int static_eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
