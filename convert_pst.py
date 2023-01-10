@@ -25,7 +25,7 @@ def dump_string(piece_data, stuff):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1, 1, 28] * 2
+sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1, 1, 7] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])

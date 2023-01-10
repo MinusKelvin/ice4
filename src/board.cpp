@@ -340,8 +340,8 @@ struct Board {
                 op_mob++;
             }
         }
-        mg_pawn_eval += VIRTUAL_QUEEN_MOB_MG[us_mob] - VIRTUAL_QUEEN_MOB_MG[op_mob];
-        eg_pawn_eval += VIRTUAL_QUEEN_MOB_EG[us_mob] - VIRTUAL_QUEEN_MOB_EG[op_mob];
+        mg_pawn_eval += VIRTUAL_QUEEN_MOB_MG[us_mob/4] - VIRTUAL_QUEEN_MOB_MG[op_mob/4];
+        eg_pawn_eval += VIRTUAL_QUEEN_MOB_EG[us_mob/4] - VIRTUAL_QUEEN_MOB_EG[op_mob/4];
     }
 
     int eval() {
