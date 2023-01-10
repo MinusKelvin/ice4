@@ -328,20 +328,18 @@ struct Board {
             }
         }
 
-        int us_mob = 0;
-        int op_mob = 0;
         for (int d : {-1, 1, -10, 10, 11, -11, 9, -9}) {
             int raysq = king_sq[0];
             while (raysq += d, board[raysq] != INVALID && (board[raysq] & 7) != PAWN) {
-                us_mob++;
+                mg_pawn_eval += VQM_MG;
+                eg_pawn_eval += VQM_EG;
             }
             raysq = king_sq[1];
             while (raysq += d, board[raysq] != INVALID && (board[raysq] & 7) != PAWN) {
-                op_mob++;
+                mg_pawn_eval -= VQM_MG;
+                eg_pawn_eval -= VQM_EG;
             }
         }
-        mg_pawn_eval += VIRTUAL_QUEEN_MOB_MG[us_mob] - VIRTUAL_QUEEN_MOB_MG[op_mob];
-        eg_pawn_eval += VIRTUAL_QUEEN_MOB_EG[us_mob] - VIRTUAL_QUEEN_MOB_EG[op_mob];
     }
 
     int eval() {
