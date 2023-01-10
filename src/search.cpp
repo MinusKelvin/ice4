@@ -78,7 +78,7 @@ struct Searcher {
         }
 
         if (depth >= 3 && pv && (
-            !tt_good || tt.depth + 2 < depth || tt.bound != BOUND_EXACT
+            !tt_good || tt.bound != BOUND_EXACT
         )) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
