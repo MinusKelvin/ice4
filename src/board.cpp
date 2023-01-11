@@ -270,6 +270,8 @@ struct Board {
     void update_pawn_eval() {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
+        int wislands = 0;
+        int bislands = 0;
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[0][file]) {
                 mg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
@@ -287,6 +289,8 @@ struct Board {
                 mg_pawn_eval += ISOLATED_PAWN_MG * pawn_counts[1][file];
                 eg_pawn_eval += ISOLATED_PAWN_EG * pawn_counts[1][file];
             }
+            wislands += !pawn_counts[0][file-1] && pawn_counts[0][file];
+            bislands += !pawn_counts[1][file-1] && pawn_counts[1][file];
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;
                 if (board[sq] == BLACK_PAWN) {
@@ -314,6 +318,8 @@ struct Board {
                 }
             }
         }
+        mg_pawn_eval += PAWN_ISLANDS_MG[wislands] - PAWN_ISLANDS_MG[bislands];
+        eg_pawn_eval += PAWN_ISLANDS_EG[wislands] - PAWN_ISLANDS_EG[bislands];
         for (int rank = 30; rank < 90; rank += 10) {
             for (int file = 1; file < 9; file++) {
                 int sq = rank+file;
