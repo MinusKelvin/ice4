@@ -64,6 +64,9 @@ struct Searcher {
                 return v;
             }
             in_check = v == LOST;
+            if (!in_check && v < -20000) {
+                depth++;
+            }
         }
 
         if (pv && depth > 0) {
