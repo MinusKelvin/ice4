@@ -153,6 +153,10 @@ struct Searcher {
                 if (reduction < 0 || victim || in_check || score[i] == 9000) {
                     reduction = 0;
                 }
+                if (depth - reduction <= 0 && history[board.stm == BLACK][piece][moves[i].to-A1] < -256) {
+                    legals = legals ? legals : 1;
+                    continue;
+                }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
