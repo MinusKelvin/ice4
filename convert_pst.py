@@ -25,7 +25,7 @@ def dump_string(piece_data, stuff):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1, 1, 1, 1, 1] * 2
+sizes = [64, 32, 32, 32, 32, 64, 64, 1, 8, 1, 1, 1, 1, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -62,6 +62,7 @@ print(f"doubled pawn mg: {[-round(v) for v in sections[8]]}")
 print(f"doubled pawn eg: {[-round(v) for v in sections[eg+8]]}")
 print(f"tempo: {round(sections[9][0])}, {round(sections[eg+9][0])}")
 print(f"isolated pawn: {-round(sections[10][0])}, {-round(sections[eg+10][0])}")
-print(f"pawn chaining: {round(sections[11][0])}, {round(sections[eg+11][0])}")
-print(f"rook open file: {round(sections[12][0])}, {round(sections[eg+12][0])}")
-print(f"rook semiopen file: {round(sections[13][0])}, {round(sections[eg+13][0])}")
+print(f"single pawn protect: {round(sections[11][0])}, {round(sections[eg+11][0])}")
+print(f"double pawn protect: {round(sections[12][0])}, {round(sections[eg+12][0])}")
+print(f"rook open file: {round(sections[13][0])}, {round(sections[eg+13][0])}")
+print(f"rook semiopen file: {round(sections[14][0])}, {round(sections[eg+14][0])}")
