@@ -348,6 +348,24 @@ struct Board {
         int eg = eg_eval + eg_pawn_eval +
             BISHOP_PAIR_EG * bishop_pair +
             (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
+        for (int file = 1; file < 9; file++) {
+            if (!pawn_counts[0][file]) {
+                for (int sq = 20 + file; sq <= H8; sq+=10) {
+                    if (board[sq] == (WHITE | ROOK)) {
+                        mg += pawn_counts[1][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG;
+                        eg += pawn_counts[1][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG;
+                    }
+                }
+            }
+            if (!pawn_counts[1][file]) {
+                for (int sq = 20 + file; sq <= H8; sq+=10) {
+                    if (board[sq] == (WHITE | ROOK)) {
+                        mg -= pawn_counts[0][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG;
+                        eg -= pawn_counts[0][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG;
+                    }
+                }
+            }
+        }
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
