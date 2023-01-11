@@ -85,6 +85,8 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
+        depth += in_check;
+
         for (int i = 0; i < mvcount; i++) {
             int piece = board.board[moves[i].from] & 7;
             if (hashmv == moves[i]) {
@@ -165,7 +167,7 @@ struct Searcher {
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
             if (v == LOST) {
                 moves[i].from = 0;
@@ -201,6 +203,8 @@ struct Searcher {
                 break;
             }
         }
+
+        depth -= in_check;
 
         if (depth > 0 && legals == 0) {
             Board mkmove = board;
