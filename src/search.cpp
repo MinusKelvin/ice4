@@ -18,7 +18,7 @@ struct Searcher {
     uint64_t rep_list[256];
     Move killers[256][2];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, int uncertain=0) {
         Move scratch, hashmv(0);
         Move moves[256];
         int mvcount;
@@ -110,6 +110,9 @@ struct Searcher {
 
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
+            if (uncertain && legals > 3) {
+                return alpha;
+            }
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
                 if (score[j] > score[best_so_far]) {
@@ -153,7 +156,7 @@ struct Searcher {
                 if (reduction < 0 || victim || in_check || score[i] == 9000) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1, pv);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
