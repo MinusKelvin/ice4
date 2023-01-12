@@ -30,6 +30,7 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
 - A single executable no more than 4 KB large (notable dependencies: C++ compiler, `xz`)
 - 10x12 board representation
 - Pseudolegal movegen
+  - Underpromotions to rook & bishop not generated
 - Zobrist hashing
 - Transposition table
 - Lazy SMP
@@ -39,6 +40,7 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
   - Null move pruning
   - Reverse futility pruning
   - Internal iterated deepening
+  - Internal iterated reductions
   - Late move reductions
   - Late move pruning
   - History reductions
@@ -54,10 +56,14 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
   - Horizontally mirrored piece square tables for pieces
   - Full piece square table for king
   - King-relative piece square tables for pawns and passed pawns
-  - Doubled & isolated pawn terms
-  - Bishop pair and tempo terms
+  - Doubled pawns
+  - Isolated pawns
+  - Simplified pawn chain
+  - Rook on (semi-)open files
+  - Bishop pair
+  - Tempo
 
 ## Acknowledgements
 
 - This follows the TCEC 4K rules: https://wiki.chessdom.org/TCEC_4k_Rules
-- Thanks to Analog for coming up with the name, some search work, and the logo
+- Thanks to Analog for coming up with the name, logo, and various other contributions
