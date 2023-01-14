@@ -49,7 +49,7 @@ struct Searcher {
 
         int static_eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
 
-        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
+        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 65 * depth) {
             return static_eval;
         }
 
