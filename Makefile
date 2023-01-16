@@ -17,8 +17,11 @@ ice4-tcec: launcher.sh $(DEPS)
 	chmod +x ice4-tcec
 	@echo Compressed size: `du -b ice4-tcec`
 
+ice4.exe: $(DEPS)
+	x86_64-w64-mingw32-g++-posix -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
+
 $(EXE): $(DEPS)
-	g++ -DOPENBENCH -O3 -pthread src/main.cpp -o "$(EXE)"
+	g++ -DOPENBENCH -O3 -pthread src/main.cpp -o "$@"
 
 logo.png: ice4 logo_template.png
 	python3 make_ice4_logo.py < ice4
@@ -29,7 +32,7 @@ check:
 
 .PHONY: clean
 clean:
-	rm -f ice4 ice4-tcec logo.png
+	rm -f $(EXE) ice4 ice4.exe ice4-tcec logo.png
 
 .PHONY: all
-all: $(EXE) ice4 ice4-tcec logo.png
+all: $(EXE) ice4 ice4.exe ice4-tcec logo.png

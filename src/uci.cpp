@@ -71,20 +71,21 @@ void uci() {
                 break;
             case 'g': // go
 #ifdef OPENBENCH
-                char *w = strtok(0, " \n");
-                if (!w || w[0] == 'i') {
-                    // go infinite
-                    wtime = 1 << 30;
-                    btime = 1 << 30;
-                } else {
+                char *w;
+                wtime = 1 << 30;
+                btime = 1 << 30;
+                while (w = strtok(0, " \n")) {
+                    if (!strcmp(w, "wtime")) {
+                        wtime = atoi(strtok(0, " \n"));
+                    } else if (!strcmp(w, "btime")) {
+                        btime = atoi(strtok(0, " \n"));
+                    }
+                }
 #else
                 strtok(0, " \n"); // wtime
-#endif
                 wtime = atoi(strtok(0, " \n"));
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
-#ifdef OPENBENCH
-                }
 #endif
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
                 ABORT = 0;
