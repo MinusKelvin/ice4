@@ -340,6 +340,14 @@ struct Board {
                 }
             }
         }
+        if (!pawn_counts[0][king_sq[0] % 10]) {
+            mg_pawn_eval += pawn_counts[1][king_sq[0] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_pawn_eval += pawn_counts[1][king_sq[0] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+        }
+        if (!pawn_counts[1][king_sq[1] % 10]) {
+            mg_pawn_eval -= pawn_counts[0][king_sq[1] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_pawn_eval -= pawn_counts[0][king_sq[1] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+        }
     }
 
     int eval() {
