@@ -1,3 +1,4 @@
+abs
 atoi
 clock_gettime
 CLOCK_MONOTONIC
@@ -11,9 +12,11 @@ join
 load
 lock
 main
+max
 memcpy
 memory_order_relaxed
 memset
+min
 printf
 putchar
 puts

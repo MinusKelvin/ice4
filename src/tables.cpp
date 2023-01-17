@@ -1,19 +1,21 @@
 int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[] = {9, -7, 16, 19, 21, 17, -2, 9};
-int16_t DOUBLED_EG[] = {29, 19, 12, 5, 6, 12, 18, 33};
+int16_t DOUBLED_MG[] = {7, -8, 15, 18, 19, 16, -2, 8};
+int16_t DOUBLED_EG[] = {34, 25, 17, 11, 10, 15, 19, 35};
+int16_t KING_OPP_PAWN_TROPISM_MG[] = {40, -10, 0, 1, -1, -1, 16, -86};
+int16_t KING_OPP_PAWN_TROPISM_EG[] = {67, 17, -2, -20, -36, -39, -27, 5};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_MG 22
-#define BISHOP_PAIR_EG 42
+#define BISHOP_PAIR_EG 41
 #define TEMPO_MG 6
-#define TEMPO_EG 2
+#define TEMPO_EG 3
 #define ISOLATED_PAWN_MG 9
-#define ISOLATED_PAWN_EG 11
+#define ISOLATED_PAWN_EG 9
 #define CONNECTED_PAWN_MG 7
 #define CONNECTED_PAWN_EG 7
 #define ROOK_OPEN_MG 28
 #define ROOK_OPEN_EG 9
 #define ROOK_SEMIOPEN_MG 17
-#define ROOK_SEMIOPEN_EG 14
+#define ROOK_SEMIOPEN_EG 17
 
 void unpack_full(int phase, int piece, const char *data, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
@@ -64,20 +66,20 @@ uint64_t ZOBRIST_STM;
 
 void init_tables() {
     // Piece-square tables
-    unpack_full(0, PAWN, "        CX^?9;3-EVNE?>33EMXVPG76LVeb[QE?Ya|wocPGB f~qh2g        ", 1.042, 18); // average: 54
-    unpack_full(1, PAWN, "        &(0631,/# +,+('&%('&%(,)-.,),/227D8=>=?<_Gm~yusy        ", 1.309, 90); // average: 115
-    unpack_full(0, PASSED_PAWN, "        .;31.++0-1&& \"-00/%\"%(78/61/36D>7+84=GNSSLCGZ]~V        ", 1.232, -16); // average: 7
-    unpack_full(1, PASSED_PAWN, "        $$ !$&-$'-'&%(,(6:40,.34DF=614:@VTM;6<GOc~X607ED        ", 2.039, -8); // average: 28
-    unpack_full(0, KING, ">>9074EI=70%(2;B+.  \"$/,(-)*&*,\"-624-11':61953.2H7:;8/$7~_mc[LVT", 2.303, -54); // average: -1
-    unpack_full(1, KING, "6:<83;8+?GMSRLD<IQY\\\\VOIOY_ba^VPXdggifcU^tunots_S{xrrv~T ZY]][\\'", 1.705, -89); // average: 4
-    unpack_half(0, QUEEN, " (*,+3522330101.=/45=H?E8,A3,B[^", 1.0, 642); // average: 664
-    unpack_half(1, QUEEN, "7& \"2*)08AHEJT[eKiovTcuuWro~ebVS", 1.346, 1264); // average: 1330
-    unpack_half(0, ROOK, "149? *1/+4,+/044=BJNH[_iOMjofion", 1.0, 285); // average: 323
-    unpack_half(1, ROOK, " &%\"\"!#''+0/6;:8>C?;C>=7DJAAACA@", 1.0, 623); // average: 645
-    unpack_half(0, BISHOP, "LJIIV\\YTT_][\\[_hZ^kq`rw~Q\\a\\:/ 2", 1.134, 192); // average: 255
-    unpack_half(1, BISHOP, " 2*147==:DJN7GPR:NMU=IMG;KILQSWQ", 1.0, 363); // average: 398
-    unpack_half(0, KNIGHT, "JLOQOQWUPZZ]Z_``a`jh_sx~WYot 3(b", 1.816, 148); // average: 252
-    unpack_half(1, KNIGHT, "(;MQGWZbOaiq\\iwx^rw~YeonN_ai fu`", 1.234, 274); // average: 351
+    unpack_full(0, PAWN, "        7LQ2-.& 9IA821%%9ALIC:*)@IWTND82IOjb]R@7U7l~ka<i        ", 1.052, 30); // average: 59
+    unpack_full(1, PAWN, "        #&+0.-*+! ())&&%&)((&(+(03211131<KCIGBA;dft~ztxs        ", 1.637, 95); // average: 128
+    unpack_full(0, PASSED_PAWN, "        0?741//5/1%' #040,\"!&*;=/5/059ICA/<7BMV_LG?AZ_~V        ", 1.069, -16); // average: 5
+    unpack_full(1, PASSED_PAWN, "        %& !##+!+3,(&'+&?F>70156RVK?8:?Gge]E=COYm~c>48=C        ", 1.58, -6); // average: 28
+    unpack_full(0, KING, "HHA6?:PVG@6),9EM13# \"'43'-&# (.\")6.+#01%8912/360L>>523*;~dve\\KYH", 1.864, -55); // average: -8
+    unpack_full(1, KING, ">HJC>HD5BMSZYSJ@FPY]]WNFKV[``YRJW_cega]R]qrmopp]T|xutw~T _\\bb_a+", 1.392, -77); // average: 1
+    unpack_half(0, QUEEN, " (*,+3522330101.=/45=H?E8,A4+B[^", 1.0, 642); // average: 664
+    unpack_half(1, QUEEN, "8& \"3*)08BHEKU\\eLipwUcuuXro~fbUS", 1.332, 1267); // average: 1332
+    unpack_half(0, ROOK, "149? *1/+4,+/044=BJOH[_iPNkphlsq", 1.0, 286); // average: 324
+    unpack_half(1, ROOK, " %%\"#!#''*0/6::7>B?:C<<5DH??>@=<", 1.0, 625); // average: 646
+    unpack_half(0, BISHOP, "MJIIV]ZTT`][\\[_hZ^kq`rw~Q\\a\\:/ 1", 1.133, 192); // average: 255
+    unpack_half(1, BISHOP, " 2)057<<9DJM6FPR8MLT;GLF8IHLNRVQ", 1.0, 366); // average: 401
+    unpack_half(0, KNIGHT, "JLOQNQWUPZZ]Y_``a`jh_sx~WYpt 3)c", 1.821, 148); // average: 252
+    unpack_half(1, KNIGHT, "*<NRJX[bPbjq]jwy^rx~XennM^`g ds_", 1.249, 274); // average: 352
     
     // Zobrist keys
 #ifdef OPENBENCH

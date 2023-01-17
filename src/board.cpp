@@ -319,6 +319,7 @@ struct Board {
                 }
             }
         }
+        int tropisms[] = {7, 7};
         for (int rank = 30; rank < 90; rank += 10) {
             for (int file = 1; file < 9; file++) {
                 int sq = rank+file;
@@ -331,6 +332,13 @@ struct Board {
                         mg_pawn_eval += (piece & WHITE ? CONNECTED_PAWN_MG : -CONNECTED_PAWN_MG);
                         eg_pawn_eval += (piece & WHITE ? CONNECTED_PAWN_EG : -CONNECTED_PAWN_EG);
                     }
+                    tropisms[!(piece & WHITE)] = min(
+                        tropisms[!(piece & WHITE)],
+                        max(
+                            abs(king_sq[!(piece & BLACK)] % 10 - file),
+                            abs(king_sq[!(piece & BLACK)] / 10 - rank)
+                        )
+                    );
                     if (king_sq[!(piece & WHITE)] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
@@ -339,6 +347,8 @@ struct Board {
                 }
             }
         }
+        mg_pawn_eval += KING_OPP_PAWN_TROPISM_MG[tropisms[1]] - KING_OPP_PAWN_TROPISM_MG[tropisms[0]];
+        eg_pawn_eval += KING_OPP_PAWN_TROPISM_EG[tropisms[1]] - KING_OPP_PAWN_TROPISM_EG[tropisms[0]];
     }
 
     int eval() {
