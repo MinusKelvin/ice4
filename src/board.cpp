@@ -324,14 +324,13 @@ struct Board {
                 int sq = rank+file;
                 int piece = board[sq];
                 if ((piece & 7) == PAWN) {
-                    int protectors = (board[sq + (piece & WHITE ? -9 : 9)] == piece)
-                        + (board[sq + (piece & WHITE ? -11 : 11)] == piece);
-                    mg_pawn_eval += piece & WHITE
-                        ? PROTECTED_PAWN_MG[protectors]
-                        : -PROTECTED_PAWN_MG[protectors];
-                    eg_pawn_eval += piece & WHITE
-                        ? PROTECTED_PAWN_EG[protectors]
-                        : -PROTECTED_PAWN_EG[protectors];
+                    if (
+                        board[sq + (piece & WHITE ? -9 : 9)] == piece
+                        || board[sq + (piece & WHITE ? -11 : 11)] == piece
+                    ) {
+                        mg_pawn_eval += (piece & WHITE ? CONNECTED_PAWN_MG : -CONNECTED_PAWN_MG);
+                        eg_pawn_eval += (piece & WHITE ? CONNECTED_PAWN_EG : -CONNECTED_PAWN_EG);
+                    }
                     if (king_sq[!(piece & WHITE)] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
