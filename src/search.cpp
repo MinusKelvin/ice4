@@ -148,7 +148,7 @@ struct Searcher {
                 if (reduction > legals) {
                     reduction = legals;
                 }
-                reduction += legals > 3;
+                reduction += legals > 3 && !pv;
                 reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
                 if (reduction < 0 || victim || in_check || score[i] == 9000) {
                     reduction = 0;
