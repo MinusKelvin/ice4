@@ -35,11 +35,11 @@ struct Searcher {
             memcpy(&tt, &data, sizeof(TtData));
 
             hashmv = tt.mv;
-            if (depth <= tt.depth && (
-                tt.bound == BOUND_EXACT ||
-                tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                tt.bound == BOUND_UPPER && tt.eval <= alpha
-            )) {
+            if (
+                tt.bound == BOUND_EXACT && depth <= tt.depth ||
+                tt.bound == BOUND_LOWER && depth < tt.depth && tt.eval >= beta ||
+                tt.bound == BOUND_UPPER && depth < tt.depth && tt.eval <= alpha
+            ) {
                 bestmv = tt.mv;
                 return tt.eval;
             }
