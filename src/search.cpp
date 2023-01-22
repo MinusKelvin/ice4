@@ -144,12 +144,9 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = (legals*3 + depth*2) / 32;
-                if (reduction > legals) {
-                    reduction = legals;
-                }
-                reduction += legals > 3;
-                reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                int reduction = min(legals * 0.9, legals * 0.1 + depth * 0.07)
+                    + (legals > 3)
+                    - history[board.stm == BLACK][piece][moves[i].to-A1] / 200.0;
                 if (reduction < 0 || victim || in_check || score[i] == 9000) {
                     reduction = 0;
                 }

@@ -14,6 +14,7 @@ main
 memcpy
 memory_order_relaxed
 memset
+min
 printf
 putchar
 puts
