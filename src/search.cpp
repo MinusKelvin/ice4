@@ -77,10 +77,12 @@ struct Searcher {
             return WON;
         }
 
-        if (depth >= 3 && pv && (
-            !tt_good || tt.bound != BOUND_EXACT
-        )) {
-            negamax(board, hashmv, alpha, beta, depth - 2, ply);
+        if (
+            depth > 3 - pv && (
+                pv ? !tt_good || tt.bound != BOUND_EXACT : !tt_good || tt.depth + 3 < depth
+            )
+        ) {
+            negamax(board, hashmv, alpha, beta, depth - 3 + pv, ply);
         }
 
         rep_list[ply] = board.zobrist;
