@@ -14,6 +14,7 @@ Move BEST_MOVE(0);
 struct Searcher {
     uint64_t nodes;
     double abort_time;
+    int16_t evals[256];
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
@@ -48,6 +49,8 @@ struct Searcher {
         }
 
         int static_eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
+        int improving = ply > 1 && static_eval > evals[ply-2];
+        evals[ply] = static_eval;
 
         if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
             return static_eval;
@@ -144,7 +147,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = (legals*3 + depth*2) / 32;
+                int reduction = (legals*3 + depth*2 - 8 * improving) / 32;
                 if (reduction > legals) {
                     reduction = legals;
                 }
