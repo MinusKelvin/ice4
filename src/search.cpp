@@ -106,7 +106,7 @@ struct Searcher {
         }
 
         int quiets_to_check_table[] = { 0, 7, 8, 17 };
-        int quiets_to_check = depth > 0 && depth < 4 && !pv ? quiets_to_check_table[depth] : 99;
+        int quiets_to_check = depth > 0 && depth < 4 && !pv ? quiets_to_check_table[depth] : -1;
 
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
