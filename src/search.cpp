@@ -14,6 +14,7 @@ Move BEST_MOVE(0);
 struct Searcher {
     uint64_t nodes;
     double abort_time;
+    int16_t evals[256];
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
@@ -47,17 +48,19 @@ struct Searcher {
             depth--;
         }
 
-        int static_eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
+        evals[ply] = board.eval();
+        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        if (!pv && depth > 0 && depth < 4 && static_eval >= beta + 75 * depth) {
-            return static_eval;
+        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth - 50 * improving) {
+            return eval;
         }
 
-        if (!pv && static_eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
 
-            int reduction = (static_eval - beta) / 128 + depth / 3 + 2;
+            int reduction = (eval - beta) / 128 + depth / 3 + 2;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -100,7 +103,7 @@ struct Searcher {
 
         int raised_alpha = 0;
 
-        int16_t best = depth > 0 ? LOST + ply : static_eval;
+        int16_t best = depth > 0 ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
@@ -210,7 +213,7 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != static_eval) && best > LOST + ply) {
+        if ((depth > 0 || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
