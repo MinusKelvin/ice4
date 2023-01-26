@@ -201,7 +201,7 @@ struct Board {
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int piece = board[sq] & 7;
 
-            if (piece == KING && sq == (stm == WHITE ? E1 : E8)) {
+            if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
                 if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
                         !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
