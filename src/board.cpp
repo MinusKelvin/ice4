@@ -240,7 +240,7 @@ struct Board {
 
                 // copy in underpromotion moves
                 int end = count;
-                for (int i = orig; promo && i < end; i++) {
+                for (int i = orig; quiets && promo && i < end; i++) {
                     list[count] = list[i];
                     list[count++].promo = KNIGHT;
                 }
