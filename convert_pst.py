@@ -29,7 +29,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 16, 3, 16, 3, 16, 3, 16, 3, 64, 64, 1, 8, 1, 1, 1, 1, 1, 1] * 2
+sizes = [64, 16, 3, 16, 3, 16, 3, 16, 3, 16, 64, 1, 8, 1, 1, 1, 1, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -50,8 +50,8 @@ dump_string(sections[0], "unpack_full(0, PAWN")
 dump_string(sections[eg+0], "unpack_full(1, PAWN")
 dump_string(sections[10], "unpack_full(0, PASSED_PAWN")
 dump_string(sections[eg+10], "unpack_full(1, PASSED_PAWN")
-dump_string(sections[9], "unpack_full(0, KING")
-dump_string(sections[eg+9], "unpack_full(1, KING")
+dump_string(sections[9], "unpack_smol(0, KING")
+dump_string(sections[eg+9], "unpack_smol(1, KING")
 dump_string(sections[7], "unpack_half(0, QUEEN", sections[8])
 dump_string(sections[eg+7], "unpack_half(1, QUEEN", sections[eg+8])
 dump_string(sections[5], "unpack_half(0, ROOK", sections[6])
