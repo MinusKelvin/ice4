@@ -63,10 +63,12 @@ uint64_t rng() {
 }
 #endif
 
-uint64_t ZOBRIST_PIECES[23][SQUARE_SPAN];
-uint64_t ZOBRIST_CASTLE_RIGHTS[4];
-uint64_t ZOBRIST_STM;
-
+struct Zobrist {
+    uint64_t pieces[25][SQUARE_SPAN];
+    uint64_t ep[120];
+    uint64_t castle_rights[4];
+    uint64_t stm;
+} ZOBRIST;
 
 void init_tables() {
     unpack_full(0, PAWN, "        CY_A;=6/FVPGA@45FNZXQI98NWfc]THBZb|wpeRIA f~sk4h        ", 1.048, 16); // average: 54
@@ -86,20 +88,21 @@ void init_tables() {
     
     // Zobrist keys
 #ifdef OPENBENCH
-    for (int i = 0; i < 23; i++) {
+    for (int i = 0; i < 25; i++) {
         for (int j = 0; j < SQUARE_SPAN; j++) {
-            ZOBRIST_PIECES[i][j] = rng();
+            ZOBRIST.pieces[i][j] = rng();
         }
     }
-    ZOBRIST_CASTLE_RIGHTS[0] = rng();
-    ZOBRIST_CASTLE_RIGHTS[1] = rng();
-    ZOBRIST_CASTLE_RIGHTS[2] = rng();
-    ZOBRIST_CASTLE_RIGHTS[3] = rng();
-    ZOBRIST_STM = rng();
+    for (int i = 0; i < 120; i++) {
+        ZOBRIST.ep[i] = rng();
+    }
+    ZOBRIST.castle_rights[0] = rng();
+    ZOBRIST.castle_rights[1] = rng();
+    ZOBRIST.castle_rights[2] = rng();
+    ZOBRIST.castle_rights[3] = rng();
+    ZOBRIST.stm = rng();
 #else
     auto rng = fopen("/dev/urandom", "r");
-    fread(ZOBRIST_PIECES, sizeof(ZOBRIST_PIECES), 1, rng);
-    fread(ZOBRIST_CASTLE_RIGHTS, sizeof(ZOBRIST_CASTLE_RIGHTS), 1, rng);
-    fread(&ZOBRIST_STM, sizeof(ZOBRIST_STM), 1, rng);
+    fread(ZOBRIST, sizeof(ZOBRIST), 1, rng);
 #endif
 }

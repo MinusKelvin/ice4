@@ -187,7 +187,7 @@ void parse_fen() {
 
     if (*strtok(0, " \n") == 'b') {
         ROOT.stm = BLACK;
-        ROOT.zobrist ^= ZOBRIST_STM;
+        ROOT.zobrist ^= ZOBRIST.stm;
     }
 
     word = strtok(0, " \n");
