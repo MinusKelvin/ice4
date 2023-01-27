@@ -22,6 +22,7 @@ struct Searcher {
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
+        int score[256];
         int mvcount;
 
         int pv = beta > alpha+1;
@@ -35,7 +36,9 @@ struct Searcher {
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
 
-            hashmv = tt.mv;
+            if (depth > 0 || board.board[tt.mv.to]) {
+                hashmv = tt.mv;
+            }
             if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
@@ -75,11 +78,6 @@ struct Searcher {
             in_check = !mkmove.movegen(moves, mvcount);
         }
 
-        int score[256];
-        if (!board.movegen(moves, mvcount, depth > 0)) {
-            return WON;
-        }
-
         if (depth >= 3 && pv && (
             !tt_good || tt.bound != BOUND_EXACT
         )) {
@@ -87,21 +85,9 @@ struct Searcher {
         }
 
         rep_list[ply] = board.zobrist;
-
-        for (int i = 0; i < mvcount; i++) {
-            int piece = board.board[moves[i].from] & 7;
-            if (hashmv == moves[i]) {
-                score[i] = 99999;
-            } else if (board.board[moves[i].to]) {
-                score[i] = (board.board[moves[i].to] & 7) * 8 - piece + 10000;
-            } else if (moves[i] == killers[ply][0] || moves[i] == killers[ply][1]) {
-                score[i] = 9000;
-            } else {
-                score[i] = history[board.stm == BLACK][piece][moves[i].to-A1];
-            }
-        }
-
-        int raised_alpha = 0;
+        moves[0] = hashmv;
+        score[0] = 0;
+        mvcount = 1;
 
         int16_t best = depth > 0 ? LOST + ply : eval;
         if (best >= beta) {
@@ -111,97 +97,129 @@ struct Searcher {
         int quiets_to_check_table[] = { 0, 7, 8, 17 };
         int quiets_to_check = depth > 0 && depth < 4 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
+        int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
-            int best_so_far = i;
-            for (int j = i+1; j < mvcount; j++) {
-                if (score[j] > score[best_so_far]) {
-                    best_so_far = j;
+            if (moves[i].from) {
+                int best_so_far = i;
+                for (int j = i+1; j < mvcount; j++) {
+                    if (score[j] > score[best_so_far]) {
+                        best_so_far = j;
+                    }
                 }
-            }
-            swap(moves[i], moves[best_so_far]);
-            swap(score[i], score[best_so_far]);
+                swap(moves[i], moves[best_so_far]);
+                swap(score[i], score[best_so_far]);
 
-            if (!(quiets_to_check -= !board.board[moves[i].to])) {
-                break;
-            }
-
-            Board mkmove = board;
-            mkmove.make_move(moves[i]);
-            int piece = board.board[moves[i].from] & 7;
-            int victim = board.board[moves[i].to] & 7;
-            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
-                throw 0;
-            }
-
-            int is_rep = 0;
-            for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
-                is_rep |= rep_list[i] == mkmove.zobrist;
-            }
-            for (int i = 0; !is_rep && i < PREHISTORY_LENGTH; i++) {
-                is_rep |= PREHISTORY[i] == mkmove.zobrist;
-            }
-
-            int16_t v;
-
-            if (is_rep) {
-                v = 0;
-            } else if (legals) {
-                int reduction = (legals*3 + depth*2) / 32;
-                if (reduction > legals) {
-                    reduction = legals;
+                if (!(quiets_to_check -= !board.board[moves[i].to])) {
+                    break;
                 }
-                reduction += legals > 3;
-                reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                if (reduction < 0 || victim || in_check || score[i] == 9000) {
-                    reduction = 0;
+
+                Board mkmove = board;
+                mkmove.make_move(moves[i]);
+                int piece = board.board[moves[i].from] & 7;
+                int victim = board.board[moves[i].to] & 7;
+                if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+                    throw 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
-                if (v > alpha && reduction) {
-                    // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+
+                int is_rep = 0;
+                for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
+                    is_rep |= rep_list[i] == mkmove.zobrist;
                 }
-                if (v > alpha && v < beta) {
-                    // at pv nodes, we need to re-search with full window when move raises alpha
-                    // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                for (int i = 0; !is_rep && i < PREHISTORY_LENGTH; i++) {
+                    is_rep |= PREHISTORY[i] == mkmove.zobrist;
                 }
-            } else {
-                // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
-            }
-            if (v == LOST) {
-                moves[i].from = 0;
-            } else {
-                legals++;
-            }
-            if (v > best) {
-                best = v;
-                bestmv = moves[i];
-            }
-            if (v > alpha) {
-                alpha = v;
-                raised_alpha = 1;
-            }
-            if (v >= beta) {
-                if (!victim) {
-                    for (int j = 0; j < i; j++) {
-                        if (board.board[moves[j].to]) {
-                            continue;
+
+                int16_t v;
+
+                if (is_rep) {
+                    v = 0;
+                } else if (legals) {
+                    int reduction = (legals*3 + depth*2) / 32;
+                    if (reduction > legals) {
+                        reduction = legals;
+                    }
+                    reduction += legals > 3;
+                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                    if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                        reduction = 0;
+                    }
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                    if (v > alpha && reduction) {
+                        // reduced search failed high, re-search at full depth
+                        v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                    }
+                    if (v > alpha && v < beta) {
+                        // at pv nodes, we need to re-search with full window when move raises alpha
+                        // at non-pv nodes, this would be equivalent to the previous search, so skip it
+                        v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                    }
+                } else {
+                    // first legal move is always searched with full window
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                }
+                if (v == LOST) {
+                    moves[i].from = 1;
+                } else {
+                    legals++;
+                }
+                if (v > best) {
+                    best = v;
+                    bestmv = moves[i];
+                }
+                if (v > alpha) {
+                    alpha = v;
+                    raised_alpha = 1;
+                }
+                if (v >= beta) {
+                    if (!victim) {
+                        for (int j = 0; j < i; j++) {
+                            if (board.board[moves[j].to]) {
+                                continue;
+                            }
+                            int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
+                            int change = depth * depth;
+                            hist -= change + change * hist / MAX_HIST;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
+                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
                         int change = depth * depth;
-                        hist -= change + change * hist / MAX_HIST;
+                        hist += change - change * hist / MAX_HIST;
+                        if (!(killers[ply][0] == moves[i])) {
+                            killers[ply][1] = killers[ply][0];
+                            killers[ply][0] = moves[i];
+                        }
                     }
-                    int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
-                    int change = depth * depth;
-                    hist += change - change * hist / MAX_HIST;
-                    if (!(killers[ply][0] == moves[i])) {
-                        killers[ply][1] = killers[ply][0];
-                        killers[ply][0] = moves[i];
+                    break;
+                }
+            }
+
+            // cases that reach this point with i == 0:
+            // 1. hashmv does not exist, moves[0] does not exist => movegen
+            // 2. hashmv does not exist, moves[0] exists => already did movegen
+            // 3. hashmv exists (implies moves[0] exists) => movegen
+            if (!i && (!moves[0].from || hashmv.from)) {
+                if (!board.movegen(moves, mvcount, depth > 0)) {
+                    return WON;
+                }
+                for (int j = 0; j < mvcount; j++) {
+                    if (hashmv == moves[j]) {
+                        swap(moves[0], moves[j]);
+                        swap(score[0], score[j]);
+                    } else if (board.board[moves[j].to]) {
+                        score[j] = (board.board[moves[j].to] & 7) * 8
+                            - (board.board[moves[j].from] & 7)
+                            + 10000;
+                    } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
+                        score[j] = 9000;
+                    } else {
+                        score[j] = history
+                            [board.stm == BLACK]
+                            [board.board[moves[j].from] & 7]
+                            [moves[j].to-A1];
                     }
                 }
-                break;
+                // need to step back loop variable in case 1
+                i -= !hashmv.from;
             }
         }
 
