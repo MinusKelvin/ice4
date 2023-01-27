@@ -80,7 +80,7 @@ struct Board {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
             pawn_eval_dirty = 1;
         }
-        zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
+        zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
         }
@@ -95,7 +95,7 @@ struct Board {
             bishops[!(board[square] & WHITE)]--;
         }
         board[square] = piece;
-        zobrist ^= ZOBRIST_PIECES[board[square]][square-A1];
+        zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
         }
@@ -115,7 +115,7 @@ struct Board {
     }
 
     void null_move() {
-        zobrist ^= ZOBRIST_STM;
+        zobrist ^= ZOBRIST.stm;
         stm ^= INVALID;
         ep_square = 0;
         castle1 = 0;
@@ -125,7 +125,7 @@ struct Board {
     void remove_castle_rights(int btm, int which) {
         if (castle_rights[btm] & which) {
             castle_rights[btm] &= ~which;
-            zobrist ^= ZOBRIST_CASTLE_RIGHTS[which ^ btm];
+            zobrist ^= ZOBRIST.castle_rights[which ^ btm];
         }
     }
 
@@ -138,6 +138,7 @@ struct Board {
         edit(mv.from, EMPTY);
 
         // handle en-passant
+        zobrist ^= ZOBRIST.ep[ep_square];
         int ep = btm ? 10 : -10;
         if ((piece & 7) == PAWN) {
             if (mv.to == ep_square) {
@@ -151,6 +152,7 @@ struct Board {
         } else {
             ep_square = 0;
         }
+        zobrist ^= ZOBRIST.ep[ep_square];
 
         // handle castling
         int back_rank = btm ? A8 : A1;
@@ -185,7 +187,7 @@ struct Board {
         }
 
         stm ^= INVALID;
-        zobrist ^= ZOBRIST_STM;
+        zobrist ^= ZOBRIST.stm;
     }
 
     int movegen(Move list[], int& count, int quiets=1) {
