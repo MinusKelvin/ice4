@@ -29,7 +29,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 16, 3, 16, 3, 16, 3, 16, 3, 64, 64, 1, 8, 1, 1, 1, 1, 1, 1] * 2
+sizes = [32, 16, 3, 16, 3, 16, 3, 16, 3, 32, 32, 1, 8, 1, 1, 1, 1, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -39,11 +39,11 @@ eg = len(sections)//2
 
 for s in [sections[0], sections[10], sections[eg+0], sections[eg+10]]:
     m = float("inf")
-    for i in range(8, 56):
+    for i in range(4, 28):
         m = min(m, s[i])
-    for i in range(8):
+    for i in range(4):
         s[i] = m
-    for i in range(56, 64):
+    for i in range(28, 32):
         s[i] = m
 
 dump_string(sections[0], "unpack_full(0, PAWN")
