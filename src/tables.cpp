@@ -15,6 +15,13 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define ROOK_SEMIOPEN_MG 18
 #define ROOK_SEMIOPEN_EG 14
 
+int RFP_DEPTH = 75;
+int RFP_CONST = 0;
+int RFP_DEPTH_LIMIT = 4;
+int RFP_DEPTH_IMP = 75;
+int RFP_CONST_IMP = -60;
+int RFP_DEPTH_LIMIT_IMP = 4;
+
 void unpack_full(int phase, int piece, const char *data, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
     int16_t *black_section = PST[phase][piece | BLACK];

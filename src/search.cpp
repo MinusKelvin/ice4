@@ -55,8 +55,16 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
-            return eval;
+        if (!pv && depth > 0) {
+            if (improving) {
+                if (depth < RFP_DEPTH_LIMIT_IMP && eval >= beta + RFP_DEPTH_IMP * depth + RFP_CONST_IMP) {
+                    return eval;
+                }
+            } else {
+                if (depth < RFP_DEPTH_LIMIT && eval >= beta + RFP_DEPTH * depth + RFP_CONST) {
+                    return eval;
+                }
+            }
         }
 
         if (!pv && eval >= beta && beta > -20000 && depth > 1) {
