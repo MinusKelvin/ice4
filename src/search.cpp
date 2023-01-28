@@ -39,6 +39,7 @@ struct Searcher {
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
+            in_check = tt.in_check;
             if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
@@ -59,7 +60,7 @@ struct Searcher {
             return eval;
         }
 
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && !in_check && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
 
@@ -72,7 +73,7 @@ struct Searcher {
             in_check = v == LOST;
         }
 
-        if (pv && depth > 0) {
+        if (pv && !in_check && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
             in_check = !mkmove.movegen(moves, mvcount);
@@ -234,6 +235,7 @@ struct Searcher {
         if ((depth > 0 || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
+            tt.in_check = in_check;
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
