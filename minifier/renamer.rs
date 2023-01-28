@@ -1,53 +1,76 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::parse::Token;
+use crate::semantic_analysis::Symbols;
 
-pub fn rename_identifiers(tokens: &mut [Token]) {
-    let unrenameable: HashSet<_> = include_str!("extern_idents")
-        .lines()
-        .chain(include_str!("parse/extern_types").lines())
-        .collect();
+pub fn rename_identifiers(symbols: &Symbols, tokens: &mut [Token]) {
+    let mut coloring = vec![None; symbols.symbols.len()];
+    let mut counts = vec![];
 
-    let mut counts = HashMap::new();
+    loop {
+        let mut could_become_member: Vec<_> = coloring
+            .iter()
+            .map(|c: &Option<usize>| c.is_none())
+            .collect();
 
-    for token in &*tokens {
-        if let Token::Identifier(word) | Token::Typename(word) = token {
-            if unrenameable.contains(&**word) {
-                continue;
+        if coloring.iter().all(|&c| c.is_some()) {
+            break;
+        }
+
+        let next_id = counts.len();
+        counts.push(0);
+
+        loop {
+            let next_addition = could_become_member
+                .iter()
+                .enumerate()
+                .filter(|&(_, &allowed)| allowed)
+                .max_by_key(|&(id, _)| symbols.symbols[id].occurances);
+
+            let next_addition = match next_addition {
+                Some((id, _)) => id,
+                None => break,
+            };
+
+            coloring[next_addition] = Some(next_id);
+            could_become_member[next_addition] = false;
+            for &adj in &symbols.symbols[next_addition].others_in_scope {
+                could_become_member[adj] = false;
             }
-
-            *counts.entry(&**word).or_default() += 1;
+            counts[next_id] += symbols.symbols[next_addition].occurances;
         }
     }
 
-    // dbg!(&counts, counts.len());
-
-    let translation_table = make_translation_table(counts);
+    let names = generate_variable_names(counts.len());
+    let translation_table: HashMap<_, _> = coloring
+        .into_iter()
+        .enumerate()
+        .map(|(id, colored)| (format!("${id}"), &names[colored.unwrap()]))
+        .collect();
 
     for token in tokens {
-        if let Token::Identifier(word) | Token::Typename(word) = token {
-            if unrenameable.contains(&**word) {
-                continue;
+        match token {
+            Token::Identifier(name) | Token::Typename(name) => {
+                if let Some(&new) = translation_table.get(name) {
+                    *name = new.clone();
+                }
             }
-            *word = translation_table.get(word).unwrap().clone();
+            _ => {}
         }
     }
 }
 
 const IDENT_CHARACTERS: &str = "0123456789_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-pub fn make_translation_table(counts: HashMap<&str, usize>) -> HashMap<String, String> {
-    let mut words: Vec<_> = counts.into_iter().collect();
-    words.sort_by_key(|&(w, c)| (std::cmp::Reverse(c), w));
-
-    let mut translation_table = HashMap::new();
+pub fn generate_variable_names(count: usize) -> Vec<String> {
+    let mut idents = vec![];
     let mut ident_state = vec![11];
-    for (word, _) in words {
+    for _ in 0..count {
         let mut ident = String::new();
         for &i in ident_state.iter() {
             ident.push(IDENT_CHARACTERS[i..].chars().next().unwrap());
         }
-        translation_table.insert(word.to_owned(), ident);
+        idents.push(ident);
         for i in ident_state.iter_mut().rev() {
             *i += 1;
             if *i == IDENT_CHARACTERS.len() {
@@ -61,5 +84,5 @@ pub fn make_translation_table(counts: HashMap<&str, usize>) -> HashMap<String, S
             ident_state.push(0);
         }
     }
-    translation_table
+    idents
 }

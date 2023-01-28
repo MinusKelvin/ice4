@@ -66,7 +66,7 @@ pub enum Token {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ParsedNumber {
-    value: u64,
+    pub value: u64,
     suffix: String,
 }
 

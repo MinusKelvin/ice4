@@ -57,25 +57,6 @@ struct Board {
     int16_t eg_pawn_eval;
     uint64_t zobrist;
 
-    Board() {
-        memset(this, 0, sizeof(Board));
-        memset(board, INVALID, 120);
-        castle_rights[0] = 3;
-        castle_rights[1] = 3;
-        stm = WHITE;
-        int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
-        for (int i = 0; i < 8; i++) {
-            edit(A1 + i, layout[i] | WHITE);
-            edit(A8 + i, layout[i] | BLACK);
-            edit(A2 + i, PAWN | WHITE);
-            edit(A7 + i, PAWN | BLACK);
-            edit(A3 + i, EMPTY);
-            edit(A4 + i, EMPTY);
-            edit(A5 + i, EMPTY);
-            edit(A6 + i, EMPTY);
-        }
-    }
-
     void edit(int square, int piece) {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
             pawn_eval_dirty = 1;
@@ -111,6 +92,25 @@ struct Board {
         }
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
+        }
+    }
+
+    Board() {
+        memset(this, 0, sizeof(Board));
+        memset(board, INVALID, 120);
+        castle_rights[0] = 3;
+        castle_rights[1] = 3;
+        stm = WHITE;
+        int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
+        for (int i = 0; i < 8; i++) {
+            edit(A1 + i, layout[i] | WHITE);
+            edit(A8 + i, layout[i] | BLACK);
+            edit(A2 + i, PAWN | WHITE);
+            edit(A7 + i, PAWN | BLACK);
+            edit(A3 + i, EMPTY);
+            edit(A4 + i, EMPTY);
+            edit(A5 + i, EMPTY);
+            edit(A6 + i, EMPTY);
         }
     }
 

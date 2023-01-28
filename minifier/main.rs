@@ -1,10 +1,9 @@
 mod decl_merger;
 mod expr_merger;
-mod local_renamer;
-mod member_renamer;
 mod parse;
 mod preprocess;
 mod renamer;
+mod semantic_analysis;
 
 fn main() {
     let tcec = std::env::args().any(|s| s == "tcec");
@@ -13,14 +12,14 @@ fn main() {
 
     let mut ast = parse::parse(&preprocessed.code);
 
-    local_renamer::rename_locals(&mut ast);
-    member_renamer::rename_members(&mut ast);
+    let symbols = semantic_analysis::analyze(&mut ast);
+
     decl_merger::merge_decls(&mut ast);
     expr_merger::merge_exprs(&mut ast);
 
     let mut tokens = parse::unparse(ast);
 
-    renamer::rename_identifiers(&mut tokens);
+    renamer::rename_identifiers(&symbols, &mut tokens);
 
     let packed = parse::stringify(tokens);
 
