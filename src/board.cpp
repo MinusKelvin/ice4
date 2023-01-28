@@ -25,7 +25,7 @@ struct TtData {
     Move mv;
     uint8_t depth;
     uint8_t bound;
-    uint8_t padding;
+    uint8_t in_check;
 };
 
 struct TtEntry {
