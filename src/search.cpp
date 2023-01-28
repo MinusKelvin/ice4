@@ -63,7 +63,7 @@ struct Searcher {
             Board mkmove = board;
             mkmove.null_move();
 
-            int reduction = (eval - beta) / 128 + depth / 3 + 2;
+            int reduction = (eval - beta) / 128 + depth / 3 + 2 + improving;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
