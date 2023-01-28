@@ -10,7 +10,10 @@ int THREADS = 1;
 void uci() {
     setbuf(stdout, 0);
     char buf[4096], *move;
-    int wtime, btime, hash, value;
+    int wtime, btime;
+#ifdef OPENBENCH
+    int opt, value;
+#endif
     fgets(buf, 4096, stdin); // uci
     puts(
         "id name ice4\r\n"
@@ -32,13 +35,16 @@ void uci() {
 #ifdef OPENBENCH
             case 's': // setoption
                 strtok(0, " \n"); // name
-                hash = *strtok(0, " \n") == 'H';
+                opt = *strtok(0, " \n");
                 strtok(0, " \n"); // value
                 value = atoi(strtok(0, " \n"));
-                if (hash) {
-                    TT = vector<TtEntry>(value * 65536);
-                } else {
-                    THREADS = value;
+                switch (opt) {
+                    case 'H':
+                        TT = vector<TtEntry>(value * 65536);
+                        break;
+                    case 'T':
+                        THREADS = value;
+                        break;
                 }
                 break;
 #endif
