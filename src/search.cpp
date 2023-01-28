@@ -55,7 +55,7 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
+        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth - 60 * improving) {
             return eval;
         }
 
