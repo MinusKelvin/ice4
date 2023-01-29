@@ -84,6 +84,7 @@ struct Searcher {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
 
+        improving &= !in_check;
         rep_list[ply] = board.zobrist;
         moves[0] = hashmv;
         score[0] = 0;
