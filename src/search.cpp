@@ -110,7 +110,7 @@ struct Searcher {
                 swap(moves[i], moves[best_so_far]);
                 swap(score[i], score[best_so_far]);
 
-                if (!(quiets_to_check -= !board.board[moves[i].to])) {
+                if (!(quiets_to_check -= quiets_to_check && !board.board[moves[i].to]) && legals) {
                     break;
                 }
 
