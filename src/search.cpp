@@ -94,12 +94,12 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check_table[] = { 0, 7, 8, 17, 49 };
+        int quiets_to_check_table[] = { 0, 5, 6, 15, 47 };
         int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
         int legals = 0;
-        for (int i = 0; i < mvcount; i++) {
+        for (int i = 0; i < mvcount && quiets_to_check; i++) {
             if (moves[i].from) {
                 int best_so_far = i;
                 for (int j = i+1; j < mvcount; j++) {
@@ -109,10 +109,6 @@ struct Searcher {
                 }
                 swap(moves[i], moves[best_so_far]);
                 swap(score[i], score[best_so_far]);
-
-                if (!(quiets_to_check -= !board.board[moves[i].to])) {
-                    break;
-                }
 
                 Board mkmove = board;
                 mkmove.make_move(moves[i]);
@@ -162,6 +158,7 @@ struct Searcher {
                     moves[i].from = 1;
                 } else {
                     legals++;
+                    quiets_to_check -= !board.board[moves[i].to];
                 }
                 if (v > best) {
                     best = v;
