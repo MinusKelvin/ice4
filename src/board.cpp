@@ -333,6 +333,14 @@ struct Board {
                 }
             }
         }
+        int w_shield_pawns = 0;
+        int b_shield_pawns = 0;
+        for (int d : {9, 10, 11, 19, 20, 21}) {
+            w_shield_pawns += king_sq[0] < A2 && board[king_sq[0]+d] == WHITE_PAWN;
+            b_shield_pawns += king_sq[1] > H7 && board[king_sq[1]-d] == BLACK_PAWN;
+        }
+        mg_pawn_eval += PAWN_SHIELD_MG[w_shield_pawns] - PAWN_SHIELD_MG[b_shield_pawns];
+        eg_pawn_eval += PAWN_SHIELD_EG[w_shield_pawns] - PAWN_SHIELD_EG[b_shield_pawns];
     }
 
     int eval() {
