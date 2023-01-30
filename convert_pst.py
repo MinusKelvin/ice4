@@ -29,7 +29,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [64, 16, 3, 16, 3, 16, 3, 16, 3, 16, 64, 1, 8, 1, 1, 1, 1, 1, 1] * 2
+sizes = [64, 16, 3, 16, 3, 16, 3, 16, 3, 16, 64, 1, 8, 1, 1, 1, 1, 1, 1, 7, 7, 7, 7, 7, 7] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -70,3 +70,16 @@ print(f"single pawn protect: {round(sections[15][0])}, {round(sections[eg+15][0]
 print(f"double pawn protect: {round(sections[16][0])}, {round(sections[eg+16][0])}")
 print(f"rook open file: {round(sections[17][0])}, {round(sections[eg+17][0])}")
 print(f"rook semiopen file: {round(sections[18][0])}, {round(sections[eg+18][0])}")
+
+print(f"pawn tropism mg: {[round(v) for v in sections[19]]}")
+print(f"pawn tropism eg: {[round(v) for v in sections[eg+19]]}")
+print(f"knight tropism mg: {[round(v) for v in sections[20]]}")
+print(f"kngiht tropism eg: {[round(v) for v in sections[eg+20]]}")
+print(f"bishop tropism mg: {[round(v) for v in sections[21]]}")
+print(f"bishop tropism eg: {[round(v) for v in sections[eg+21]]}")
+print(f"rook tropism mg: {[round(v) for v in sections[22]]}")
+print(f"rook tropism eg: {[round(v) for v in sections[eg+22]]}")
+print(f"queen tropism mg: {[round(v) for v in sections[23]]}")
+print(f"queen tropism eg: {[round(v) for v in sections[eg+23]]}")
+print(f"king tropism mg: {[round(v) for v in sections[24]]}")
+print(f"king tropism eg: {[round(v) for v in sections[eg+24]]}")

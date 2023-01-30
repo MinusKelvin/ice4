@@ -61,6 +61,14 @@ struct Board {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
             pawn_eval_dirty = 1;
         }
+        mg_pawn_eval -= TROPISM[0][board[square]][max(
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10),
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10)
+        )];
+        eg_pawn_eval -= TROPISM[1][board[square]][max(
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10),
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10)
+        )];
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
@@ -76,6 +84,14 @@ struct Board {
             bishops[!(board[square] & WHITE)]--;
         }
         board[square] = piece;
+        mg_pawn_eval += TROPISM[0][board[square]][max(
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10),
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10)
+        )];
+        eg_pawn_eval += TROPISM[1][board[square]][max(
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10),
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10)
+        )];
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
@@ -321,10 +337,18 @@ struct Board {
                 }
             }
         }
-        for (int rank = 30; rank < 90; rank += 10) {
+        for (int rank = 20; rank < 100; rank += 10) {
             for (int file = 1; file < 9; file++) {
                 int sq = rank+file;
                 int piece = board[sq];
+                mg_pawn_eval += TROPISM[0][piece][max(
+                    abs(sq%10 - king_sq[!(piece & BLACK)]%10),
+                    abs(sq/10 - king_sq[!(piece & BLACK)]/10)
+                )];
+                eg_pawn_eval += TROPISM[1][piece][max(
+                    abs(sq%10 - king_sq[!(piece & BLACK)]%10),
+                    abs(sq/10 - king_sq[!(piece & BLACK)]/10)
+                )];
                 if ((piece & 7) == PAWN) {
                     int protectors = (board[sq + (piece & WHITE ? -9 : 9)] == piece)
                         + (board[sq + (piece & WHITE ? -11 : 11)] == piece);
