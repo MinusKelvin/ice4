@@ -136,8 +136,8 @@ struct Searcher {
                     v = 0;
                 } else if (legals) {
                     int reduction = (i*3 + depth*2) / 32;
-                    if (reduction > legals) {
-                        reduction = legals;
+                    if (reduction > i) {
+                        reduction = i;
                     }
                     reduction += legals > 3;
                     reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
