@@ -135,7 +135,7 @@ struct Searcher {
                 if (is_rep) {
                     v = 0;
                 } else if (legals) {
-                    int reduction = (legals*3 + depth*2) / 32;
+                    int reduction = (i*3 + depth*2) / 32;
                     if (reduction > legals) {
                         reduction = legals;
                     }
