@@ -75,6 +75,13 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
+        if (
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10) < 3 &&
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10) < 3
+        ) {
+            mg_pawn_eval -= board[square] & WHITE ? CLOSE_PIECE_MG[board[square] & 7] : -CLOSE_PIECE_MG[board[square] & 7];
+            eg_pawn_eval -= board[square] & WHITE ? CLOSE_PIECE_EG[board[square] & 7] : -CLOSE_PIECE_EG[board[square] & 7];
+        }
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -92,6 +99,13 @@ struct Board {
         }
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
+        }
+        if (
+            abs(square%10 - king_sq[!(board[square] & BLACK)]%10) < 3 &&
+            abs(square/10 - king_sq[!(board[square] & BLACK)]/10) < 3
+        ) {
+            mg_pawn_eval += board[square] & WHITE ? CLOSE_PIECE_MG[board[square] & 7] : -CLOSE_PIECE_MG[board[square] & 7];
+            eg_pawn_eval += board[square] & WHITE ? CLOSE_PIECE_EG[board[square] & 7] : -CLOSE_PIECE_EG[board[square] & 7];
         }
     }
 
@@ -339,6 +353,18 @@ struct Board {
                     }
                     mg_pawn_eval += PST[0][piece][sq-A1];
                     eg_pawn_eval += PST[1][piece][sq-A1];
+                }
+            }
+        }
+        for (int rank = -20; rank < 30; rank+=10) {
+            for (int file = -2; file < 3; file++) {
+                if (board[king_sq[0] + rank + file] & BLACK) {
+                    mg_pawn_eval -= CLOSE_PIECE_MG[board[king_sq[0] + rank + file] & 7];
+                    eg_pawn_eval -= CLOSE_PIECE_EG[board[king_sq[0] + rank + file] & 7];
+                }
+                if (board[king_sq[1] + rank + file] & WHITE) {
+                    mg_pawn_eval += CLOSE_PIECE_MG[board[king_sq[1] + rank + file] & 7];
+                    eg_pawn_eval += CLOSE_PIECE_EG[board[king_sq[1] + rank + file] & 7];
                 }
             }
         }
