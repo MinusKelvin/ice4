@@ -111,7 +111,7 @@ struct Searcher {
                 swap(score[i], score[best_so_far]);
 
                 if (!(quiets_to_check -= !board.board[moves[i].to])) {
-                    break;
+                    return best > eval ? best : eval;
                 }
 
                 Board mkmove = board;
