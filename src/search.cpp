@@ -38,6 +38,7 @@ struct Searcher {
 
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
+                depth += pv && tt.bound == BOUND_EXACT && !((ply+1) % 4);
             }
             if (depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
