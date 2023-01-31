@@ -15,7 +15,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[2][7][SQUARE_SPAN];
+    int16_t history[2][7][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -140,8 +140,8 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                    if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                    reduction -= history[board.stm == BLACK][piece][victim][moves[i].to-A1] / 200;
+                    if (reduction < 0 || victim || in_check || score[i] == KILLER_SCORE) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -172,22 +172,20 @@ struct Searcher {
                     raised_alpha = 1;
                 }
                 if (v >= beta) {
-                    if (!victim) {
-                        for (int j = 0; j < i; j++) {
-                            if (board.board[moves[j].to]) {
-                                continue;
-                            }
-                            int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
-                            int change = depth * depth;
-                            hist -= change + change * hist / MAX_HIST;
+                    for (int j = 0; j < i; j++) {
+                        if (!board.board[moves[j].to] != !victim) {
+                            continue;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
+                        int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][board.board[moves[j].to] & 7][moves[j].to-A1];
                         int change = depth * depth;
-                        hist += change - change * hist / MAX_HIST;
-                        if (!(killers[ply][0] == moves[i])) {
-                            killers[ply][1] = killers[ply][0];
-                            killers[ply][0] = moves[i];
-                        }
+                        hist -= change + change * hist / MAX_HIST;
+                    }
+                    int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][board.board[moves[i].to] & 7][moves[i].to-A1];
+                    int change = depth * depth;
+                    hist += change - change * hist / MAX_HIST;
+                    if (!victim && !(killers[ply][0] == moves[i])) {
+                        killers[ply][1] = killers[ply][0];
+                        killers[ply][0] = moves[i];
                     }
                     break;
                 }
@@ -206,15 +204,20 @@ struct Searcher {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
-                        score[j] = (board.board[moves[j].to] & 7) * 8
-                            - (board.board[moves[j].from] & 7)
-                            + 10000;
+                        score[j] = history
+                            [board.stm == BLACK]
+                            [board.board[moves[j].from] & 7]
+                            [board.board[moves[j].to] & 7]
+                            [moves[j].to-A1]
+                            + CAPTURE_OFFSET
+                            + (board.board[moves[j].to] & 7) * 4096;
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
-                        score[j] = 9000;
+                        score[j] = KILLER_SCORE;
                     } else {
                         score[j] = history
                             [board.stm == BLACK]
                             [board.board[moves[j].from] & 7]
+                            [board.board[moves[j].to] & 7]
                             [moves[j].to-A1];
                     }
                 }
