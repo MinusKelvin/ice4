@@ -15,7 +15,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[2][7][SQUARE_SPAN];
+    int16_t history[2][SQUARE_SPAN][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -140,7 +140,7 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                    reduction -= history[board.stm == BLACK][moves[i].from-A1][moves[i].to-A1] / 200;
                     if (reduction < 0 || victim || in_check || score[i] == 9000) {
                         reduction = 0;
                     }
@@ -174,14 +174,14 @@ struct Searcher {
                 if (v >= beta) {
                     if (!victim) {
                         for (int j = 0; j < i; j++) {
-                            if (board.board[moves[j].to]) {
+                            if (moves[j].from <= 1 || board.board[moves[j].to]) {
                                 continue;
                             }
-                            int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
+                            int16_t& hist = history[board.stm == BLACK][moves[j].from-A1][moves[j].to-A1];
                             int change = depth * depth;
                             hist -= change + change * hist / MAX_HIST;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
+                        int16_t& hist = history[board.stm == BLACK][moves[i].from-A1][moves[i].to-A1];
                         int change = depth * depth;
                         hist += change - change * hist / MAX_HIST;
                         if (!(killers[ply][0] == moves[i])) {
@@ -214,7 +214,7 @@ struct Searcher {
                     } else {
                         score[j] = history
                             [board.stm == BLACK]
-                            [board.board[moves[j].from] & 7]
+                            [moves[j].from-A1]
                             [moves[j].to-A1];
                     }
                 }
