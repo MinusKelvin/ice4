@@ -8,37 +8,22 @@ pub fn rename_identifiers(symbols: &Symbols, tokens: &mut [Token]) {
     let mut counts = vec![];
 
     loop {
-        let mut could_become_member: Vec<_> = coloring
-            .iter()
-            .map(|c: &Option<usize>| c.is_none())
-            .collect();
-
         if coloring.iter().all(|&c| c.is_some()) {
             break;
         }
 
-        let next_id = counts.len();
-        counts.push(0);
-
-        loop {
-            let next_addition = could_become_member
+        let (size, colored) = group(
+            symbols,
+            &mut coloring
                 .iter()
-                .enumerate()
-                .filter(|&(_, &allowed)| allowed)
-                .max_by_key(|&(id, _)| symbols.symbols[id].occurances);
+                .map(|c: &Option<usize>| c.is_some() as usize)
+                .collect::<Vec<_>>(),
+        );
 
-            let next_addition = match next_addition {
-                Some((id, _)) => id,
-                None => break,
-            };
-
-            coloring[next_addition] = Some(next_id);
-            could_become_member[next_addition] = false;
-            for &adj in &symbols.symbols[next_addition].others_in_scope {
-                could_become_member[adj] = false;
-            }
-            counts[next_id] += symbols.symbols[next_addition].occurances;
+        for id in colored {
+            coloring[id] = Some(counts.len());
         }
+        counts.push(size);
     }
 
     let names = generate_variable_names(counts.len());
@@ -58,6 +43,62 @@ pub fn rename_identifiers(symbols: &Symbols, tokens: &mut [Token]) {
             _ => {}
         }
     }
+}
+
+fn group(symbols: &Symbols, blockers: &mut [usize]) -> (usize, Vec<usize>) {
+    let addition = blockers
+        .iter()
+        .enumerate()
+        .filter(|&(_, &blockers)| blockers == 0)
+        .max_by_key(|&(id, _)| symbols.symbols[id].occurances);
+
+    let id1 = match addition {
+        Some((id, _)) => id,
+        None => return (0, vec![]),
+    };
+
+    blockers[id1] += 1;
+    for &adj in &symbols.symbols[id1].others_in_scope {
+        blockers[adj] += 1;
+    }
+
+    let (s, mut coloring1) = group(symbols, blockers);
+    let size1 = s + symbols.symbols[id1].occurances;
+    coloring1.push(id1);
+
+    blockers[id1] -= 1;
+    for &adj in &symbols.symbols[id1].others_in_scope {
+        blockers[adj] -= 1;
+    }
+
+    let id2 = symbols.symbols[id1]
+        .others_in_scope
+        .iter()
+        .copied()
+        .filter(|&id| blockers[id] == 0)
+        .max_by_key(|&id| symbols.symbols[id].occurances);
+
+    if let Some(id2) = id2 {
+        blockers[id2] += 1;
+        for &adj in &symbols.symbols[id2].others_in_scope {
+            blockers[adj] += 1;
+        }
+
+        let (s, mut coloring2) = group(symbols, blockers);
+        let size2 = s + symbols.symbols[id2].occurances;
+        coloring2.push(id2);
+
+        blockers[id2] -= 1;
+        for &adj in &symbols.symbols[id2].others_in_scope {
+            blockers[adj] -= 1;
+        }
+
+        if size2 > size1 {
+            return (size2, coloring2);
+        }
+    }
+
+    (size1, coloring1)
 }
 
 const IDENT_CHARACTERS: &str = "0123456789_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
