@@ -17,6 +17,11 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define ROOK_SEMIOPEN_MG 17
 #define ROOK_SEMIOPEN_EG 14
 
+int LMP[2][5] = {
+    { 0, 3, 4, 8, 24 },
+    { 0, 7, 8, 17, 49 },
+};
+
 const char *DATA_STRING = "BXZ?8=6/FULE?A55FNZXRJ:8NWgd]THBZc{wpeSI? i~sk5g')1652-/# ,,,('&')'&&(,)./.+-0227C9??=>;_Ck~ytnx-:31/,*1,.%%!!+/..# $'57-6//36D=3*63=ELRQL@GZ]~V#$ !#%-$'-'%$',(5930,-24DE=5039?VTM:5<GOd~Y5/6GCO=?_6 \"3IME4uqWC&0, 5HF2U^_SVff[ '),.26245422-108.$ ,.+3,BMK2MWb139? )11*502('01 &&\"))'($%)'(.,*#  !-73..<8610:D 0&.+3872=EG-AGJ #).(-94+>=E;7HF CUXL\\biVirx_qz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
