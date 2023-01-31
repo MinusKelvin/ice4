@@ -29,6 +29,9 @@
 #define BOUND_LOWER 1
 #define BOUND_UPPER 2
 
+#define KILLER_SCORE 5000
+#define CAPTURE_OFFSET 10000
+
 #define A1 21
 #define B1 22
 #define C1 23
