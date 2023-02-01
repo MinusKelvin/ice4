@@ -268,6 +268,14 @@ struct Board {
     void update_pawn_eval() {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
+        if (!pawn_counts[0][king_sq[0] % 10]) {
+            mg_pawn_eval += pawn_counts[1][king_sq[0] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_pawn_eval += pawn_counts[1][king_sq[0] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+        }
+        if (!pawn_counts[1][king_sq[1] % 10]) {
+            mg_pawn_eval -= pawn_counts[0][king_sq[1] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_pawn_eval -= pawn_counts[0][king_sq[1] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+        }
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[0][file]) {
                 mg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
