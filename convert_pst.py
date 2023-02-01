@@ -33,7 +33,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -70,3 +70,4 @@ print(f"rook open file: {round(sections[17][0])}, {round(sections[eg+17][0])}")
 print(f"rook semiopen file: {round(sections[18][0])}, {round(sections[eg+18][0])}")
 print(f"pawn shield mg: {[round(v) for v in sections[19]]}")
 print(f"pawn shield eg: {[round(v) for v in sections[eg+19]]}")
+print(f"connected passer: {round(sections[20][0])}, {round(sections[eg+20][0])}")

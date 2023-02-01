@@ -268,6 +268,8 @@ struct Board {
     void update_pawn_eval() {
         eg_pawn_eval = 0;
         mg_pawn_eval = 0;
+        int last_had_passed_b = 0;
+        int last_had_passed_w = 0;
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[0][file]) {
                 mg_pawn_eval -= (pawn_counts[0][file] - 1) * DOUBLED_MG[file-1];
@@ -285,6 +287,7 @@ struct Board {
                 mg_pawn_eval += ISOLATED_PAWN_MG * pawn_counts[1][file];
                 eg_pawn_eval += ISOLATED_PAWN_EG * pawn_counts[1][file];
             }
+            int had_passed = 0;
             for (int rank = 30; rank < 90; rank += 10) {
                 int sq = file+rank;
                 if (board[sq] == BLACK_PAWN) {
@@ -293,11 +296,18 @@ struct Board {
                     }
                     mg_pawn_eval += PST[0][BLACK_PASSED_PAWN][sq-A1];
                     eg_pawn_eval += PST[1][BLACK_PASSED_PAWN][sq-A1];
+                    had_passed = 1;
+                    if (last_had_passed_b) {
+                        mg_pawn_eval -= CONNECTED_PASSED_MG;
+                        eg_pawn_eval -= CONNECTED_PASSED_EG;
+                    }
                 }
                 if (board[file+rank] == WHITE_PAWN || board[file+rank-1] == WHITE_PAWN || board[file+rank+1] == WHITE_PAWN) {
                     break;
                 }
             }
+            last_had_passed_b = had_passed;
+            had_passed = 0;
             for (int rank = 80; rank >= 30; rank -= 10) {
                 int sq = file+rank;
                 if (board[sq] == WHITE_PAWN) {
@@ -306,11 +316,17 @@ struct Board {
                     }
                     mg_pawn_eval += PST[0][WHITE_PASSED_PAWN][sq-A1];
                     eg_pawn_eval += PST[1][WHITE_PASSED_PAWN][sq-A1];
+                    had_passed = 1;
+                    if (last_had_passed_w) {
+                        mg_pawn_eval += CONNECTED_PASSED_MG;
+                        eg_pawn_eval += CONNECTED_PASSED_EG;
+                    }
                 }
                 if (board[file+rank] == BLACK_PAWN || board[file+rank-1] == BLACK_PAWN || board[file+rank+1] == BLACK_PAWN) {
                     break;
                 }
             }
+            last_had_passed_w = had_passed;
         }
         for (int rank = 30; rank < 90; rank += 10) {
             for (int file = 1; file < 9; file++) {
