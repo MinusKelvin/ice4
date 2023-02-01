@@ -269,6 +269,10 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
+        if (!pawn_counts[ci][king_sq[ci] % 10]) {
+            mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+        }
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[ci][file]) {
                 mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
