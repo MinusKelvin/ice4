@@ -19,7 +19,7 @@ struct Searcher {
     uint64_t rep_list[256];
     Move killers[256][2];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, Move skip = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -27,11 +27,12 @@ struct Searcher {
 
         int pv = beta > alpha+1;
         int in_check = 0;
+        int singular = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        int tt_good = (data ^ board.zobrist) == hash_xor_data && !skip.from;
         TtData tt;
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
@@ -55,11 +56,11 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
+        if (!pv && !skip.from && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
             return eval;
         }
 
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && !skip.from && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
 
@@ -82,6 +83,17 @@ struct Searcher {
             !tt_good || tt.bound != BOUND_EXACT
         )) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
+        }
+
+        if (
+            tt_good && !skip.from && ply &&
+            tt.eval < 20000 && tt.eval >= -20000 &&
+            tt.depth >= depth + 2 &&
+            tt.bound != BOUND_UPPER
+        ) {
+            int singular_beta = tt.eval - 3 * depth;
+            int v = depth > 4 ? negamax(board, scratch, beta-1, beta, depth / 2 - 1, ply, hashmv) : evals[ply];
+            singular = v >= singular_beta;
         }
 
         rep_list[ply] = board.zobrist;
@@ -156,7 +168,7 @@ struct Searcher {
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check + singular, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
@@ -202,6 +214,10 @@ struct Searcher {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
+                    if (moves[j] == skip) {
+                        swap(moves[j--], moves[mvcount--]);
+                        continue;
+                    }
                     if (hashmv == moves[j]) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
