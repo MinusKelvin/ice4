@@ -26,7 +26,7 @@ void unpack_full(int phase, int piece, double scale, int offset) {
         for (int file = 0; file < 8; file++) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
             white_section[rank+file] = v;
-            black_section[70-rank+file] = -v;
+            black_section[70-rank+file] = v;
         }
     }
 }
