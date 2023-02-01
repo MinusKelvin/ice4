@@ -72,6 +72,13 @@ struct Searcher {
             in_check = v == LOST;
         }
 
+        if (!pv && depth > 0 && depth < 4 && eval <= alpha - 200 * depth) {
+            int v = negamax(board, scratch, alpha - 200 * depth, beta - 200 * depth, 0, ply);
+            if (v <= alpha - 200 * depth) {
+                return v;
+            }
+        }
+
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
