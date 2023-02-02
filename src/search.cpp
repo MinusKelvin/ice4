@@ -206,8 +206,8 @@ struct Searcher {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
-                        score[j] = (board.board[moves[j].to] & 7) * 8
-                            - (board.board[moves[j].from] & 7)
+                        score[j] = PHASE[board.board[moves[j].to] & 7] * 8
+                            - PHASE[board.board[moves[j].from] & 7]
                             + 10000;
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
                         score[j] = 9000;
