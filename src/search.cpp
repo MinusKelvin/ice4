@@ -202,20 +202,19 @@ struct Searcher {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
+                    score[j] = history
+                        [board.stm == BLACK]
+                        [board.board[moves[j].from] & 7]
+                        [moves[j].to-A1];
                     if (hashmv == moves[j]) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
-                        score[j] = (board.board[moves[j].to] & 7) * 8
-                            - (board.board[moves[j].from] & 7)
-                            + 10000;
+                        score[j] += (board.board[moves[j].to] & 7) * 32768
+                            - (board.board[moves[j].from] & 7) * 4096
+                            + 50000;
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
                         score[j] = 9000;
-                    } else {
-                        score[j] = history
-                            [board.stm == BLACK]
-                            [board.board[moves[j].from] & 7]
-                            [moves[j].to-A1];
                     }
                 }
                 // need to step back loop variable in case 1
