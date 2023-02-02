@@ -345,7 +345,7 @@ struct Board {
                 eg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[1][file-1];
             }
         }
-        int value = (mg * phase + eg * (24 - phase)) / 24;
+        int value = (mg * phase + eg * (24 - phase)) / 24 * 8 + zobrist % 8;
         return stm == WHITE ? value : -value;
     }
 } ROOT;

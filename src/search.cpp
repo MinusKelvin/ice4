@@ -55,7 +55,7 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
+        if (!pv && depth > 0 && depth < 4 && eval >= beta + 600 * depth) {
             return eval;
         }
 
@@ -63,7 +63,7 @@ struct Searcher {
             Board mkmove = board;
             mkmove.null_move();
 
-            int reduction = (eval - beta) / 128 + depth / 3 + 2;
+            int reduction = (eval - beta) / 1024 + depth / 3 + 2;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -259,7 +259,7 @@ struct Searcher {
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
-                    printf("info depth %d score cp %d pv ", depth, v);
+                    printf("info depth %d score cp %d pv ", depth, v / 8);
                     mv.put();
                     putchar('\n');
                     FINISHED_DEPTH = depth;
