@@ -33,7 +33,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 32, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -42,20 +42,20 @@ for s in sizes:
 eg = len(sections)//2
 
 data_string = ""
-data_string += dump_string(sections[0], "unpack_full(0, PAWN")
-data_string += dump_string(sections[eg+0], "unpack_full(1, PAWN")
-data_string += dump_string(sections[10], "unpack_full(0, PASSED_PAWN")
-data_string += dump_string(sections[eg+10], "unpack_full(1, PASSED_PAWN")
-data_string += dump_string(sections[9], "unpack_smol(0, KING")
-data_string += dump_string(sections[eg+9], "unpack_smol(1, KING")
-data_string += dump_string(sections[7], "unpack_half(0, QUEEN", sections[8])
-data_string += dump_string(sections[eg+7], "unpack_half(1, QUEEN", sections[eg+8])
-data_string += dump_string(sections[5], "unpack_half(0, ROOK", sections[6])
-data_string += dump_string(sections[eg+5], "unpack_half(1, ROOK", sections[eg+6])
-data_string += dump_string(sections[3], "unpack_half(0, BISHOP", sections[4])
-data_string += dump_string(sections[eg+3], "unpack_half(1, BISHOP", sections[eg+4])
-data_string += dump_string(sections[1], "unpack_half(0, KNIGHT", sections[2])
-data_string += dump_string(sections[eg+1], "unpack_half(1, KNIGHT", sections[eg+2])
+data_string += dump_string(sections[0], "unpack_pawn(0, PAWN")
+data_string += dump_string(sections[eg+0], "unpack_pawn(1, PAWN")
+data_string += dump_string(sections[10], "unpack_pawn(0, PASSED_PAWN")
+data_string += dump_string(sections[eg+10], "unpack_pawn(1, PASSED_PAWN")
+data_string += dump_string(sections[9], "unpack_king(0")
+data_string += dump_string(sections[eg+9], "unpack_king(1")
+data_string += dump_string(sections[7], "unpack_piece(0, QUEEN", sections[8])
+data_string += dump_string(sections[eg+7], "unpack_piece(1, QUEEN", sections[eg+8])
+data_string += dump_string(sections[5], "unpack_piece(0, ROOK", sections[6])
+data_string += dump_string(sections[eg+5], "unpack_piece(1, ROOK", sections[eg+6])
+data_string += dump_string(sections[3], "unpack_piece(0, BISHOP", sections[4])
+data_string += dump_string(sections[eg+3], "unpack_piece(1, BISHOP", sections[eg+4])
+data_string += dump_string(sections[1], "unpack_piece(0, KNIGHT", sections[2])
+data_string += dump_string(sections[eg+1], "unpack_piece(1, KNIGHT", sections[eg+2])
 
 print(f"data string: \"{data_string}\"")
 

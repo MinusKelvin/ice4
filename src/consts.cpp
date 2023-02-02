@@ -22,6 +22,8 @@
 #define PASSED_PAWN 7
 #define WHITE_PASSED_PAWN 15
 #define BLACK_PASSED_PAWN 23
+#define WHITE_KING 14
+#define BLACK_KING 22
 
 #define SQUARE_SPAN 78
 
