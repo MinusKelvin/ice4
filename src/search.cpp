@@ -51,6 +51,8 @@ struct Searcher {
             depth--;
         }
 
+        int ttcheck_depth = depth;
+
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
@@ -77,6 +79,8 @@ struct Searcher {
             mkmove.null_move();
             in_check = !mkmove.movegen(moves, mvcount);
         }
+
+        depth += in_check;
 
         if (depth >= 3 && pv && (
             !tt_good || tt.bound != BOUND_EXACT
@@ -156,7 +160,7 @@ struct Searcher {
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
@@ -234,7 +238,7 @@ struct Searcher {
         if ((depth > 0 || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = depth > 0 ? ttcheck_depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
