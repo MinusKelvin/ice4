@@ -55,6 +55,7 @@ struct Board {
     int16_t eg_eval;
     int16_t mg_pawn_eval;
     int16_t eg_pawn_eval;
+    uint8_t not_passed_pawn_move;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
@@ -136,6 +137,7 @@ struct Board {
         castle2 = 0;
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
+        not_passed_pawn_move = mv.to;
 
         // handle en-passant
         zobrist ^= ZOBRIST.ep[ep_square];
@@ -285,6 +287,9 @@ struct Board {
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
+                    if (sq == not_passed_pawn_move) {
+                        not_passed_pawn_move = 0;
+                    }
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
