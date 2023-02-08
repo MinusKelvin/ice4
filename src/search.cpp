@@ -132,6 +132,9 @@ struct Searcher {
 
                 int16_t v;
 
+                int ext = piece == PAWN &&
+                    (moves[i].to / 10 == 3 || moves[i].to / 10 == 8);
+
                 if (is_rep) {
                     v = 0;
                 } else if (legals) {
@@ -141,22 +144,22 @@ struct Searcher {
                     }
                     reduction += legals > 3;
                     reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                    if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                    if (reduction < 0 || victim || in_check || score[i] == 9000 || ext) {
                         reduction = 0;
                     }
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction + ext - 1, ply + 1);
                     if (v > alpha && reduction) {
                         // reduced search failed high, re-search at full depth
-                        v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                        v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth + ext - 1, ply + 1);
                     }
                     if (v > alpha && v < beta) {
                         // at pv nodes, we need to re-search with full window when move raises alpha
                         // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                        v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                        v = -negamax(mkmove, scratch, -beta, -alpha, depth + ext - 1, ply + 1);
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth + ext - 1 + in_check, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
