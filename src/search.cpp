@@ -27,6 +27,7 @@ struct Searcher {
 
         int pv = beta > alpha+1;
         int in_check = 0;
+        int search_depth = depth;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
@@ -36,10 +37,10 @@ struct Searcher {
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
 
-            if (depth > 0 || board.board[tt.mv.to]) {
+            if (search_depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
-            if (depth <= tt.depth && (
+            if (search_depth <= tt.depth && (
                 tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 tt.bound == BOUND_UPPER && tt.eval <= alpha
@@ -47,11 +48,12 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 5) {
+        } else if (search_depth > 5) {
             depth--;
         }
 
         evals[ply] = board.eval();
+        depth += !board.not_passed_pawn_move;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
@@ -231,10 +233,10 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if ((search_depth > 0 || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = search_depth > 0 ? search_depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
