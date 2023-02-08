@@ -52,6 +52,7 @@ struct Searcher {
         }
 
         evals[ply] = board.eval();
+        depth += !board.not_passed_pawn_move;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
