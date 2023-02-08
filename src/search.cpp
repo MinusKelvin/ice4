@@ -59,7 +59,7 @@ struct Searcher {
             return eval;
         }
 
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && !board.castle1 && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
 
