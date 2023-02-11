@@ -59,19 +59,6 @@ struct Searcher {
             return eval;
         }
 
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
-            Board mkmove = board;
-            mkmove.null_move();
-
-            int reduction = (eval - beta) / 128 + depth / 3 + 2;
-
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
-            if (v >= beta) {
-                return v;
-            }
-            in_check = v == LOST;
-        }
-
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
