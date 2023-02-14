@@ -18,6 +18,8 @@ struct Searcher {
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
+    Move counters[2][7][SQUARE_SPAN];
+    Move mvstack[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
@@ -115,7 +117,7 @@ struct Searcher {
                 }
 
                 Board mkmove = board;
-                mkmove.make_move(moves[i]);
+                mkmove.make_move(mvstack[ply] = moves[i]);
                 int piece = board.board[moves[i].from] & 7;
                 int victim = board.board[moves[i].to] & 7;
                 if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
@@ -188,6 +190,9 @@ struct Searcher {
                             killers[ply][1] = killers[ply][0];
                             killers[ply][0] = moves[i];
                         }
+                        if (ply) {
+                            counters[board.stm == BLACK][board.board[mvstack[ply-1].to] & 7][mvstack[ply-1].to-A1] = moves[i];
+                        }
                     }
                     break;
                 }
@@ -211,6 +216,8 @@ struct Searcher {
                             + 10000;
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
                         score[j] = 9000;
+                    } else if (ply && moves[j] == counters[board.stm == BLACK][board.board[mvstack[ply-1].to] & 7][mvstack[ply-1].to-A1]) {
+                        score[j] = 8999;
                     } else {
                         score[j] = history
                             [board.stm == BLACK]
