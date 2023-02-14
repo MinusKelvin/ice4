@@ -51,9 +51,8 @@ struct Searcher {
             depth--;
         }
 
-        evals[ply] = board.eval();
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
-        int improving = ply > 1 && evals[ply] > evals[ply-2];
+        int eval = evals[ply] = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
+        int improving = ply > 1 && eval > evals[ply-2];
 
         if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
             return eval;
@@ -135,7 +134,7 @@ struct Searcher {
                 if (is_rep) {
                     v = 0;
                 } else if (legals) {
-                    int reduction = (legals*3 + depth*2) / 32;
+                    int reduction = (legals*3 + depth*2 - !improving * 16) / 32;
                     if (reduction > legals) {
                         reduction = legals;
                     }
