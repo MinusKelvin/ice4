@@ -63,7 +63,7 @@ struct Searcher {
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && eval >= beta && beta > -20000 && depth > 3) {
             Board mkmove = board;
             mkmove.null_move();
 
