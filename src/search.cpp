@@ -55,10 +55,14 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
+        // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
+        // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
             return eval;
         }
 
+        // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
+        // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         if (!pv && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
@@ -78,9 +82,9 @@ struct Searcher {
             in_check = !mkmove.movegen(moves, mvcount);
         }
 
-        if (depth >= 3 && pv && (
-            !tt_good || tt.bound != BOUND_EXACT
-        )) {
+        // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
+        // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
+        if (depth >= 3 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
 
@@ -135,6 +139,8 @@ struct Searcher {
                 if (is_rep) {
                     v = 0;
                 } else if (legals) {
+                    // All reductions: 57 bytes (a8e89fa vs 98a56ea)
+                    // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     int reduction = (legals*3 + depth*2) / 32;
                     if (reduction > legals) {
                         reduction = legals;
