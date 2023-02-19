@@ -142,9 +142,6 @@ struct Searcher {
                     // All reductions: 57 bytes (a8e89fa vs 98a56ea)
                     // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     int reduction = (legals*3 + depth*2) / 32;
-                    if (reduction > legals) {
-                        reduction = legals;
-                    }
                     reduction += legals > 3;
                     reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
                     if (reduction < 0 || victim || in_check || score[i] == 9000) {
