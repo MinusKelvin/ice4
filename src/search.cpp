@@ -17,7 +17,6 @@ struct Searcher {
     int16_t evals[256];
     int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
-    Move killers[256][2];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
@@ -190,10 +189,6 @@ struct Searcher {
                         int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
                         int change = depth * depth;
                         hist += change - change * hist / MAX_HIST;
-                        if (!(killers[ply][0] == moves[i])) {
-                            killers[ply][1] = killers[ply][0];
-                            killers[ply][0] = moves[i];
-                        }
                     }
                     break;
                 }
@@ -215,8 +210,6 @@ struct Searcher {
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
                             + 10000;
-                    } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
-                        score[j] = 9000;
                     } else {
                         score[j] = history
                             [board.stm == BLACK]
@@ -254,7 +247,6 @@ struct Searcher {
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
         memset(history, 0, sizeof(history));
-        memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
