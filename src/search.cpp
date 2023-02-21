@@ -21,7 +21,6 @@ struct Searcher {
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
-    Move killers[256][2];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
@@ -158,7 +157,7 @@ struct Searcher {
                     }
                     reduction += legals > 3;
                     reduction -= score[i] / 200;
-                    if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                    if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -217,10 +216,6 @@ struct Searcher {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                             *hist += change - change * *hist / MAX_HIST;
                         }
-                        if (!(killers[ply][0] == moves[i])) {
-                            killers[ply][1] = killers[ply][0];
-                            killers[ply][0] = moves[i];
-                        }
                     }
                     break;
                 }
@@ -244,10 +239,6 @@ struct Searcher {
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
                             + 20000;
-                    } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
-                        // Killer move heuristic: 44 bytes (e96d65d vs 35f9b66)
-                        // 8.0+0.08: 3.51 +- 5.14 (2906 - 2805 - 4289) 0.08 elo/byte
-                        score[j] = 19000;
                     } else {
                         // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
@@ -291,7 +282,6 @@ struct Searcher {
     void iterative_deepening(double time_alotment, int max_depth=250) {
         memset(history, 0, sizeof(history));
         memset(conthist, 0, sizeof(conthist));
-        memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
