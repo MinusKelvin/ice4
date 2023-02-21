@@ -15,7 +15,6 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[2][7][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -146,7 +145,6 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
                     if (reduction < 0 || victim || in_check || score[i] == 9000) {
                         reduction = 0;
                     }
@@ -183,13 +181,7 @@ struct Searcher {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
-                            int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
-                            int change = depth * depth;
-                            hist -= change + change * hist / MAX_HIST;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
-                        int change = depth * depth;
-                        hist += change - change * hist / MAX_HIST;
                         if (!(killers[ply][0] == moves[i])) {
                             killers[ply][1] = killers[ply][0];
                             killers[ply][0] = moves[i];
@@ -218,10 +210,7 @@ struct Searcher {
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
                         score[j] = 9000;
                     } else {
-                        score[j] = history
-                            [board.stm == BLACK]
-                            [board.board[moves[j].from] & 7]
-                            [moves[j].to-A1];
+                        score[j] = 0;
                     }
                 }
                 // need to step back loop variable in case 1
@@ -253,7 +242,6 @@ struct Searcher {
     }
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
-        memset(history, 0, sizeof(history));
         memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
