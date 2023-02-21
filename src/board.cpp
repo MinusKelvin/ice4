@@ -273,6 +273,14 @@ struct Board {
             mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
             eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
         }
+        if (king_sq[ci] % 10 > 1 && !pawn_counts[ci][king_sq[ci] % 10 - 1]) {
+            mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 - 1] ? KING_ADJ_SEMIOPEN_MG : KING_ADJ_OPEN_MG;
+            eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 - 1] ? KING_ADJ_SEMIOPEN_EG : KING_ADJ_OPEN_MG;
+        }
+        if (king_sq[ci] % 10 < 8 && !pawn_counts[ci][king_sq[ci] % 10 + 1]) {
+            mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 + 1] ? KING_ADJ_SEMIOPEN_MG : KING_ADJ_OPEN_MG;
+            eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 + 1] ? KING_ADJ_SEMIOPEN_EG : KING_ADJ_OPEN_MG;
+        }
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[ci][file]) {
                 mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];

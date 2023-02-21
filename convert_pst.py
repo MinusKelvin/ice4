@@ -33,7 +33,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -72,3 +72,5 @@ print(f"pawn shield mg: {[round(v) for v in sections[19]]}")
 print(f"pawn shield eg: {[round(v) for v in sections[eg+19]]}")
 print(f"king open file: {round(sections[20][0])}, {round(sections[eg+20][0])}")
 print(f"king semiopen file: {round(sections[21][0])}, {round(sections[eg+21][0])}")
+print(f"king adj open file: {round(sections[22][0])}, {round(sections[eg+22][0])}")
+print(f"king adj semiopen file: {round(sections[23][0])}, {round(sections[eg+23][0])}")
