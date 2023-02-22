@@ -114,14 +114,20 @@ struct Searcher {
                 swap(moves[i], moves[best_so_far]);
                 swap(score[i], score[best_so_far]);
 
-                if (!(quiets_to_check -= !board.board[moves[i].to])) {
+                int piece = board.board[moves[i].from] & 7;
+                int victim = board.board[moves[i].to] & 7;
+                int deltas[] = {100, 200, 400, 400, 600, 1000, 0};
+
+                if (!(quiets_to_check -= !victim)) {
                     break;
+                }
+
+                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                    continue;
                 }
 
                 Board mkmove = board;
                 mkmove.make_move(moves[i]);
-                int piece = board.board[moves[i].from] & 7;
-                int victim = board.board[moves[i].to] & 7;
                 if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                     throw 0;
                 }
