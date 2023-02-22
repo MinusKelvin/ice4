@@ -116,13 +116,16 @@ struct Searcher {
 
                 int piece = board.board[moves[i].from] & 7;
                 int victim = board.board[moves[i].to] & 7;
-                int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
+                int deltas_mg[] = {1350, 120, 290, 300, 350, 700, 0};
+                int deltas_eg[] = {1350, 210, 390, 440, 680, 1350, 0};
 
                 if (!(quiets_to_check -= !victim)) {
                     break;
                 }
 
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                if (depth <= 0 && eval + (
+                    deltas_mg[victim] * board.phase + deltas_eg[victim] * (24 - board.phase)
+                ) / 24 <= alpha) {
                     continue;
                 }
 
