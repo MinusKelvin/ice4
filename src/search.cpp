@@ -116,7 +116,7 @@ struct Searcher {
 
                 int piece = board.board[moves[i].from] & 7;
                 int victim = board.board[moves[i].to] & 7;
-                int deltas[] = {100, 200, 400, 400, 600, 1000, 0};
+                int deltas[] = {1400, 200, 400, 500, 700, 1400, 0};
 
                 if (!(quiets_to_check -= !victim)) {
                     break;
