@@ -118,12 +118,11 @@ struct Searcher {
                 int victim = board.board[moves[i].to] & 7;
                 int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
 
-                if (!(quiets_to_check -= !victim)) {
+                if (
+                    !(quiets_to_check -= !victim)
+                    || depth <= 0 && eval + deltas[victim] <= alpha
+                ) {
                     break;
-                }
-
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
-                    continue;
                 }
 
                 Board mkmove = board;
