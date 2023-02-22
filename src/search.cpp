@@ -212,12 +212,18 @@ struct Searcher {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
+                        // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
+                        // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
                             + 10000;
                     } else if (moves[j] == killers[ply][0] || moves[j] == killers[ply][1]) {
+                        // Killer move heuristic: 44 bytes (e96d65d vs 35f9b66)
+                        // 8.0+0.08: 3.51 +- 5.14 (2906 - 2805 - 4289) 0.08 elo/byte
                         score[j] = 9000;
                     } else {
+                        // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
+                        // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
                         score[j] = history
                             [board.stm == BLACK]
                             [board.board[moves[j].from] & 7]
