@@ -123,7 +123,7 @@ struct Searcher {
                     break;
                 }
 
-                if (!depth && eval + deltas[victim] <= alpha) {
+                if (depth <= 1 && eval + deltas[victim] + 100 * depth <= alpha) {
                     continue;
                 }
 
