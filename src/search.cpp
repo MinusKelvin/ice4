@@ -105,14 +105,20 @@ struct Searcher {
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             if (moves[i].from) {
-                int best_so_far = i;
-                for (int j = i+1; j < mvcount; j++) {
-                    if (score[j] > score[best_so_far]) {
-                        best_so_far = j;
+                int best_i;
+                int best_s = -10000;
+                for (int j = i; j < mvcount; j++) {
+                    int s = score[j] ? score[j] : history
+                        [board.stm == BLACK]
+                        [board.board[moves[j].from] & 7]
+                        [moves[j].to-A1];
+                    if (s > best_s) {
+                        best_i = j;
+                        best_s = s;
                     }
                 }
-                swap(moves[i], moves[best_so_far]);
-                swap(score[i], score[best_so_far]);
+                swap(moves[i], moves[best_i]);
+                swap(score[i], score[best_i]);
 
                 int piece = board.board[moves[i].from] & 7;
                 int victim = board.board[moves[i].to] & 7;
@@ -152,8 +158,8 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
-                    if (reduction < 0 || victim || in_check || score[i] == 9000) {
+                    reduction -= best_s / 200;
+                    if (reduction < 0 || victim || in_check || best_s == 9000) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -217,7 +223,7 @@ struct Searcher {
                     if (hashmv == moves[j]) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
-                    } else if (board.board[moves[j].to]) {
+                    } else if (board.board[moves[j].to] || moves[j].promo) {
                         // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                         // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                         score[j] = (board.board[moves[j].to] & 7) * 8
@@ -230,10 +236,7 @@ struct Searcher {
                     } else {
                         // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
-                        score[j] = history
-                            [board.stm == BLACK]
-                            [board.board[moves[j].from] & 7]
-                            [moves[j].to-A1];
+                        score[j] = 0;
                     }
                 }
                 // need to step back loop variable in case 1
