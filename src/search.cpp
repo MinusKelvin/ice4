@@ -114,7 +114,6 @@ struct Searcher {
                 swap(moves[i], moves[best_so_far]);
                 swap(score[i], score[best_so_far]);
 
-                int piece = board.board[moves[i].from] & 7;
                 int victim = board.board[moves[i].to] & 7;
                 int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
 
@@ -152,7 +151,7 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= history[board.stm == BLACK][piece][moves[i].to-A1] / 200;
+                    reduction -= score[i] / 200;
                     if (reduction < 0 || victim || in_check || score[i] == 9000) {
                         reduction = 0;
                     }
