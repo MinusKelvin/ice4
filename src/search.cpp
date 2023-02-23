@@ -51,13 +51,15 @@ struct Searcher {
             depth--;
         }
 
+        depth = depth < 0 ? 0 : depth;
+
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
+        if (!pv && depth && depth < 4 && eval >= beta + 75 * depth) {
             return eval;
         }
 
@@ -93,13 +95,13 @@ struct Searcher {
         score[0] = 0;
         mvcount = 1;
 
-        int16_t best = depth > 0 ? LOST + ply : eval;
+        int16_t best = depth ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
 
         int quiets_to_check_table[] = { 0, 7, 8, 17, 49 };
-        int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
+        int quiets_to_check = depth && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
         int legals = 0;
@@ -121,7 +123,7 @@ struct Searcher {
                     break;
                 }
 
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                if (!depth && eval + deltas[victim] <= alpha) {
                     continue;
                 }
 
@@ -209,7 +211,7 @@ struct Searcher {
             // 2. hashmv does not exist, moves[0] exists => already did movegen
             // 3. hashmv exists (implies moves[0] exists) => movegen
             if (!i && (!moves[0].from || hashmv.from)) {
-                if (!board.movegen(moves, mvcount, depth > 0)) {
+                if (!board.movegen(moves, mvcount, depth)) {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
@@ -251,7 +253,7 @@ struct Searcher {
         if ((depth > 0 || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
