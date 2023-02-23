@@ -122,6 +122,7 @@ struct Searcher {
 
                 int victim = board.board[moves[i].to] & 7;
                 int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
+                int spp_margins[] = {0, 360, 460};
 
                 // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
                 // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
@@ -178,10 +179,14 @@ struct Searcher {
                     // first legal move is always searched with full window
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
                 }
+
                 if (v == LOST) {
                     moves[i].from = 1;
                 } else {
                     legals++;
+                    if (!pv && !victim && depth > 0 && depth < 3 && v + spp_margins[depth] < alpha) {
+                        break;
+                    }
                 }
                 if (v > best) {
                     best = v;
