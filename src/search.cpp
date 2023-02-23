@@ -117,13 +117,13 @@ struct Searcher {
                 swap(score[i], score[best_so_far]);
 
                 int victim = board.board[moves[i].to] & 7;
-                int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
+                int deltas[] = {50, 210, 390, 440, 680, 1350, 1350, 1350};
 
                 if (!(quiets_to_check -= !victim)) {
                     break;
                 }
 
-                if (!depth && eval + deltas[victim] <= alpha) {
+                if (depth <= 1 && eval + deltas[victim | moves[i].promo] + 300 * depth <= alpha) {
                     continue;
                 }
 
