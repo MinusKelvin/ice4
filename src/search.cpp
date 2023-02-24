@@ -152,6 +152,7 @@ struct Searcher {
                     }
                     reduction += legals > 3;
                     reduction -= score[i] / 200;
+                    reduction += alpha - eval > 100 * depth;
                     if (reduction < 0 || victim || in_check || score[i] == 9000) {
                         reduction = 0;
                     }
