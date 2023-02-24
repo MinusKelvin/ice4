@@ -15,7 +15,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[2][7][SQUARE_SPAN];
+    int16_t history[14][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -188,11 +188,11 @@ struct Searcher {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
-                            int16_t& hist = history[board.stm == BLACK][board.board[moves[j].from] & 7][moves[j].to-A1];
+                            int16_t& hist = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                             int change = depth * depth;
                             hist -= change + change * hist / MAX_HIST;
                         }
-                        int16_t& hist = history[board.stm == BLACK][board.board[moves[i].from] & 7][moves[i].to-A1];
+                        int16_t& hist = history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                         int change = depth * depth;
                         hist += change - change * hist / MAX_HIST;
                         if (!(killers[ply][0] == moves[i])) {
@@ -230,8 +230,7 @@ struct Searcher {
                         // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
                         score[j] = history
-                            [board.stm == BLACK]
-                            [board.board[moves[j].from] & 7]
+                            [board.board[moves[j].from] - WHITE_PAWN]
                             [moves[j].to-A1];
                     }
                 }
