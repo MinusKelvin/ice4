@@ -132,10 +132,10 @@ struct Searcher {
                 }
 
                 int is_rep = 0;
-                for (int i = ply-1; !is_rep && i >= 0; i -= 2) {
+                for (int i = ply-1; depth > 0 && !is_rep && i >= 0; i -= 2) {
                     is_rep |= rep_list[i] == mkmove.zobrist;
                 }
-                for (int i = 0; !is_rep && i < PREHISTORY_LENGTH; i++) {
+                for (int i = 0; depth > 0 && !is_rep && i < PREHISTORY_LENGTH; i++) {
                     is_rep |= PREHISTORY[i] == mkmove.zobrist;
                 }
 
