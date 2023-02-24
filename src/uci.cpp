@@ -58,9 +58,7 @@ void uci() {
                 strtok(0, " \n"); // startpos
 #endif
                 strtok(0, " \n"); // moves
-                PREHISTORY_LENGTH = 0;
                 while (move = strtok(0, " \n")) {
-                    PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     Move mv(
                         (move[1] - '1') * 10 + move[0] - 'a' + A1,
                         (move[3] - '1') * 10 + move[2] - 'a' + A1,
@@ -69,9 +67,6 @@ void uci() {
                         move[4] == 'b' ? BISHOP :
                         move[4] == 'n' ? KNIGHT : 0
                     );
-                    if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
-                        PREHISTORY_LENGTH = 0;
-                    }
                     ROOT.make_move(mv);
                 }
                 break;

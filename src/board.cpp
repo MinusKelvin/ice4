@@ -349,6 +349,3 @@ struct Board {
         return stm == WHITE ? value : -value;
     }
 } ROOT;
-
-uint64_t PREHISTORY[256];
-int PREHISTORY_LENGTH = 0;
