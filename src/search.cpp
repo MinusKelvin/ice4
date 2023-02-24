@@ -121,7 +121,7 @@ struct Searcher {
                     break;
                 }
 
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                if (depth <= 0 && !moves[i].promo && eval + deltas[victim] <= alpha) {
                     continue;
                 }
 
