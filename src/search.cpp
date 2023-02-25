@@ -29,7 +29,6 @@ struct Searcher {
         int mvcount;
 
         int pv = beta > alpha+1;
-        int in_check = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
@@ -77,13 +76,6 @@ struct Searcher {
             if (v >= beta) {
                 return v;
             }
-            in_check = v == LOST;
-        }
-
-        if (pv && depth > 0) {
-            Board mkmove = board;
-            mkmove.null_move();
-            in_check = !mkmove.movegen(moves, mvcount);
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
@@ -157,7 +149,7 @@ struct Searcher {
                     }
                     reduction += legals > 3;
                     reduction -= score[i] / 200;
-                    if (reduction < 0 || victim || in_check) {
+                    if (reduction < 0 || victim) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -172,7 +164,7 @@ struct Searcher {
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
