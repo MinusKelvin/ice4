@@ -97,7 +97,7 @@ struct Searcher {
         score[0] = 0;
         mvcount = 1;
 
-        int16_t best = depth > 0 ? LOST + ply : eval;
+        int best = depth > 0 ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
@@ -144,7 +144,7 @@ struct Searcher {
                     is_rep |= PREHISTORY[i] == mkmove.zobrist;
                 }
 
-                int16_t v;
+                int v;
 
                 if (is_rep) {
                     v = 0;
@@ -277,7 +277,7 @@ struct Searcher {
         Move mv(0);
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int16_t v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
