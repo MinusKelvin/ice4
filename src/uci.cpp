@@ -21,6 +21,8 @@ void uci() {
 #ifdef OPENBENCH
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name factor type spin default 500 min 0 max 1000\n"
+        "option name red type spin default 200 min 1 max 1000\n"
 #endif
         "uciok"
     );
@@ -44,6 +46,12 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'f':
+                        HIST_FACTOR = value;
+                        break;
+                    case 'r':
+                        HIST_REDUCTION = value;
                         break;
                 }
                 break;
