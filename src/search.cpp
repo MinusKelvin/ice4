@@ -236,7 +236,7 @@ struct Searcher {
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
                         score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             + (ply ?
-                                (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                                2 * (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0);
                     }
                 }
