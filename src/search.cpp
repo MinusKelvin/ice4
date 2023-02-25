@@ -15,7 +15,9 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[14][SQUARE_SPAN];
+    int16_t history[15][SQUARE_SPAN];
+    int16_t conthist[15][SQUARE_SPAN][15][SQUARE_SPAN];
+    int16_t (*conthist_stack[256])[15][SQUARE_SPAN];
     uint64_t rep_list[256];
     Move killers[256][2];
 
@@ -127,6 +129,7 @@ struct Searcher {
 
                 Board mkmove = board;
                 mkmove.make_move(moves[i]);
+                conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                 if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                     throw 0;
                 }
@@ -184,17 +187,24 @@ struct Searcher {
                 }
                 if (v >= beta) {
                     if (!victim) {
+                        int change = depth * depth;
                         for (int j = 0; j < i; j++) {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
                             int16_t& hist = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            int change = depth * depth;
                             hist -= change + change * hist / MAX_HIST;
+                            if (ply > 1) {
+                                int16_t& hist_2 = (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                                hist_2 -= change + change * hist_2 / MAX_HIST;
+                            }
                         }
                         int16_t& hist = history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        int change = depth * depth;
                         hist += change - change * hist / MAX_HIST;
+                        if (ply > 1) {
+                            int16_t& hist_2 = (*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                            hist_2 += change - change * hist_2 / MAX_HIST;
+                        }
                         if (!(killers[ply][0] == moves[i])) {
                             killers[ply][1] = killers[ply][0];
                             killers[ply][0] = moves[i];
@@ -229,9 +239,10 @@ struct Searcher {
                     } else {
                         // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
-                        score[j] = history
-                            [board.board[moves[j].from] - WHITE_PAWN]
-                            [moves[j].to-A1];
+                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                            + (ply > 1 ?
+                                (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                            : 0);
                     }
                 }
                 // need to step back loop variable in case 1
@@ -264,6 +275,7 @@ struct Searcher {
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
         memset(history, 0, sizeof(history));
+        memset(conthist, 0, sizeof(conthist));
         memset(killers, 0, sizeof(killers));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
