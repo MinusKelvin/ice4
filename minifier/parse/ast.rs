@@ -6,6 +6,7 @@ pub enum TopLevel {
     Using(String),
     Function(Function),
     Struct(String, Vec<MemberItem>, Vec<DeclExpr>),
+    TypeDef(BaseType, DeclForm),
 }
 
 #[derive(Debug)]

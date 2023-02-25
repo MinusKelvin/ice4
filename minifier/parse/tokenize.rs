@@ -34,6 +34,12 @@ impl TopLevel {
                 }
                 result.push(Semicolon);
             }
+            TopLevel::TypeDef(ty, form) => {
+                result.push(Keyword("typedef"));
+                ty.tokenize(result);
+                form.tokenize(result);
+                result.push(Semicolon);
+            }
         }
     }
 }

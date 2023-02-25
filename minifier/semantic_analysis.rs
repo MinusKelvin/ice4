@@ -153,6 +153,18 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
             TopLevel::Declaration(d) => process_declaration(&mut symbols, &mut scope, d),
             TopLevel::Using(_) => {}
             TopLevel::Function(f) => process_function(&mut symbols, &mut scope, f),
+            TopLevel::TypeDef(ty, form) => {
+                process_base_type(&mut symbols, &mut scope, ty);
+                if let Some(name) = get_name_mut(form) {
+                    let id = symbols.declare_type();
+                    scope.in_scope(|id2| {
+                        symbols.symbols[id].others_in_scope.push(id2);
+                        symbols.symbols[id2].others_in_scope.push(id);
+                    });
+                    scope.define(name.clone(), id);
+                    *name = format!("${id}");
+                }
+            }
             TopLevel::Struct(name, members, vars) => {
                 let id = symbols.declare_type();
                 scope.in_scope(|id2| {
