@@ -201,7 +201,11 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
         let type_introduction = matches!(
             result.last(),
             Some(Token::Keyword("struct" | "class" | "union" | "enum"))
-        );
+        ) || result
+            .iter()
+            .rev()
+            .take_while(|t| !matches!(t, Token::Semicolon))
+            .any(|t| matches!(t, Token::Keyword("typedef")));
         let code = text;
         let mut token = |token, rest| {
             result.push(token);
@@ -265,11 +269,11 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
             _ => if let Some(m) = WORD.find(code) {
                 let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
                     Token::Keyword(k)
-                } else if type_introduction {
-                    typenames.insert(m.as_str().to_owned());
-                    Token::Typename(m.as_str().to_owned())
                 } else if typenames.contains(m.as_str()) {
                     Token::Typename(m.as_str().to_owned())
+                } else if type_introduction {
+                    typenames.insert(m.as_str().to_owned());
+                    Token::Identifier(m.as_str().to_owned())
                 } else {
                     Token::Identifier(m.as_str().to_owned())
                 };

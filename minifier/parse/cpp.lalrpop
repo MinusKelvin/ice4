@@ -10,7 +10,8 @@ TopLevel: TopLevel = {
         Err(f) => TopLevel::Function(f),
     },
     "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
-    "struct" <Typename> "{" <MemberDeclaration*> "}" <Comma<DeclExpr>> ";" => TopLevel::Struct(<>),
+    "struct" <Identifier> "{" <MemberDeclaration*> "}" <Comma<DeclExpr>> ";" => TopLevel::Struct(<>),
+    "typedef" <BaseType> <DeclForm> ";" => TopLevel::TypeDef(<>),
 };
 
 ///////////////////////////////////////////////////////////////////////////////
