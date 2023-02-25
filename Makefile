@@ -23,6 +23,12 @@ ice4.exe: $(DEPS)
 $(EXE): $(DEPS)
 	g++ -DOPENBENCH -O3 -pthread src/main.cpp -o "$@"
 
+ice4-asan: $(DEPS)
+	g++ -DOPENBENCH -g -fsanitize=address -pthread src/main.cpp -o "$@"
+
+ice4-usan: $(DEPS)
+	g++ -DOPENBENCH -g -fsanitize=undefined -pthread src/main.cpp -o "$@"
+
 logo.png: ice4 logo_template.png
 	python3 make_ice4_logo.py < ice4
 
