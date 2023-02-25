@@ -232,7 +232,7 @@ struct Searcher {
                             - (board.board[moves[j].from] & 7)
                             + 20000;
                     } else {
-                        // History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
+                        // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
                         score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             + (ply ?

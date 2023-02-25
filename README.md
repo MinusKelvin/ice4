@@ -37,6 +37,7 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
 - Twofold repetition detection
 - Principal variation search
   - Quiescense search
+  - Delta pruning
   - Null move pruning
   - Reverse futility pruning
   - Internal iterated deepening
@@ -49,12 +50,13 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
   - TT move
   - MVV-LVA captures before quiets
   - History
+  - Countermove History
 - Iterated deepening
 - Soft limit + hard limit time management
 - Evaluation
-  - Phased evaluation with 598 parameters
-  - Horizontally mirrored piece square tables for pieces
-  - Full piece square table for king
+  - Phased evaluation with 418 parameters
+  - Quadrant piece square tables for pieces
+  - Shrunken piece square table for king
   - King-relative piece square tables for pawns and passed pawns
   - Doubled pawns
   - Isolated pawns
@@ -62,6 +64,7 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
   - Rook on (semi-)open files
   - Bishop pair
   - Tempo
+  - Basic king safety (open file, pawn shield)
 
 ## Acknowledgements
 
