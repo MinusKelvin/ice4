@@ -156,7 +156,7 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= score[i] / 200;
+                    reduction -= score[i] / 750;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
@@ -230,12 +230,12 @@ struct Searcher {
                         // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
-                            + 20000;
+                            + 100000;
                     } else {
                         // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            + (ply ?
+                        score[j] = 2 * history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                            + 3 * (ply ?
                                 (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0);
                     }
