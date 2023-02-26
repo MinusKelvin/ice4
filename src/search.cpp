@@ -11,6 +11,8 @@ mutex MUTEX;
 int FINISHED_DEPTH;
 Move BEST_MOVE(0);
 
+int SPP_MARGIN[] = {0, 100, 200, 300, 400, 500};
+
 typedef int16_t HTable[16][SQUARE_SPAN];
 
 struct Searcher {
@@ -178,6 +180,9 @@ struct Searcher {
                     moves[i].from = 1;
                 } else {
                     legals++;
+                    if (!victim && depth > 0 && depth < 6 && v + SPP_MARGIN[depth] < alpha) {
+                        break;
+                    }
                 }
                 if (v > best) {
                     best = v;

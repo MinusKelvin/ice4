@@ -21,6 +21,11 @@ void uci() {
 #ifdef OPENBENCH
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name a type spin default 100 min 0 max 10000\n"
+        "option name b type spin default 200 min 0 max 10000\n"
+        "option name c type spin default 300 min 0 max 10000\n"
+        "option name d type spin default 400 min 0 max 10000\n"
+        "option name e type spin default 500 min 0 max 10000\n"
 #endif
         "uciok"
     );
@@ -44,6 +49,13 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'a':
+                    case 'b':
+                    case 'c':
+                    case 'd':
+                    case 'e':
+                        SPP_MARGIN[opt - 'a' + 1] = value;
                         break;
                 }
                 break;
