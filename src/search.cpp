@@ -16,7 +16,6 @@ typedef int16_t HTable[16][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double abort_time;
-    int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
@@ -54,9 +53,7 @@ struct Searcher {
             depth--;
         }
 
-        evals[ply] = board.eval();
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
-        int improving = ply > 1 && evals[ply] > evals[ply-2];
+        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : board.eval();
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
@@ -102,8 +99,8 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check_table[] = { 0, 7, 8, 17, 49 };
-        int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
+        int LMP_TABLE[] = { 0, 7, 8, 17, 49 };
+        int quiets_to_check = depth > 0 && depth < 5 && !pv ? LMP_TABLE[depth] : -1;
 
         int raised_alpha = 0;
         int legals = 0;
