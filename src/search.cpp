@@ -189,24 +189,23 @@ struct Searcher {
                 }
                 if (v >= beta) {
                     if (!victim) {
-                        int change = depth * depth;
                         int16_t *hist;
                         for (int j = 0; j < i; j++) {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
                             hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= change + change * *hist / MAX_HIST;
+                            *hist -= depth + depth * *hist / MAX_HIST;
                             if (ply) {
                                 hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
+                                *hist -= depth + depth * *hist / MAX_HIST;
                             }
                         }
                         hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += change - change * *hist / MAX_HIST;
+                        *hist += depth - depth * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
+                            *hist += depth - depth * *hist / MAX_HIST;
                         }
                     }
                     break;
