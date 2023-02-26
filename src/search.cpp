@@ -99,9 +99,6 @@ struct Searcher {
             return best;
         }
 
-        int LMP_TABLE[] = { 0, 7, 8, 17, 49 };
-        int quiets_to_check = depth > 0 && depth < 5 && !pv ? LMP_TABLE[depth] : -1;
-
         int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
@@ -117,10 +114,6 @@ struct Searcher {
 
                 int victim = board.board[moves[i].to] & 7;
                 int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
-
-                if (!(quiets_to_check -= !victim)) {
-                    break;
-                }
 
                 if (depth <= 0 && eval + deltas[victim] <= alpha) {
                     continue;
