@@ -160,7 +160,7 @@ struct Searcher {
                         reduction = legals;
                     }
                     reduction += legals > 3;
-                    reduction -= score[i] / 400;
+                    reduction -= score[i] / 512;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
