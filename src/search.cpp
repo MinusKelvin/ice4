@@ -50,8 +50,6 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 5) {
-            depth--;
         }
 
         evals[ply] = board.eval();
