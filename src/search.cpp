@@ -56,6 +56,8 @@ struct Searcher {
 
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
+        // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
@@ -121,6 +123,8 @@ struct Searcher {
                 int victim = board.board[moves[i].to] & 7;
                 int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
 
+                // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
+                // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
                 if (!(quiets_to_check -= !victim)) {
                     break;
                 }
