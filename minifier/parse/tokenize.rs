@@ -750,9 +750,9 @@ impl Statement {
                 block(b, result);
             }
             Statement::While(c, b) => {
-                result.extend([Keyword("while"), LeftParen]);
+                result.extend([Keyword("for"), LeftParen, Semicolon]);
                 c.tokenize(result, Precedence::Comma);
-                result.push(RightParen);
+                result.extend([Semicolon, RightParen]);
                 statement_block(b, result);
             }
             Statement::Continue => result.extend([Keyword("continue"), Semicolon]),

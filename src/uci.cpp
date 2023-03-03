@@ -15,20 +15,20 @@ void uci() {
     int opt, value;
 #endif
     fgets(buf, 4096, stdin); // uci
-    puts(
-        "id name ice4\r\n"
-        "id author MK\n"
+    printf(
 #ifdef OPENBENCH
+        "id name ice4\r\n"
+        "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
 #endif
-        "uciok"
+        "uciok\n"
     );
     for (;;) {
         fgets(buf, 4096, stdin);
         switch (*strtok(buf, " \n")) {
             case 'i': // isready
-                puts("readyok");
+                printf("readyok\n");
                 break;
             case 'q': // quit
                 exit(0);
