@@ -22,7 +22,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, Move skipmv = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -36,7 +36,7 @@ struct Searcher {
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
         int tt_good = (data ^ board.zobrist) == hash_xor_data;
         TtData tt;
-        if (tt_good) {
+        if (tt_good && !skipmv.from) {
             memcpy(&tt, &data, sizeof(TtData));
 
             if (depth > 0 || board.board[tt.mv.to]) {
@@ -50,7 +50,7 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 5) {
+        } else if (depth > 5 && !skipmv.from) {
             depth--;
         }
 
@@ -90,7 +90,7 @@ struct Searcher {
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
-        if (depth >= 3 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+        if (depth >= 3 && pv && (!tt_good || tt.bound != BOUND_EXACT) && !skipmv.from) {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
 
@@ -175,8 +175,20 @@ struct Searcher {
                         v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                     }
                 } else {
+                    int ext = in_check;
+                    if (
+                        tt_good && !in_check &&
+                        !i &&
+                        depth > 4 &&
+                        depth - 3 < tt.depth &&
+                        (tt.bound == BOUND_EXACT || tt.bound == BOUND_LOWER)
+                    ) {
+                        int singular_beta = tt.eval - depth * 3;
+                        int score = negamax(board, scratch, singular_beta - 1, singular_beta, depth / 2 - 1, ply, hashmv);
+                        ext = score < singular_beta;
+                    }
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + ext, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
@@ -229,6 +241,8 @@ struct Searcher {
                     if (hashmv == moves[j]) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
+                    } else if (skipmv == moves[j]) {
+                        moves[j--] = moves[--mvcount];
                     } else if (board.board[moves[j].to]) {
                         // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                         // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
