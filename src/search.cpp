@@ -59,6 +59,7 @@ struct Searcher {
             depth--;
         }
 
+        depth = depth > 0 ? depth : 0;
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
@@ -68,7 +69,7 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 4 && eval >= beta + 75 * depth) {
+        if (!pv && depth && depth < 4 && eval >= beta + 75 * depth) {
             return eval;
         }
 
@@ -89,7 +90,7 @@ struct Searcher {
             in_check = v == LOST;
         }
 
-        if (pv && depth > 0) {
+        if (pv && depth) {
             Board mkmove = board;
             mkmove.null_move();
             in_check = !mkmove.movegen(moves, mvcount);
@@ -107,13 +108,13 @@ struct Searcher {
         score[0] = 0;
         mvcount = 1;
 
-        int best = depth > 0 ? LOST + ply : eval;
+        int best = depth ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
 
         int quiets_to_check_table[] = { 0, 7, 8, 17, 49 };
-        int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
+        int quiets_to_check = depth && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
         int legals = 0;
@@ -137,7 +138,7 @@ struct Searcher {
                     break;
                 }
 
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                if (!depth && eval + deltas[victim] <= alpha) {
                     continue;
                 }
 
@@ -149,10 +150,10 @@ struct Searcher {
                 }
 
                 int is_rep = 0;
-                for (int i = ply-1; depth > 0 && !is_rep && i >= 0; i -= 2) {
+                for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                     is_rep |= rep_list[i] == mkmove.zobrist;
                 }
-                for (int i = 0; depth > 0 && !is_rep && i < PREHISTORY_LENGTH; i++) {
+                for (int i = 0; depth && !is_rep && i < PREHISTORY_LENGTH; i++) {
                     is_rep |= PREHISTORY[i] == mkmove.zobrist;
                 }
 
@@ -239,7 +240,7 @@ struct Searcher {
             // 2. hashmv does not exist, moves[0] exists => already did movegen
             // 3. hashmv exists (implies moves[0] exists) => movegen
             if (!i && (!moves[0].from || hashmv.from)) {
-                if (!board.movegen(moves, mvcount, depth > 0)) {
+                if (!board.movegen(moves, mvcount, depth)) {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
@@ -270,7 +271,7 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0) {
+        if (depth && !legals) {
             Board mkmove = board;
             mkmove.null_move();
             if (mkmove.movegen(moves, mvcount)) {
@@ -278,10 +279,10 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if ((depth || best != eval) && best > LOST + ply) {
             tt.mv = bestmv;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
