@@ -71,7 +71,7 @@ struct Searcher {
         if (!pv && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
-            conthist_stack[ply] = &conthist[0][0];
+            conthist_stack[ply] = &conthist[0][board.stm == WHITE];
 
             int reduction = (eval - beta) / 128 + depth / 3 + 2;
 
