@@ -41,7 +41,7 @@ struct Searcher {
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
 
-            if (depth > 0 || board.board[tt.mv.to]) {
+            if (depth > 0) {
                 hashmv = tt.mv;
             }
             if (depth <= tt.depth && (
