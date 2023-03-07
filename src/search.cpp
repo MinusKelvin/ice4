@@ -17,7 +17,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    HTable history;
+    HTable history[2];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -201,34 +201,32 @@ struct Searcher {
                     raised_alpha = 1;
                 }
                 if (v >= beta) {
-                    if (!victim) {
-                        int change = depth * depth;
-                        int16_t *hist;
-                        for (int j = 0; j < i; j++) {
-                            if (board.board[moves[j].to]) {
-                                continue;
-                            }
-                            hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                    int change = depth * depth;
+                    int16_t *hist;
+                    for (int j = 0; j < i; j++) {
+                        if (!victim != !board.board[moves[j].to]) {
+                            continue;
+                        }
+                        hist = &history[!victim][board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                        *hist -= change + change * *hist / MAX_HIST;
+                        if (!victim && ply) {
+                            hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                             *hist -= change + change * *hist / MAX_HIST;
-                            if (ply) {
-                                hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
-                            }
-                            if (ply > 1) {
-                                hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
-                            }
                         }
-                        hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                        if (!victim && ply > 1) {
+                            hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                            *hist -= change + change * *hist / MAX_HIST;
+                        }
+                    }
+                    hist = &history[!victim][board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                    *hist += change - change * *hist / MAX_HIST;
+                    if (!victim && ply) {
+                        hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                         *hist += change - change * *hist / MAX_HIST;
-                        if (ply) {
-                            hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
-                        }
-                        if (ply > 1) {
-                            hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
-                        }
+                    }
+                    if (!victim && ply > 1) {
+                        hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                        *hist += change - change * *hist / MAX_HIST;
                     }
                     break;
                 }
@@ -247,16 +245,16 @@ struct Searcher {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
-                        // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
+                        // (outdated) MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                         // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                         // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
-                        score[j] = (board.board[moves[j].to] & 7) * 8
-                            - (board.board[moves[j].from] & 7)
+                        score[j] = (board.board[moves[j].to] & 7) * 8192
+                            + history[0][board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             + 20000;
                     } else {
                         // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        score[j] = history[1][board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             + (ply ?
                                 (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0)
