@@ -164,7 +164,7 @@ struct Searcher {
                     // All reductions: 57 bytes (a8e89fa vs 98a56ea)
                     // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     // 60.0+0.6: 179.68 +- 5.89 (5716 - 961 - 3323) 3.15 elo/byte
-                    int reduction = (legals*3 + depth*2) / 32;
+                    int reduction = (legals*3 + depth*2 - 32 * pv + 16) / 32;
                     reduction += legals > 3;
                     reduction -= score[i] / 400;
                     if (reduction < 0 || victim || in_check) {
