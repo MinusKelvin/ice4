@@ -31,6 +31,7 @@ struct Searcher {
         int pv = beta > alpha+1;
         // Check Conditions: 24 bytes (46d9d80 vs 0f4a84d)
         // 8.0+0.08: 14.84 +- 5.12 (3046 - 2619 - 4335) 0.62 elo/byte
+        // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
         int in_check = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
@@ -63,6 +64,7 @@ struct Searcher {
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
+        // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
@@ -133,6 +135,7 @@ struct Searcher {
 
                 // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
                 // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
+                // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
                 if (!(quiets_to_check -= !victim)) {
                     break;
                 }
@@ -165,7 +168,13 @@ struct Searcher {
                     // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     // 60.0+0.6: 179.68 +- 5.89 (5716 - 961 - 3323) 3.15 elo/byte
                     int reduction = (legals*3 + depth*2) / 32;
+                    // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
+                    // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
+                    // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
                     reduction += legals > 3;
+                    // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
+                    // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
+                    // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                     reduction -= score[i] / 400;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
