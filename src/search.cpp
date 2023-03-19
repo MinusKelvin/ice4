@@ -167,7 +167,7 @@ struct Searcher {
                     // All reductions: 57 bytes (a8e89fa vs 98a56ea)
                     // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     // 60.0+0.6: 179.68 +- 5.89 (5716 - 961 - 3323) 3.15 elo/byte
-                    int reduction = (legals*3 + depth*2) / 32;
+                    int reduction = (legals*5 + depth*8) / 64;
                     // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                     // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                     // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
