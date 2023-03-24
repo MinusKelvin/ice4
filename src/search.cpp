@@ -207,7 +207,7 @@ struct Searcher {
                     raised_alpha = 1;
                 }
                 if (v >= beta) {
-                    if (!victim) {
+                    if (!victim && depth > 0) {
                         int change = depth * depth;
                         int16_t *hist;
                         for (int j = 0; j < i; j++) {
