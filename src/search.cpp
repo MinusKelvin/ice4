@@ -216,10 +216,6 @@ struct Searcher {
                             }
                             hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                             *hist -= change + change * *hist / MAX_HIST;
-                            if (ply) {
-                                hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
-                            }
                             if (ply > 1) {
                                 hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                                 *hist -= change + change * *hist / MAX_HIST;
@@ -227,10 +223,6 @@ struct Searcher {
                         }
                         hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                         *hist += change - change * *hist / MAX_HIST;
-                        if (ply) {
-                            hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
-                        }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                             *hist += change - change * *hist / MAX_HIST;
@@ -263,9 +255,6 @@ struct Searcher {
                         // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
                         score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            + (ply ?
-                                (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            : 0)
                             + (ply > 1 ?
                                 (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0);
