@@ -268,7 +268,8 @@ struct Searcher {
                             : 0)
                             + (ply > 1 ?
                                 (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            : 0);
+                            : 0)
+                            + moves[j].promo * 32;
                     }
                 }
                 // need to step back loop variable in case 1
