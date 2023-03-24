@@ -17,7 +17,6 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -214,8 +213,6 @@ struct Searcher {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
-                            hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= change + change * *hist / MAX_HIST;
                             if (ply) {
                                 hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                                 *hist -= change + change * *hist / MAX_HIST;
@@ -225,8 +222,6 @@ struct Searcher {
                                 *hist -= change + change * *hist / MAX_HIST;
                             }
                         }
-                        hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += change - change * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                             *hist += change - change * *hist / MAX_HIST;
@@ -262,8 +257,8 @@ struct Searcher {
                     } else {
                         // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
                         // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            + (ply ?
+                        score[j] =
+                            (ply ?
                                 (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0)
                             + (ply > 1 ?
@@ -300,7 +295,6 @@ struct Searcher {
     }
 
     void iterative_deepening(double time_alotment, int max_depth=250) {
-        memset(history, 0, sizeof(history));
         memset(conthist, 0, sizeof(conthist));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
