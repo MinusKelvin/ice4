@@ -208,7 +208,7 @@ struct Searcher {
                 }
                 if (v >= beta) {
                     if (!victim) {
-                        int change = depth * depth;
+                        int change = depth > 0 ? depth * depth : 1;
                         int16_t *hist;
                         for (int j = 0; j < i; j++) {
                             if (board.board[moves[j].to]) {
