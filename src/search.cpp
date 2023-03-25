@@ -131,7 +131,7 @@ struct Searcher {
                 swap(score[i], score[best_so_far]);
 
                 int victim = board.board[moves[i].to] & 7;
-                int deltas[] = {1350, 210, 390, 440, 680, 1350, 0};
+                int deltas[] = {210, 210, 390, 440, 680, 1350, 0};
 
                 // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
                 // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
@@ -140,7 +140,7 @@ struct Searcher {
                     break;
                 }
 
-                if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                if (depth <= 0 && !moves[i].promo && eval + deltas[victim] <= alpha) {
                     continue;
                 }
 
