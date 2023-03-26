@@ -298,6 +298,10 @@ struct Board {
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = rank+file;
                 if (board[sq] == own_pawn) {
+                    if (board[sq + pawndir] == opp_pawn) {
+                        mg_pawn_eval += BLOCKED_PAWN_MG[(rank - first_rank) / pawndir - 1];
+                        eg_pawn_eval += BLOCKED_PAWN_EG[(rank - first_rank) / pawndir - 1];
+                    }
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
                     mg_pawn_eval += PROTECTED_PAWN_MG[protectors];
