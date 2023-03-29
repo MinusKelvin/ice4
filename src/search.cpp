@@ -13,6 +13,14 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
+int NMP_B = 2;
+int NMP_D = 334;
+int NMP_M = 128;
+int LMR_D = 63;
+int LMR_I = 94;
+int LMR_H = 400;
+int LMR_M = 3;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -82,7 +90,7 @@ struct Searcher {
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 128 + depth / 3 + 2;
+            int reduction = (eval - beta) / NMP_M + depth * NMP_D / 1000 + NMP_B;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -170,15 +178,15 @@ struct Searcher {
                     // All reductions: 57 bytes (a8e89fa vs 98a56ea)
                     // 8.0+0.08: 181.21 +- 6.27 (6020 - 1231 - 2749) 3.18 elo/byte
                     // 60.0+0.6: 179.68 +- 5.89 (5716 - 961 - 3323) 3.15 elo/byte
-                    int reduction = (legals*3 + depth*2) / 32;
+                    int reduction = (legals*LMR_I + depth*LMR_D) / 1000;
                     // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                     // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                     // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
-                    reduction += legals > 3;
+                    reduction += legals > LMR_M;
                     // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                     // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                     // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                    reduction -= score[i] / 400;
+                    reduction -= score[i] / LMR_H;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
