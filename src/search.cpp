@@ -140,6 +140,9 @@ struct Searcher {
                     break;
                 }
 
+                // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
+                // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
+                // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
                 if (depth <= 0 && eval + deltas[victim] <= alpha) {
                     continue;
                 }
@@ -260,12 +263,18 @@ struct Searcher {
                             - (board.board[moves[j].from] & 7)
                             + 20000;
                     } else {
-                        // (outdated) History heuristic: 90 bytes (d2a7a0e vs 35f9b66)
-                        // 8.0+0.08: 225.18 +- 6.42 (6467 - 763 - 2770) 2.50 elo/byte
+                        // Plain history: 28 bytes (676e7fa vs 4cabdf1)
+                        // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                         score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                            // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
+                            // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
+                            // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
+                            // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                             + (ply ?
                                 (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0)
+                            // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
+                            // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                             + (ply > 1 ?
                                 (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0);
