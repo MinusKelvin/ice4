@@ -22,12 +22,12 @@ void uci() {
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
         "option name b type spin default 2 min 1 max 10\n"
-        "option name d type spin default 333 min 1 max 1000\n"
-        "option name m type spin default 128 min 1 max 1000\n"
-        "option name I type spin default 94 min 0 max 1000\n"
-        "option name R type spin default 400 min 1 max 1000\n"
-        "option name D type spin default 63 min 0 max 1000\n"
-        "option name M type spin default 3 min 0 max 20\n"
+        "option name d type spin default 388 min 1 max 1000\n"
+        "option name m type spin default 109 min 1 max 1000\n"
+        "option name I type spin default 75 min 0 max 1000\n"
+        "option name R type spin default 346 min 1 max 1000\n"
+        "option name D type spin default 98 min 0 max 1000\n"
+        "option name M type spin default 4 min 0 max 20\n"
 #endif
         "uciok\n"
     );

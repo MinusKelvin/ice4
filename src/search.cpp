@@ -14,12 +14,12 @@ Move BEST_MOVE(0);
 typedef int16_t HTable[16][SQUARE_SPAN];
 
 int NMP_B = 2;
-int NMP_D = 334;
-int NMP_M = 128;
-int LMR_D = 63;
-int LMR_I = 94;
-int LMR_H = 400;
-int LMR_M = 3;
+int NMP_D = 388;
+int NMP_M = 109;
+int LMR_D = 98;
+int LMR_I = 75;
+int LMR_H = 346;
+int LMR_M = 4;
 
 struct Searcher {
     uint64_t nodes;
