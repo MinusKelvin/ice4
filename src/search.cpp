@@ -22,7 +22,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, int cutnode) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -57,7 +57,7 @@ struct Searcher {
             // Internal Iterative Reductions: 8 bytes (524f0e8 vs b5fdb00)
             // 8.0+0.08: 0.66 +- 5.07 (2790 - 2771 - 4439) 0.08 elo/byte
             // 60.0+0.6: 22.30 +- 4.52 (2530 - 1889 - 5581) 2.79 elo/byte
-            depth--;
+            depth -= 1 + cutnode;
         }
 
         evals[ply] = board.eval();
@@ -84,7 +84,7 @@ struct Searcher {
 
             int reduction = (eval - beta) / 109 + depth * 3 / 8 + 2;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1, !cutnode);
             if (v >= beta) {
                 return v;
             }
@@ -101,7 +101,7 @@ struct Searcher {
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
         if (depth >= 3 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 2, ply);
+            negamax(board, hashmv, alpha, beta, depth - 2, ply, cutnode);
         }
 
         rep_list[ply] = board.zobrist;
@@ -182,19 +182,19 @@ struct Searcher {
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1, !cutnode);
                     if (v > alpha && reduction) {
                         // reduced search failed high, re-search at full depth
-                        v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                        v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1, !cutnode);
                     }
                     if (v > alpha && v < beta) {
                         // at pv nodes, we need to re-search with full window when move raises alpha
                         // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                        v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                        v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1, 0);
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1, !pv && !cutnode);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
@@ -321,7 +321,7 @@ struct Searcher {
         Move mv(0);
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                int v = negamax(ROOT, mv, LOST, WON, depth, 0, 0);
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
