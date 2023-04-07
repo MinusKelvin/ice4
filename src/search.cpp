@@ -104,6 +104,14 @@ struct Searcher {
             negamax(board, hashmv, alpha, beta, depth - 2, ply);
         }
 
+        if (!pv && depth >= 8) {
+            int prob_beta = beta + 30 * depth;
+            int v = negamax(board, scratch, prob_beta-1, prob_beta, depth / 2, ply);
+            if (v >= prob_beta) {
+                return v;
+            }
+        }
+
         rep_list[ply] = board.zobrist;
         moves[0] = hashmv;
         score[0] = 0;
