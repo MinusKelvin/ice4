@@ -46,7 +46,7 @@ struct Searcher {
                 hashmv = tt.mv;
             }
             if (depth <= tt.depth && (
-                tt.bound == BOUND_EXACT ||
+                depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 tt.bound == BOUND_UPPER && tt.eval <= alpha
             )) {
