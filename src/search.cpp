@@ -261,12 +261,12 @@ struct Searcher {
                         // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
-                            + 20000;
+                            + 20000000;
                     } else {
                         // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                         // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                         // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        score[j] = (history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                             // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                             // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
@@ -281,7 +281,11 @@ struct Searcher {
                             // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
                             + (ply > 1 ?
                                 (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                            : 0);
+                            : 0)
+                            ) * 1000
+                            + (board.board[moves[j].from] & 7) == PAWN || (board.board[moves[j].from] & 7) == KING ? 0 :
+                                PST[0][board.board[moves[j].from]][moves[j].to-A1]
+                                - PST[0][board.board[moves[j].from]][moves[j].from-A1];
                     }
                 }
                 // need to step back loop variable in case 1
