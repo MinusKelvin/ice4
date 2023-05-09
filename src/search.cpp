@@ -319,9 +319,17 @@ struct Searcher {
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
         Move mv(0);
+        int prev = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                int lb = prev - 50;
+                int ub = prev + 50;
+                if (depth > 1) {
+                    v = negamax(ROOT, mv, lb, ub, depth, 0);
+                }
+                if (depth <= 1 || v <= lb || v >= ub) {
+                    v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                }
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
@@ -334,6 +342,7 @@ struct Searcher {
                     }
                 }
                 MUTEX.unlock();
+                prev = v;
             }
         } catch (...) {}
     }
