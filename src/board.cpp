@@ -42,7 +42,6 @@ vector<TtEntry> TT(HASH_SIZE);
 struct Board {
     uint8_t board[120];
     uint8_t castle_rights[2];
-    uint8_t bishops[2];
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
     uint8_t rook_counts[2][8];
@@ -72,9 +71,6 @@ struct Board {
             eg_eval -= PST[1][board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]--;
-        }
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -87,9 +83,6 @@ struct Board {
             eg_eval += PST[1][board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]++;
-        }
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -328,12 +321,9 @@ struct Board {
             pawn_eval(0, WHITE, 10, 20, 80);
             pawn_eval_dirty = 0;
         }
-        int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
         int mg = mg_eval + mg_pawn_eval +
-            BISHOP_PAIR_MG * bishop_pair +
             (stm == WHITE ? TEMPO_MG : -TEMPO_MG);
         int eg = eg_eval + eg_pawn_eval +
-            BISHOP_PAIR_EG * bishop_pair +
             (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
         for (int file = 1; file < 9; file++) {
             if (!pawn_counts[0][file]) {
