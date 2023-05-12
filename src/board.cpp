@@ -50,7 +50,6 @@ struct Board {
     uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
-    uint8_t pawn_eval_dirty;
     int16_t mg_eval;
     int16_t eg_eval;
     int16_t mg_pawn_eval;
@@ -58,18 +57,12 @@ struct Board {
     uint64_t zobrist;
 
     void edit(int square, int piece) {
-        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
-            pawn_eval_dirty = 1;
-        }
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
         }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]--;
-        } else {
-            mg_eval -= PST[0][board[square]][square-A1];
-            eg_eval -= PST[1][board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
@@ -82,9 +75,6 @@ struct Board {
         }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]++;
-        } else {
-            mg_eval += PST[0][board[square]][square-A1];
-            eg_eval += PST[1][board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
@@ -265,7 +255,7 @@ struct Board {
         return 1;
     }
 
-    void pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
+    void pawn_eval(int ci, int color, int pawndir, int zeroth_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
@@ -282,7 +272,7 @@ struct Board {
                 mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
                 eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
                     if (king_sq[ci] % 10 > 4) {
@@ -295,7 +285,7 @@ struct Board {
                     break;
                 }
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
@@ -307,6 +297,9 @@ struct Board {
                     }
                     mg_pawn_eval += PST[0][own_pawn][sq-A1];
                     eg_pawn_eval += PST[1][own_pawn][sq-A1];
+                } else if (board[sq] & color) {
+                    mg_pawn_eval += PST[0][board[sq]][sq-A1];
+                    eg_pawn_eval += PST[1][board[sq]][sq-A1];
                 }
             }
         }
@@ -314,20 +307,18 @@ struct Board {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        mg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_MG[shield_pawns];
-        eg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_EG[shield_pawns];
+        mg_pawn_eval += (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_MG[shield_pawns];
+        eg_pawn_eval += (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_EG[shield_pawns];
     }
 
     int eval() {
-        if (pawn_eval_dirty) {
-            mg_pawn_eval = 0;
-            eg_pawn_eval = 0;
-            pawn_eval(1, BLACK, -10, 90, 30);
-            mg_pawn_eval = -mg_pawn_eval;
-            eg_pawn_eval = -eg_pawn_eval;
-            pawn_eval(0, WHITE, 10, 20, 80);
-            pawn_eval_dirty = 0;
-        }
+        mg_pawn_eval = 0;
+        eg_pawn_eval = 0;
+        pawn_eval(1, BLACK, -10, 100);
+        mg_pawn_eval = -mg_pawn_eval;
+        eg_pawn_eval = -eg_pawn_eval;
+        pawn_eval(0, WHITE, 10, 10);
+
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
         int mg = mg_eval + mg_pawn_eval +
             BISHOP_PAIR_MG * bishop_pair +

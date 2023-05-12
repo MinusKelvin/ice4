@@ -45,10 +45,10 @@ void unpack_smol(int phase, int piece, double scale, int offset) {
             white_section[rank+file+1] = v;
             white_section[rank+file+10] = v;
             white_section[rank+file+11] = v;
-            black_section[70-rank+file] = -v;
-            black_section[71-rank+file] = -v;
-            black_section[60-rank+file] = -v;
-            black_section[61-rank+file] = -v;
+            black_section[70-rank+file] = v;
+            black_section[71-rank+file] = v;
+            black_section[60-rank+file] = v;
+            black_section[61-rank+file] = v;
         }
     }
 }
@@ -61,14 +61,10 @@ void unpack_half(
     for (int rank = 0; rank < 40; rank+=10) {
         for (int file = 0; file < 4; file++) {
             int v = (*DATA_STRING++ - ' ') * scale;
-            white_section[rank+file] = v + qll;
-            white_section[7+rank-file] = v + qrl;
-            white_section[70-rank+file] = v + qlr;
-            white_section[77-rank-file] = v + qrr;
-            black_section[rank+file] = -v - qlr;
-            black_section[7+rank-file] = -v - qrr;
-            black_section[70-rank+file] = -v - qll;
-            black_section[77-rank-file] = -v - qrl;
+            white_section[rank+file] = black_section[70-rank+file] = v + qll;
+            white_section[7+rank-file] = black_section[77-rank-file] = v + qrl;
+            white_section[70-rank+file] = black_section[rank+file] = v + qlr;
+            white_section[77-rank-file] = black_section[7+rank-file] = v + qrr;
         }
     }
 }
