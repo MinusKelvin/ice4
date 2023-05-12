@@ -188,7 +188,6 @@ struct Board {
                 continue;
             }
 
-            int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
@@ -233,7 +232,7 @@ struct Board {
                 for (int i = starts[piece]; i < ends[piece]; i++) {
                     int raysq = sq;
                     for (int j = 0; j < limits[piece]; j++) {
-                        raysq += rays[i];
+                        raysq += RAYS[i];
                         if (board[raysq] & stm) {
                             break;
                         }
@@ -288,6 +287,11 @@ struct Board {
             }
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
+                if (board[sq] == (ROOK | color)) {
+                    int free = !(board[sq-10] & color) + !(board[sq+10] & color) + !(board[sq-1] & color) + !(board[sq+1] & color);
+                    mg_eval += ROOK_PSEUDO_MOBILITY_MG[free];
+                    eg_eval += ROOK_PSEUDO_MOBILITY_EG[free];
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);

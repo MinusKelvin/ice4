@@ -1,27 +1,30 @@
 int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[] = {8, -8, 16, 18, 19, 14, -4, 6};
-int16_t DOUBLED_EG[] = {30, 22, 15, 10, 8, 17, 21, 35};
+int16_t DOUBLED_MG[] = {7, -8, 16, 18, 19, 13, -4, 6};
+int16_t DOUBLED_EG[] = {30, 22, 15, 10, 8, 16, 21, 35};
 int16_t PROTECTED_PAWN_MG[] = {0, 7, 9};
 int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
-int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
-int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
+int16_t PAWN_SHIELD_MG[] = {11, 20, 21, 25};
+int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -13};
+int16_t ROOK_PSEUDO_MOBILITY_MG[] = {0, 4, 6, 6, 8};
+int16_t ROOK_PSEUDO_MOBILITY_EG[] = {0, 48, 67, 75, 80};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 #define BISHOP_PAIR_MG 23
 #define BISHOP_PAIR_EG 41
 #define TEMPO_MG 6
 #define TEMPO_EG 2
 #define ISOLATED_PAWN_MG 8
-#define ISOLATED_PAWN_EG 11
-#define ROOK_OPEN_MG 29
-#define ROOK_OPEN_EG 11
-#define ROOK_SEMIOPEN_MG 16
-#define ROOK_SEMIOPEN_EG 16
+#define ISOLATED_PAWN_EG 10
+#define ROOK_OPEN_MG 27
+#define ROOK_OPEN_EG 9
+#define ROOK_SEMIOPEN_MG 15
+#define ROOK_SEMIOPEN_EG 14
 #define KING_OPEN_MG -30
 #define KING_OPEN_EG -5
 #define KING_SEMIOPEN_MG -9
 #define KING_SEMIOPEN_EG 19
 
-const char *DATA_STRING = "EY\\@<A93HVNFCD98HO[XTM=;OXgc`VKE[c{vqgVK@ i~vl7h%(0642,.! ,,,('%%)'&%(,(-/.+-0216C9??=>:aHn~yurz.932.+*0,-%&  +/.-#!$&46-6/025C=3*63<DKQSNAGW\\~V#$  ##+\"'-'%$&*'694/+,13EF>6038?XUO;6<GPe~Z5/5DBO>@_6 \"4KPG7wv[C&2. 5LI2VbcTVhg[ '),.26245423-209.% -/,4,CNK2MWc139? )21*512('01 &&\"()&($%(''.,)#  !-73..<8611:D 0&-+3872=EG,AGJ #).)-94+?=E;8HG BUXL\\biVirx_qz~";
+const char *DATA_STRING = "ARU<9=62CPHA?@54CITQNG97IQ^[XPF?T[olg^OF? e~xk9g&*3;96/3! ./.*(&&+)'&*/*/20-0365;K?FECD@fTt~tw|u.:43/++1-.%&  ,0/.#!$&57.70036E>4+84=FNSRR>=MV~P$$  ##+\"(-(%$&*'6940,-13FG?6139@YVP<7=HPk~`A>?JQP>@_7 \"4LPH7zw\\D&2. 5LI2VbcSVgg[ )*,.16245312-1/8,# +.+3+BMJ1MVb149@ )21*401(&./(%'!(#!#$ $\"'*(%\"! !.73--;8600:C 0&.*3882=DG,AFJ &*/)-94+>=E:7GF KUYL\\biVhqx_qz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
@@ -93,20 +96,20 @@ struct Zobrist {
 } ZOBRIST;
 
 void init_tables() {
-    unpack_full(0, PAWN, 1.088, 10); // average: 64
-    unpack_full(1, PAWN, 1.337, 93); // average: 126
-    unpack_full(0, PASSED_PAWN, 1.251, -14); // average: 14
-    unpack_full(1, PASSED_PAWN, 1.979, -5); // average: 40
-    unpack_smol(0, KING, 1.0, -38); // average: 2
-    unpack_smol(1, KING, 1.0, -39); // average: 2
-    unpack_half(0, QUEEN, 1.0, 640, 640, 643, 656); // average: 655
-    unpack_half(1, QUEEN, 1.0, 1274, 1329, 1268, 1333); // average: 1300
-    unpack_half(0, ROOK, 1.0, 280, 313, 286, 324); // average: 296
-    unpack_half(1, ROOK, 1.0, 629, 653, 622, 646); // average: 636
-    unpack_half(0, BISHOP, 1.0, 237, 243, 236, 250); // average: 253
-    unpack_half(1, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
-    unpack_half(0, KNIGHT, 1.0, 222, 241, 225, 246); // average: 243
-    unpack_half(1, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
+    unpack_full(0, PAWN, 1.236, 11); // average: 66
+    unpack_full(1, PAWN, 1.094, 93); // average: 123
+    unpack_full(0, PASSED_PAWN, 1.19, -14); // average: 13
+    unpack_full(1, PASSED_PAWN, 1.945, -6); // average: 43
+    unpack_smol(0, KING, 1.0, -41); // average: -1
+    unpack_smol(1, KING, 1.0, -37); // average: 4
+    unpack_half(0, QUEEN, 1.0, 638, 638, 641, 654); // average: 653
+    unpack_half(1, QUEEN, 1.0, 1264, 1319, 1258, 1323); // average: 1289
+    unpack_half(0, ROOK, 1.0, 281, 312, 287, 324); // average: 296
+    unpack_half(1, ROOK, 1.0, 548, 572, 543, 565); // average: 553
+    unpack_half(0, BISHOP, 1.0, 240, 246, 239, 253); // average: 256
+    unpack_half(1, BISHOP, 1.0, 364, 373, 364, 372); // average: 386
+    unpack_half(0, KNIGHT, 1.0, 224, 243, 228, 249); // average: 245
+    unpack_half(1, KNIGHT, 1.232, 261, 271, 261, 272); // average: 340
     
     // Zobrist keys
 #ifdef OPENBENCH
