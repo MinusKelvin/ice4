@@ -101,37 +101,21 @@ struct Searcher {
             return WON;
         }
 
+        int quiet_pos = 0;
         for (int j = 0; j < mvcount; j++) {
             if (hashmv == moves[j]) {
-                score[j] = 30000;
+                score[j] = 100;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 score[j] = (board.board[moves[j].to] & 7) * 8
-                    - (board.board[moves[j].from] & 7)
-                    + 20000;
+                    - (board.board[moves[j].from] & 7);
             } else {
-                // Plain history: 28 bytes (676e7fa vs 4cabdf1)
-                // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
-                // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                    // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
-                    // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
-                    // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
-                    // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
-                    // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
-                    // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + (ply ?
-                        (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                    : 0)
-                    // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
-                    // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
-                    // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + (ply > 1 ?
-                        (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
-                    : 0);
+                continue;
             }
+            swap(moves[j], moves[quiet_pos]);
+            score[quiet_pos++] = score[j];
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
@@ -154,8 +138,30 @@ struct Searcher {
         int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
+            for (int j = i; i == quiet_pos && j < mvcount; j++) {
+                // Plain history: 28 bytes (676e7fa vs 4cabdf1)
+                // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
+                // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
+                score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                    // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
+                    // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
+                    // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
+                    // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
+                    // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
+                    // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
+                    + (ply ?
+                        (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                    : 0)
+                    // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
+                    // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
+                    // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
+                    + (ply > 1 ?
+                        (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                    : 0);
+            }
+
             int best_so_far = i;
-            for (int j = i+1; j < mvcount; j++) {
+            for (int j = i+1; j < (i < quiet_pos ? quiet_pos : mvcount); j++) {
                 if (score[j] > score[best_so_far]) {
                     best_so_far = j;
                 }
