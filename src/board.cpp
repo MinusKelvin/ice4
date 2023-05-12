@@ -45,7 +45,6 @@ struct Board {
     uint8_t bishops[2];
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
-    uint8_t rook_counts[2][8];
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
@@ -62,9 +61,6 @@ struct Board {
             pawn_eval_dirty = 1;
         }
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
-        if ((board[square] & 7) == ROOK) {
-            rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
-        }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]--;
         } else {
@@ -77,9 +73,6 @@ struct Board {
         }
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
-        if ((board[square] & 7) == ROOK) {
-            rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
-        }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]++;
         } else {
@@ -335,16 +328,6 @@ struct Board {
         int eg = eg_eval + eg_pawn_eval +
             BISHOP_PAIR_EG * bishop_pair +
             (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
-        for (int file = 1; file < 9; file++) {
-            if (!pawn_counts[0][file]) {
-                mg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[0][file-1];
-                eg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[0][file-1];
-            }
-            if (!pawn_counts[1][file]) {
-                mg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[1][file-1];
-                eg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[1][file-1];
-            }
-        }
         int value = (mg * phase + eg * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
