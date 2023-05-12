@@ -310,12 +310,6 @@ struct Board {
                 }
             }
         }
-        for (int dx = -1; dx < 2; dx++) {
-            shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
-                || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
-        }
-        mg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_MG[shield_pawns];
-        eg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_EG[shield_pawns];
     }
 
     int eval() {

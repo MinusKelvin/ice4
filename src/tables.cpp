@@ -3,8 +3,6 @@ int16_t DOUBLED_MG[] = {8, -8, 16, 18, 19, 14, -4, 6};
 int16_t DOUBLED_EG[] = {30, 22, 15, 10, 8, 17, 21, 35};
 int16_t PROTECTED_PAWN_MG[] = {0, 7, 9};
 int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
-int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
-int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_MG 23
 #define BISHOP_PAIR_EG 41
