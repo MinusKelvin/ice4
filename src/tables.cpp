@@ -10,8 +10,6 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_EG 41
 #define TEMPO_MG 6
 #define TEMPO_EG 2
-#define ISOLATED_PAWN_MG 8
-#define ISOLATED_PAWN_EG 11
 #define ROOK_OPEN_MG 29
 #define ROOK_OPEN_EG 11
 #define ROOK_SEMIOPEN_MG 16

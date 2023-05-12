@@ -278,10 +278,6 @@ struct Board {
                 mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
                 eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
             }
-            if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
-                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
-                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
-            }
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
