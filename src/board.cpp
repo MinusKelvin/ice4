@@ -52,8 +52,6 @@ struct Board {
     uint8_t phase;
     int16_t mg_eval;
     int16_t eg_eval;
-    int16_t mg_pawn_eval;
-    int16_t eg_pawn_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
@@ -260,17 +258,20 @@ struct Board {
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
-            eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+            mg_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
+            eg_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
         }
         for (int file = 1; file < 9; file++) {
             if (pawn_counts[ci][file]) {
-                mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
-                eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
+                mg_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
+                eg_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
+            } else {
+                mg_eval += (pawn_counts[!ci][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[ci][file-1];
+                eg_eval += (pawn_counts[!ci][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[ci][file-1];
             }
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
-                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
-                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
+                mg_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
+                eg_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
             }
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = file+rank;
@@ -278,8 +279,8 @@ struct Board {
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][own_pawn+6][sq-A1];
-                    eg_pawn_eval += PST[1][own_pawn+6][sq-A1];
+                    mg_eval += PST[0][own_pawn+6][sq-A1];
+                    eg_eval += PST[1][own_pawn+6][sq-A1];
                 }
                 if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
                     break;
@@ -290,53 +291,44 @@ struct Board {
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
-                    mg_pawn_eval += PROTECTED_PAWN_MG[protectors];
-                    eg_pawn_eval += PROTECTED_PAWN_EG[protectors];
+                    mg_eval += PROTECTED_PAWN_MG[protectors];
+                    eg_eval += PROTECTED_PAWN_EG[protectors];
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][own_pawn][sq-A1];
-                    eg_pawn_eval += PST[1][own_pawn][sq-A1];
+                    mg_eval += PST[0][own_pawn][sq-A1];
+                    eg_eval += PST[1][own_pawn][sq-A1];
                 } else if (board[sq] & color) {
-                    mg_pawn_eval += PST[0][board[sq]][sq-A1];
-                    eg_pawn_eval += PST[1][board[sq]][sq-A1];
+                    mg_eval += PST[0][board[sq]][sq-A1];
+                    eg_eval += PST[1][board[sq]][sq-A1];
                 }
             }
+        }
+        if (bishops[ci] >= 2) {
+            mg_eval += BISHOP_PAIR_MG;
+            eg_eval += BISHOP_PAIR_EG;
         }
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        mg_pawn_eval += (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_MG[shield_pawns];
-        eg_pawn_eval += (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_EG[shield_pawns];
+        mg_eval +=
+            (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_MG[shield_pawns] +
+            TEMPO_MG * (color == stm);
+        eg_eval +=
+            (king_sq[ci] / 10 == zeroth_rank / 10 + pawndir / 10) * PAWN_SHIELD_EG[shield_pawns] +
+            TEMPO_EG * (color == stm);
     }
 
     int eval() {
-        mg_pawn_eval = 0;
-        eg_pawn_eval = 0;
+        mg_eval = 0;
+        eg_eval = 0;
         pawn_eval(1, BLACK, -10, 100);
-        mg_pawn_eval = -mg_pawn_eval;
-        eg_pawn_eval = -eg_pawn_eval;
+        mg_eval = -mg_eval;
+        eg_eval = -eg_eval;
         pawn_eval(0, WHITE, 10, 10);
 
-        int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int mg = mg_eval + mg_pawn_eval +
-            BISHOP_PAIR_MG * bishop_pair +
-            (stm == WHITE ? TEMPO_MG : -TEMPO_MG);
-        int eg = eg_eval + eg_pawn_eval +
-            BISHOP_PAIR_EG * bishop_pair +
-            (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
-        for (int file = 1; file < 9; file++) {
-            if (!pawn_counts[0][file]) {
-                mg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[0][file-1];
-                eg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[0][file-1];
-            }
-            if (!pawn_counts[1][file]) {
-                mg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[1][file-1];
-                eg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[1][file-1];
-            }
-        }
-        int value = (mg * phase + eg * (24 - phase)) / 24;
+        int value = (mg_eval * phase + eg_eval * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
 } ROOT;
