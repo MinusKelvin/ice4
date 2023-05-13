@@ -286,8 +286,15 @@ struct Board {
                     break;
                 }
             }
-            for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
+            for (int rank = zeroth_rank + 8 * pawndir, i=0; rank != zeroth_rank; rank -= pawndir, i++) {
                 int sq = rank+file;
+                if (board[sq] == (KNIGHT | color) && i < 4 &&
+                    (board[sq-pawndir+1] == own_pawn || board[sq-pawndir-1] == own_pawn) &&
+                    board[sq+pawndir+1] != opp_pawn && board[sq+pawndir-1] != opp_pawn
+                ) {
+                    mg_eval += KNIGHT_OUTPOST_MG;
+                    eg_eval += KNIGHT_OUTPOST_EG;
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
