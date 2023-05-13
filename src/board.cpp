@@ -274,10 +274,14 @@ struct Board {
             eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
         }
         for (int file = 1; file < 9; file++) {
+            // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
+            // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
             if (pawn_counts[ci][file]) {
                 mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
                 eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
             }
+            // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
+            // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
                 eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
@@ -310,6 +314,8 @@ struct Board {
                 }
             }
         }
+        // Pawn shield: 65 bytes (f3241b8 vs 7f7c2b5)
+        // 8.0+0.08: 19.58 +- 5.17 (3159 - 2596 - 4245) 0.30 elo/byte
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
@@ -328,6 +334,9 @@ struct Board {
             pawn_eval(0, WHITE, 10, 20, 80);
             pawn_eval_dirty = 0;
         }
+
+        // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
+        // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
         int mg = mg_eval + mg_pawn_eval +
             BISHOP_PAIR_MG * bishop_pair +
@@ -335,6 +344,8 @@ struct Board {
         int eg = eg_eval + eg_pawn_eval +
             BISHOP_PAIR_EG * bishop_pair +
             (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
+        // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
+        // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         for (int file = 1; file < 9; file++) {
             if (!pawn_counts[0][file]) {
                 mg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[0][file-1];
