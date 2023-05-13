@@ -288,6 +288,11 @@ struct Board {
             }
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
+                if (board[sq] == (QUEEN | color)) {
+                    int d = max(abs(rank/10 - king_sq[!ci]/10), abs(file - king_sq[!ci]%10));
+                    mg_eval += d * QUEEN_TROPISM_MG;
+                    eg_eval += d * QUEEN_TROPISM_EG;
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);

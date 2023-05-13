@@ -1,10 +1,10 @@
 int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[] = {8, -8, 16, 18, 19, 14, -4, 6};
+int16_t DOUBLED_MG[] = {8, -8, 16, 18, 19, 13, -5, 6};
 int16_t DOUBLED_EG[] = {30, 22, 15, 10, 8, 17, 21, 35};
 int16_t PROTECTED_PAWN_MG[] = {0, 7, 9};
 int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
-int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
-int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
+int16_t PAWN_SHIELD_MG[] = {2, 11, 12, 16};
+int16_t PAWN_SHIELD_EG[] = {-22, -34, -22, -10};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define BISHOP_PAIR_MG 23
 #define BISHOP_PAIR_EG 41
@@ -19,9 +19,11 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define KING_OPEN_MG -30
 #define KING_OPEN_EG -5
 #define KING_SEMIOPEN_MG -9
-#define KING_SEMIOPEN_EG 19
+#define KING_SEMIOPEN_EG 18
+#define QUEEN_TROPISM_MG -8
+#define QUEEN_TROPISM_EG -12
 
-const char *DATA_STRING = "EY\\@<A93HVNFCD98HO[XTM=;OXgc`VKE[c{vqgVK@ i~vl7h%(0642,.! ,,,('%%)'&%(,(-/.+-0216C9??=>:aHn~yurz.932.+*0,-%&  +/.-#!$&46-6/025C=3*63<DKQSNAGW\\~V#$  ##+\"'-'%$&*'694/+,13EF>6038?XUO;6<GPe~Z5/5DBO>@_6 \"4KPG7wv[C&2. 5LI2VbcTVhg[ '),.26245423-209.% -/,4,CNK2MWc139? )21*512('01 &&\"()&($%(''.,)#  !-73..<8611:D 0&-+3872=EG,AGJ #).)-94+?=E;8HG BUXL\\biVirx_qz~";
+const char *DATA_STRING = "ASW>;>82DQJC@A77DKUSPI<9JR`]ZRHBU\\qnjaRI@ f~ym:j&*3:85.1! ...)(&&+)'&*.*/20,0355;J?EEBC?eRu~svzu.932/++1,-%&  ,/..#!$&57.6/025D>4+74<EMSRQ>>MV~Q#$  ##+\"'-'$$&*'6940+,13FG?6139@YUP;6<HPk~_@=?IOJ:<Z2 #3HNF4psY>&3. 5KH2VbcTVhg[)147-274/.-*)!# =.\" 5/#*0<@;5GJQ039? )21*512)'01 &&!))&($%(''.,)# !!-73..<9611;D 0&-+3772=EG,AGJ #*.).95,?>F;8HG BUXL\\biVirx_qz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
     int16_t *white_section = PST[phase][piece | WHITE];
