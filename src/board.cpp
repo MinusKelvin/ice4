@@ -188,7 +188,6 @@ struct Board {
                 continue;
             }
 
-            int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
@@ -226,14 +225,10 @@ struct Board {
                     list[count++] = Move(sq, upsq+1, promo);
                 }
             } else {
-                int starts[] = {0,0,8,4,0,0,0};
-                int limits[] = {0,0,1,8,8,8,1};
-                int ends[] = {0,0,16,8,4,8,8};
-
-                for (int i = starts[piece]; i < ends[piece]; i++) {
+                for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
-                    for (int j = 0; j < limits[piece]; j++) {
-                        raysq += rays[i];
+                    for (int j = 0; j < LIMITS[piece]; j++) {
+                        raysq += RAYS[i];
                         if (board[raysq] & stm) {
                             break;
                         }
@@ -256,6 +251,11 @@ struct Board {
     void pawn_eval(int ci, int color, int pawndir, int zeroth_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
+        int own_bishop = BISHOP | color;
+        int own_knight = KNIGHT | color;
+        int own_rook = ROOK | color;
+        int own_queen = QUEEN | color;
+        int own_king = KING | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
             mg_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
@@ -288,6 +288,21 @@ struct Board {
             }
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
+                if (board[sq] == own_rook || board[sq] == own_bishop || board[sq] == own_knight || board[sq] == own_king || board[sq] == own_queen) {
+                    int mobility = 0;
+                    for (int i = STARTS[board[sq] & 7]; i < ENDS[board[sq] & 7]; i++) {
+                        int raysq = sq;
+                        for (int j = 0; j < LIMITS[board[sq] & 7]; j++) {
+                            raysq += RAYS[i];
+                            mobility += !(board[raysq] & color);
+                            if (board[raysq]) {
+                                break;
+                            }
+                        }
+                    }
+                    mg_eval += MOBILITY_MG[board[sq] & 7] * mobility;
+                    eg_eval += MOBILITY_EG[board[sq] & 7] * mobility;
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);

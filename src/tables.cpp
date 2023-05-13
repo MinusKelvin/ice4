@@ -5,7 +5,13 @@ int16_t PROTECTED_PAWN_MG[] = {0, 7, 9};
 int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
 int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
 int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
+int16_t MOBILITY_MG[] = {0, 0, 0, 0, 0, 0, 0};
+int16_t MOBILITY_EG[] = {0, 0, 0, 0, 0, 0, 0};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+int STARTS[] = {0,0,8,4,0,0,0};
+int LIMITS[] = {0,0,1,8,8,8,1};
+int ENDS[] = {0,0,16,8,4,8,8};
 #define BISHOP_PAIR_MG 23
 #define BISHOP_PAIR_EG 41
 #define TEMPO_MG 6
