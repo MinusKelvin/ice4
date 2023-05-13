@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import json, math
-with open("0-45.json", "r") as f:
+with open("0-20.json", "r") as f:
     data = json.load(f)
 
 def dump_string(piece_data, stuff, extra=None):
