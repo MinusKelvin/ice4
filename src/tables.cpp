@@ -20,6 +20,8 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 #define KING_OPEN_EG -5
 #define KING_SEMIOPEN_MG -9
 #define KING_SEMIOPEN_EG 19
+#define DOUBLED_ROOK_MG 12
+#define DOUBLED_ROOK_EG -7
 
 const char *DATA_STRING = "EY\\@<A93HVNFCD98HO[XTM=;OXgc`VKE[c{vqgVK@ i~vl7h%(0642,.! ,,,('%%)'&%(,(-/.+-0216C9??=>:aHn~yurz.932.+*0,-%&  +/.-#!$&46-6/025C=3*63<DKQSNAGW\\~V#$  ##+\"'-'%$&*'694/+,13EF>6038?XUO;6<GPe~Z5/5DBO>@_6 \"4KPG7wv[C&2. 5LI2VbcTVhg[ '),.26245423-209.% -/,4,CNK2MWc139? )21*512('01 &&\"()&($%(''.,)#  !-73..<8611:D 0&-+3872=EG,AGJ #).)-94+?=E;8HG BUXL\\biVirx_qz~";
 

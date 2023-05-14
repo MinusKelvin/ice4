@@ -256,6 +256,7 @@ struct Board {
     void pawn_eval(int ci, int color, int pawndir, int zeroth_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
+        int own_rook = ROOK | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
             mg_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
@@ -286,8 +287,16 @@ struct Board {
                     break;
                 }
             }
+            int seen_rook = 0;
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
+                if (board[sq] == own_rook && seen_rook) {
+                    mg_eval += DOUBLED_ROOK_MG;
+                    eg_eval += DOUBLED_ROOK_EG;
+                }
+                if (board[sq]) {
+                    seen_rook = board[sq] == own_rook;
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
