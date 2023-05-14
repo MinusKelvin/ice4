@@ -267,6 +267,7 @@ struct Board {
 
     void pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
         int shield_pawns = 0;
+        int storm_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
@@ -319,9 +320,13 @@ struct Board {
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
+            storm_pawns += board[king_sq[ci]+dx+pawndir] == opp_pawn
+                || board[king_sq[ci]+dx+pawndir*2] == opp_pawn;
         }
-        mg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_MG[shield_pawns];
-        eg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_EG[shield_pawns];
+        mg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) *
+            (PAWN_SHIELD_MG[shield_pawns] + storm_pawns * STORM_PAWN_MG);
+        eg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) *
+            (PAWN_SHIELD_EG[shield_pawns] + storm_pawns * STORM_PAWN_EG);
     }
 
     int eval() {
