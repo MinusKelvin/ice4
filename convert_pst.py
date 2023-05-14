@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import json, math
-with open("0-45.json", "r") as f:
+with open("0-20.json", "r") as f:
     data = json.load(f)
 
 def dump_string(piece_data, stuff, extra=None):
@@ -33,7 +33,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -60,8 +60,7 @@ data_string += dump_string(sections[eg+1], "unpack_half(1, KNIGHT", sections[eg+
 print(f"data string: \"{data_string}\"")
 
 print(f"bishop pair: {round(sections[11][0])}, {round(sections[eg+11][0])}")
-print(f"doubled pawn mg: {[-round(v) for v in sections[12]]}")
-print(f"doubled pawn eg: {[-round(v) for v in sections[eg+12]]}")
+print(f"doubled pawn: {-round(sections[12][0])}, {-round(sections[eg+12][0])}")
 print(f"tempo: {round(sections[13][0])}, {round(sections[eg+13][0])}")
 print(f"isolated pawn: {-round(sections[14][0])}, {-round(sections[eg+14][0])}")
 print(f"single pawn protect: {round(sections[15][0])}, {round(sections[eg+15][0])}")

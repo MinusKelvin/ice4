@@ -277,8 +277,8 @@ struct Board {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
             if (pawn_counts[ci][file]) {
-                mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
-                eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
+                mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN_MG;
+                eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN_EG;
             }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
