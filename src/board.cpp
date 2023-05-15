@@ -276,6 +276,10 @@ struct Board {
             for (int rank = zeroth_rank + 8 * pawndir; rank != zeroth_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
+                    if (board[sq+pawndir] & (color ^ INVALID)) {
+                        mg_eval += BLOCKED_PASSER_MG;
+                        eg_eval += BLOCKED_PASSER_EG;
+                    }
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
