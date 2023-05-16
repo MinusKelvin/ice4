@@ -8,6 +8,8 @@ static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
 
+static S_EVAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"S\(([-0-9]+),\s+([-0-9]+)\)"#).unwrap());
+
 #[derive(Default)]
 pub struct Preprocessed {
     pub lib_includes: Vec<String>,
@@ -62,6 +64,15 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
                 if let Cow::Owned(s) = pattern.replace_all(&line_replaced, NoExpand(replacement)) {
                     line_replaced = s;
                 }
+            }
+
+            while let Some(captures) = S_EVAL.captures(&line_replaced) {
+                let mg: i32 = captures.get(1).unwrap().as_str().parse().unwrap();
+                let eg: i32 = captures.get(2).unwrap().as_str().parse().unwrap();
+                line_replaced.replace_range(
+                    captures.get(0).unwrap().range(),
+                    &format!("{}", mg + eg << 16),
+                );
             }
 
             into.code.push_str(&line_replaced);

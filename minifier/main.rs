@@ -27,6 +27,5 @@ fn main() {
     for lib in &preprocessed.lib_includes {
         println!("#include<{lib}>");
     }
-    println!("#define S(a,b)(uint32_t)(a+(b<<16))");
     print!("{packed}");
 }
