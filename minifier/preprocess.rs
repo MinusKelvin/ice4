@@ -46,7 +46,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             }
             replacement.push(' ');
             defines.push((Regex::new(&format!("\\b{text}\\b")).unwrap(), replacement));
-        } else if line == "#ifdef OPENBENCH" {
+        } else if line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
             // munch until end of block
             while !matches!(lines.next(), Some("#endif" | "#else")) {}
         } else if line == "#endif" {

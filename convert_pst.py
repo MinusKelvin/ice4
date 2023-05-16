@@ -42,33 +42,33 @@ for s in sizes:
 eg = len(sections)//2
 
 data_string = ""
-data_string += dump_string(sections[0], "unpack_full(0, PAWN")
-data_string += dump_string(sections[eg+0], "unpack_full(16, PAWN")
-data_string += dump_string(sections[10], "unpack_full(0, PASSED_PAWN")
-data_string += dump_string(sections[eg+10], "unpack_full(16, PASSED_PAWN")
-data_string += dump_string(sections[9], "unpack_smol(0, KING")
-data_string += dump_string(sections[eg+9], "unpack_smol(16, KING")
-data_string += dump_string(sections[7], "unpack_half(0, QUEEN", sections[8])
-data_string += dump_string(sections[eg+7], "unpack_half(16, QUEEN", sections[eg+8])
-data_string += dump_string(sections[5], "unpack_half(0, ROOK", sections[6])
-data_string += dump_string(sections[eg+5], "unpack_half(16, ROOK", sections[eg+6])
-data_string += dump_string(sections[3], "unpack_half(0, BISHOP", sections[4])
-data_string += dump_string(sections[eg+3], "unpack_half(16, BISHOP", sections[eg+4])
-data_string += dump_string(sections[1], "unpack_half(0, KNIGHT", sections[2])
-data_string += dump_string(sections[eg+1], "unpack_half(16, KNIGHT", sections[eg+2])
+data_string += dump_string(sections[0], "unpack_full(1, PAWN")
+data_string += dump_string(sections[eg+0], "unpack_full(0x10000, PAWN")
+data_string += dump_string(sections[10], "unpack_full(1, PASSED_PAWN")
+data_string += dump_string(sections[eg+10], "unpack_full(0x10000, PASSED_PAWN")
+data_string += dump_string(sections[9], "unpack_smol(1, KING")
+data_string += dump_string(sections[eg+9], "unpack_smol(0x10000, KING")
+data_string += dump_string(sections[7], "unpack_half(1, QUEEN", sections[8])
+data_string += dump_string(sections[eg+7], "unpack_half(0x10000, QUEEN", sections[eg+8])
+data_string += dump_string(sections[5], "unpack_half(1, ROOK", sections[6])
+data_string += dump_string(sections[eg+5], "unpack_half(0x10000, ROOK", sections[eg+6])
+data_string += dump_string(sections[3], "unpack_half(1, BISHOP", sections[4])
+data_string += dump_string(sections[eg+3], "unpack_half(0x10000, BISHOP", sections[eg+4])
+data_string += dump_string(sections[1], "unpack_half(1, KNIGHT", sections[2])
+data_string += dump_string(sections[eg+1], "unpack_half(0x10000, KNIGHT", sections[eg+2])
 
 print(f"data string: \"{data_string}\"")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
-print("uint32_t DOUBLED_PAWN[] = {" + ", ".join(
+print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
     f"S({-round(v1)}, {-round(v2)})" for v1, v2 in zip(sections[12], sections[eg+12])
 ) + "};")
 print(f"#define TEMPO S({round(sections[13][0])}, {round(sections[eg+13][0])})")
 print(f"#define ISOLATED_PAWN S({-round(sections[14][0])}, {-round(sections[eg+14][0])})")
-print(f"uint32_t PROTECTED_PAWN[] = {{0, S({round(sections[15][0])}, {round(sections[eg+15][0])}), S({round(sections[16][0])}, {round(sections[eg+16][0])})}};")
+print(f"int32_t PROTECTED_PAWN[] = {{0, S({round(sections[15][0])}, {round(sections[eg+15][0])}), S({round(sections[16][0])}, {round(sections[eg+16][0])})}};")
 print(f"#define ROOK_OPEN S({round(sections[17][0])}, {round(sections[eg+17][0])})")
 print(f"#define ROOK_SEMIOPEN S({round(sections[18][0])}, {round(sections[eg+18][0])})")
-print("uint32_t PAWN_SHIELD[] = {" + ", ".join(
+print("int32_t PAWN_SHIELD[] = {" + ", ".join(
     f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[19], sections[eg+19])
 ) + "};")
 print(f"#define KING_OPEN S({round(sections[20][0])}, {round(sections[eg+20][0])})")

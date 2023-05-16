@@ -1,13 +1,13 @@
-#define S(a, b) (uint32_t)(a + (b << 16))
-uint32_t PST[25][SQUARE_SPAN];
+#define S(a, b) (a + (b * 0x10000))
+int PST[25][SQUARE_SPAN];
 #define BISHOP_PAIR S(23, 41)
-uint32_t DOUBLED_PAWN[] = {S(8, 30), S(-8, 22), S(16, 15), S(18, 10), S(19, 8), S(14, 17), S(-4, 21), S(6, 35)};
+int DOUBLED_PAWN[] = {S(8, 30), S(-8, 22), S(16, 15), S(18, 10), S(19, 8), S(14, 17), S(-4, 21), S(6, 35)};
 #define TEMPO S(6, 2)
 #define ISOLATED_PAWN S(8, 11)
-uint32_t PROTECTED_PAWN[] = {0, S(7, 7), S(9, 4)};
+int PROTECTED_PAWN[] = {0, S(7, 7), S(9, 4)};
 #define ROOK_OPEN S(29, 11)
 #define ROOK_SEMIOPEN S(16, 16)
-uint32_t PAWN_SHIELD[] = {S(10, -25), S(19, -37), S(20, -25), S(25, -14)};
+int PAWN_SHIELD[] = {S(10, -25), S(19, -37), S(20, -25), S(25, -14)};
 #define KING_OPEN S(-30, -5)
 #define KING_SEMIOPEN S(-9, 19)
 
@@ -19,8 +19,8 @@ void unpack_full(int phase, int piece, double scale, int offset) {
     for (int rank = 10; rank < 70; rank+=10) {
         for (int file = 0; file < 8; file++) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[piece | WHITE][rank+file] += v << phase;
-            PST[piece | BLACK][70-rank+file] += v << phase;
+            PST[piece | WHITE][rank+file] += v * phase;
+            PST[piece | BLACK][70-rank+file] += v * phase;
         }
     }
 }
@@ -29,14 +29,14 @@ void unpack_smol(int phase, int piece, double scale, int offset) {
     for (int rank = 0; rank < 80; rank+=20) {
         for (int file = 0; file < 8; file+=2) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[piece | WHITE][rank+file] += v << phase;
-            PST[piece | WHITE][rank+file+1] += v << phase;
-            PST[piece | WHITE][rank+file+10] += v << phase;
-            PST[piece | WHITE][rank+file+11] += v << phase;
-            PST[piece | BLACK][70-rank+file] += -v << phase;
-            PST[piece | BLACK][71-rank+file] += -v << phase;
-            PST[piece | BLACK][60-rank+file] += -v << phase;
-            PST[piece | BLACK][61-rank+file] += -v << phase;
+            PST[piece | WHITE][rank+file] += v * phase;
+            PST[piece | WHITE][rank+file+1] += v * phase;
+            PST[piece | WHITE][rank+file+10] += v * phase;
+            PST[piece | WHITE][rank+file+11] += v * phase;
+            PST[piece | BLACK][70-rank+file] += -v * phase;
+            PST[piece | BLACK][71-rank+file] += -v * phase;
+            PST[piece | BLACK][60-rank+file] += -v * phase;
+            PST[piece | BLACK][61-rank+file] += -v * phase;
         }
     }
 }
@@ -47,14 +47,14 @@ void unpack_half(
     for (int rank = 0; rank < 40; rank+=10) {
         for (int file = 0; file < 4; file++) {
             int v = (*DATA_STRING++ - ' ') * scale;
-            PST[piece | WHITE][rank+file] += (v + qll) << phase;
-            PST[piece | WHITE][7+rank-file] += (v + qrl) << phase;
-            PST[piece | WHITE][70-rank+file] += (v + qlr) << phase;
-            PST[piece | WHITE][77-rank-file] += (v + qrr) << phase;
-            PST[piece | BLACK][rank+file] += (-v - qlr) << phase;
-            PST[piece | BLACK][7+rank-file] += (-v - qrr) << phase;
-            PST[piece | BLACK][70-rank+file] += (-v - qll) << phase;
-            PST[piece | BLACK][77-rank-file] += (-v - qrl) << phase;
+            PST[piece | WHITE][rank+file] += (v + qll) * phase;
+            PST[piece | WHITE][7+rank-file] += (v + qrl) * phase;
+            PST[piece | WHITE][70-rank+file] += (v + qlr) * phase;
+            PST[piece | WHITE][77-rank-file] += (v + qrr) * phase;
+            PST[piece | BLACK][rank+file] += (-v - qlr) * phase;
+            PST[piece | BLACK][7+rank-file] += (-v - qrr) * phase;
+            PST[piece | BLACK][70-rank+file] += (-v - qll) * phase;
+            PST[piece | BLACK][77-rank-file] += (-v - qrl) * phase;
         }
     }
 }
@@ -83,20 +83,20 @@ struct Zobrist {
 } ZOBRIST;
 
 void init_tables() {
-    unpack_full(0, PAWN, 1.088, 10); // average: 64
-    unpack_full(16, PAWN, 1.337, 93); // average: 126
-    unpack_full(0, PASSED_PAWN, 1.251, -14); // average: 14
-    unpack_full(16, PASSED_PAWN, 1.979, -5); // average: 40
-    unpack_smol(0, KING, 1.0, -38); // average: 2
-    unpack_smol(16, KING, 1.0, -39); // average: 2
-    unpack_half(0, QUEEN, 1.0, 640, 640, 643, 656); // average: 655
-    unpack_half(16, QUEEN, 1.0, 1274, 1329, 1268, 1333); // average: 1300
-    unpack_half(0, ROOK, 1.0, 280, 313, 286, 324); // average: 296
-    unpack_half(16, ROOK, 1.0, 629, 653, 622, 646); // average: 636
-    unpack_half(0, BISHOP, 1.0, 237, 243, 236, 250); // average: 253
-    unpack_half(16, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
-    unpack_half(0, KNIGHT, 1.0, 222, 241, 225, 246); // average: 243
-    unpack_half(16, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
+    unpack_full(1, PAWN, 1.088, 10); // average: 64
+    unpack_full(0x10000, PAWN, 1.337, 93); // average: 126
+    unpack_full(1, PASSED_PAWN, 1.251, -14); // average: 14
+    unpack_full(0x10000, PASSED_PAWN, 1.979, -5); // average: 40
+    unpack_smol(1, KING, 1.0, -38); // average: 2
+    unpack_smol(0x10000, KING, 1.0, -39); // average: 2
+    unpack_half(1, QUEEN, 1.0, 640, 640, 643, 656); // average: 655
+    unpack_half(0x10000, QUEEN, 1.0, 1274, 1329, 1268, 1333); // average: 1300
+    unpack_half(1, ROOK, 1.0, 280, 313, 286, 324); // average: 296
+    unpack_half(0x10000, ROOK, 1.0, 629, 653, 622, 646); // average: 636
+    unpack_half(1, BISHOP, 1.0, 237, 243, 236, 250); // average: 253
+    unpack_half(0x10000, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
+    unpack_half(1, KNIGHT, 1.0, 222, 241, 225, 246); // average: 243
+    unpack_half(0x10000, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
     
     // Zobrist keys
 #ifdef OPENBENCH

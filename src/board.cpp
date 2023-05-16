@@ -51,8 +51,8 @@ struct Board {
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
-    uint32_t inc_eval;
-    uint32_t pawn_eval;
+    int32_t inc_eval;
+    int32_t pawn_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {

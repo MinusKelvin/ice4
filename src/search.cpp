@@ -321,6 +321,9 @@ struct Searcher {
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
                 int v = negamax(ROOT, mv, LOST, WON, depth, 0);
+#ifdef AVOID_ADJUDICATION
+                v = 100;
+#endif
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
