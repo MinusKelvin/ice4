@@ -6,6 +6,8 @@ int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
 int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
 int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int BOARD_TO_BIT[120];
+int BIT_TO_BOARD[64];
 #define BISHOP_PAIR_MG 23
 #define BISHOP_PAIR_EG 41
 #define TEMPO_MG 6
@@ -111,7 +113,14 @@ void init_tables() {
     unpack_half(1, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
     unpack_half(0, KNIGHT, 1.0, 222, 241, 225, 246); // average: 243
     unpack_half(1, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
-    
+
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            BOARD_TO_BIT[rank*10+file+A1] = rank*8+file;
+            BIT_TO_BOARD[rank*8+file] = rank*10+file+A1;
+        }
+    }
+
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
