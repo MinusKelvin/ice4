@@ -51,10 +51,8 @@ struct Board {
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
-    int16_t mg_eval;
-    int16_t eg_eval;
-    int16_t mg_pawn_eval;
-    int16_t eg_pawn_eval;
+    uint32_t inc_eval;
+    uint32_t pawn_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
@@ -68,8 +66,7 @@ struct Board {
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]--;
         } else {
-            mg_eval -= PST[0][board[square]][square-A1];
-            eg_eval -= PST[1][board[square]][square-A1];
+            inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
@@ -83,8 +80,7 @@ struct Board {
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]++;
         } else {
-            mg_eval += PST[0][board[square]][square-A1];
-            eg_eval += PST[1][board[square]][square-A1];
+            inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
@@ -265,26 +261,23 @@ struct Board {
         return 1;
     }
 
-    void pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
+    void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            mg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_MG : KING_OPEN_MG;
-            eg_pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN_EG : KING_OPEN_EG;
+            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
         }
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
             if (pawn_counts[ci][file]) {
-                mg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_MG[file - 1];
-                eg_pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_EG[file - 1];
+                pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN[file - 1];
             }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
-                mg_pawn_eval -= ISOLATED_PAWN_MG * pawn_counts[ci][file];
-                eg_pawn_eval -= ISOLATED_PAWN_EG * pawn_counts[ci][file];
+                pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
@@ -292,8 +285,7 @@ struct Board {
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][own_pawn+6][sq-A1];
-                    eg_pawn_eval += PST[1][own_pawn+6][sq-A1];
+                    pawn_eval += PST[own_pawn+6][sq-A1];
                 }
                 if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
                     break;
@@ -304,13 +296,11 @@ struct Board {
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
-                    mg_pawn_eval += PROTECTED_PAWN_MG[protectors];
-                    eg_pawn_eval += PROTECTED_PAWN_EG[protectors];
+                    pawn_eval += PROTECTED_PAWN[protectors];
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    mg_pawn_eval += PST[0][own_pawn][sq-A1];
-                    eg_pawn_eval += PST[1][own_pawn][sq-A1];
+                    pawn_eval += PST[own_pawn][sq-A1];
                 }
             }
         }
@@ -320,43 +310,35 @@ struct Board {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        mg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_MG[shield_pawns];
-        eg_pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD_EG[shield_pawns];
+        pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
     }
 
     int eval() {
         if (pawn_eval_dirty) {
-            mg_pawn_eval = 0;
-            eg_pawn_eval = 0;
-            pawn_eval(1, BLACK, -10, 90, 30);
-            mg_pawn_eval = -mg_pawn_eval;
-            eg_pawn_eval = -eg_pawn_eval;
-            pawn_eval(0, WHITE, 10, 20, 80);
+            pawn_eval = 0;
+            calculate_pawn_eval(1, BLACK, -10, 90, 30);
+            pawn_eval = -pawn_eval;
+            calculate_pawn_eval(0, WHITE, 10, 20, 80);
             pawn_eval_dirty = 0;
         }
 
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int mg = mg_eval + mg_pawn_eval +
-            BISHOP_PAIR_MG * bishop_pair +
-            (stm == WHITE ? TEMPO_MG : -TEMPO_MG);
-        int eg = eg_eval + eg_pawn_eval +
-            BISHOP_PAIR_EG * bishop_pair +
-            (stm == WHITE ? TEMPO_EG : -TEMPO_EG);
+        int e = inc_eval + pawn_eval +
+            BISHOP_PAIR * bishop_pair +
+            (stm == WHITE ? TEMPO : -TEMPO);
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         for (int file = 1; file < 9; file++) {
             if (!pawn_counts[0][file]) {
-                mg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[0][file-1];
-                eg += (pawn_counts[1][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[0][file-1];
+                e += (pawn_counts[1][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[0][file-1];
             }
             if (!pawn_counts[1][file]) {
-                mg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_MG : ROOK_OPEN_MG) * rook_counts[1][file-1];
-                eg -= (pawn_counts[0][file] ? ROOK_SEMIOPEN_EG : ROOK_OPEN_EG) * rook_counts[1][file-1];
+                e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
             }
         }
-        int value = (mg * phase + eg * (24 - phase)) / 24;
+        int value = ((int16_t)e * phase + (int16_t)(e + 0x8000 >> 16) * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
     }
 } ROOT;

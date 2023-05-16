@@ -49,6 +49,8 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             while !matches!(lines.next(), Some("#endif" | "#else")) {}
         } else if line == "#endif" {
             // ignore, probably just the end of the #else of above case
+        } else if line.starts_with("#define S") {
+            // ignore, we'll hack this back in later
         } else if line.starts_with('#') {
             panic!(
                 "Unrecognized preprocessor directive in {}: {line}",

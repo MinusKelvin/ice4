@@ -1,25 +1,17 @@
-int16_t PST[2][25][SQUARE_SPAN];
-int16_t DOUBLED_MG[] = {8, -8, 16, 18, 19, 14, -4, 6};
-int16_t DOUBLED_EG[] = {30, 22, 15, 10, 8, 17, 21, 35};
-int16_t PROTECTED_PAWN_MG[] = {0, 7, 9};
-int16_t PROTECTED_PAWN_EG[] = {0, 7, 4};
-int16_t PAWN_SHIELD_MG[] = {10, 19, 20, 25};
-int16_t PAWN_SHIELD_EG[] = {-25, -37, -25, -14};
+#define S(a, b) (uint32_t)(a + (b << 16))
+uint32_t PST[25][SQUARE_SPAN];
+#define BISHOP_PAIR S(23, 41)
+uint32_t DOUBLED_PAWN[] = {S(8, 30), S(-8, 22), S(16, 15), S(18, 10), S(19, 8), S(14, 17), S(-4, 21), S(6, 35)};
+#define TEMPO S(6, 2)
+#define ISOLATED_PAWN S(8, 11)
+uint32_t PROTECTED_PAWN[] = {0, S(7, 7), S(9, 4)};
+#define ROOK_OPEN S(29, 11)
+#define ROOK_SEMIOPEN S(16, 16)
+uint32_t PAWN_SHIELD[] = {S(10, -25), S(19, -37), S(20, -25), S(25, -14)};
+#define KING_OPEN S(-30, -5)
+#define KING_SEMIOPEN S(-9, 19)
+
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
-#define BISHOP_PAIR_MG 23
-#define BISHOP_PAIR_EG 41
-#define TEMPO_MG 6
-#define TEMPO_EG 2
-#define ISOLATED_PAWN_MG 8
-#define ISOLATED_PAWN_EG 11
-#define ROOK_OPEN_MG 29
-#define ROOK_OPEN_EG 11
-#define ROOK_SEMIOPEN_MG 16
-#define ROOK_SEMIOPEN_EG 16
-#define KING_OPEN_MG -30
-#define KING_OPEN_EG -5
-#define KING_SEMIOPEN_MG -9
-#define KING_SEMIOPEN_EG 19
 
 const char *DATA_STRING = "EY\\@<A93HVNFCD98HO[XTM=;OXgc`VKE[c{vqgVK@ i~vl7h%(0642,.! ,,,('%%)'&%(,(-/.+-0216C9??=>:aHn~yurz.932.+*0,-%&  +/.-#!$&46-6/025C=3*63<DKQSNAGW\\~V#$  ##+\"'-'%$&*'694/+,13EF>6038?XUO;6<GPe~Z5/5DBO>@_6 \"4KPG7wv[C&2. 5LI2VbcTVhg[ '),.26245423-209.% -/,4,CNK2MWc139? )21*512('01 &&\"()&($%(''.,)#  !-73..<8611:D 0&-+3872=EG,AGJ #).)-94+?=E;8HG BUXL\\biVirx_qz~";
 
@@ -27,8 +19,8 @@ void unpack_full(int phase, int piece, double scale, int offset) {
     for (int rank = 10; rank < 70; rank+=10) {
         for (int file = 0; file < 8; file++) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[phase][piece | WHITE][rank+file] = v;
-            PST[phase][piece | BLACK][70-rank+file] = v;
+            PST[piece | WHITE][rank+file] += v << phase;
+            PST[piece | BLACK][70-rank+file] += v << phase;
         }
     }
 }
@@ -37,14 +29,14 @@ void unpack_smol(int phase, int piece, double scale, int offset) {
     for (int rank = 0; rank < 80; rank+=20) {
         for (int file = 0; file < 8; file+=2) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[phase][piece | WHITE][rank+file] = v;
-            PST[phase][piece | WHITE][rank+file+1] = v;
-            PST[phase][piece | WHITE][rank+file+10] = v;
-            PST[phase][piece | WHITE][rank+file+11] = v;
-            PST[phase][piece | BLACK][70-rank+file] = -v;
-            PST[phase][piece | BLACK][71-rank+file] = -v;
-            PST[phase][piece | BLACK][60-rank+file] = -v;
-            PST[phase][piece | BLACK][61-rank+file] = -v;
+            PST[piece | WHITE][rank+file] += v << phase;
+            PST[piece | WHITE][rank+file+1] += v << phase;
+            PST[piece | WHITE][rank+file+10] += v << phase;
+            PST[piece | WHITE][rank+file+11] += v << phase;
+            PST[piece | BLACK][70-rank+file] += -v << phase;
+            PST[piece | BLACK][71-rank+file] += -v << phase;
+            PST[piece | BLACK][60-rank+file] += -v << phase;
+            PST[piece | BLACK][61-rank+file] += -v << phase;
         }
     }
 }
@@ -55,14 +47,14 @@ void unpack_half(
     for (int rank = 0; rank < 40; rank+=10) {
         for (int file = 0; file < 4; file++) {
             int v = (*DATA_STRING++ - ' ') * scale;
-            PST[phase][piece | WHITE][rank+file] = v + qll;
-            PST[phase][piece | WHITE][7+rank-file] = v + qrl;
-            PST[phase][piece | WHITE][70-rank+file] = v + qlr;
-            PST[phase][piece | WHITE][77-rank-file] = v + qrr;
-            PST[phase][piece | BLACK][rank+file] = -v - qlr;
-            PST[phase][piece | BLACK][7+rank-file] = -v - qrr;
-            PST[phase][piece | BLACK][70-rank+file] = -v - qll;
-            PST[phase][piece | BLACK][77-rank-file] = -v - qrl;
+            PST[piece | WHITE][rank+file] += (v + qll) << phase;
+            PST[piece | WHITE][7+rank-file] += (v + qrl) << phase;
+            PST[piece | WHITE][70-rank+file] += (v + qlr) << phase;
+            PST[piece | WHITE][77-rank-file] += (v + qrr) << phase;
+            PST[piece | BLACK][rank+file] += (-v - qlr) << phase;
+            PST[piece | BLACK][7+rank-file] += (-v - qrr) << phase;
+            PST[piece | BLACK][70-rank+file] += (-v - qll) << phase;
+            PST[piece | BLACK][77-rank-file] += (-v - qrl) << phase;
         }
     }
 }
@@ -92,19 +84,19 @@ struct Zobrist {
 
 void init_tables() {
     unpack_full(0, PAWN, 1.088, 10); // average: 64
-    unpack_full(1, PAWN, 1.337, 93); // average: 126
+    unpack_full(16, PAWN, 1.337, 93); // average: 126
     unpack_full(0, PASSED_PAWN, 1.251, -14); // average: 14
-    unpack_full(1, PASSED_PAWN, 1.979, -5); // average: 40
+    unpack_full(16, PASSED_PAWN, 1.979, -5); // average: 40
     unpack_smol(0, KING, 1.0, -38); // average: 2
-    unpack_smol(1, KING, 1.0, -39); // average: 2
+    unpack_smol(16, KING, 1.0, -39); // average: 2
     unpack_half(0, QUEEN, 1.0, 640, 640, 643, 656); // average: 655
-    unpack_half(1, QUEEN, 1.0, 1274, 1329, 1268, 1333); // average: 1300
+    unpack_half(16, QUEEN, 1.0, 1274, 1329, 1268, 1333); // average: 1300
     unpack_half(0, ROOK, 1.0, 280, 313, 286, 324); // average: 296
-    unpack_half(1, ROOK, 1.0, 629, 653, 622, 646); // average: 636
+    unpack_half(16, ROOK, 1.0, 629, 653, 622, 646); // average: 636
     unpack_half(0, BISHOP, 1.0, 237, 243, 236, 250); // average: 253
-    unpack_half(1, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
+    unpack_half(16, BISHOP, 1.0, 368, 378, 369, 377); // average: 391
     unpack_half(0, KNIGHT, 1.0, 222, 241, 225, 246); // average: 243
-    unpack_half(1, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
+    unpack_half(16, KNIGHT, 1.241, 265, 275, 265, 276); // average: 343
     
     // Zobrist keys
 #ifdef OPENBENCH
