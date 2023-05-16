@@ -24,31 +24,27 @@ int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 const char *DATA_STRING = "EY\\@<A93HVNFCD98HO[XTM=;OXgc`VKE[c{vqgVK@ i~vl7h%(0642,.! ,,,('%%)'&%(,(-/.+-0216C9??=>:aHn~yurz.932.+*0,-%&  +/.-#!$&46-6/025C=3*63<DKQSNAGW\\~V#$  ##+\"'-'%$&*'694/+,13EF>6038?XUO;6<GPe~Z5/5DBO>@_6 \"4KPG7wv[C&2. 5LI2VbcTVhg[ '),.26245423-209.% -/,4,CNK2MWc139? )21*512('01 &&\"()&($%(''.,)#  !-73..<8611:D 0&-+3872=EG,AGJ #).)-94+?=E;8HG BUXL\\biVirx_qz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
     for (int rank = 10; rank < 70; rank+=10) {
         for (int file = 0; file < 8; file++) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            white_section[rank+file] = v;
-            black_section[70-rank+file] = v;
+            PST[phase][piece | WHITE][rank+file] = v;
+            PST[phase][piece | BLACK][70-rank+file] = v;
         }
     }
 }
 
 void unpack_smol(int phase, int piece, double scale, int offset) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
     for (int rank = 0; rank < 80; rank+=20) {
         for (int file = 0; file < 8; file+=2) {
             int v = (*DATA_STRING++ - ' ') * scale + offset;
-            white_section[rank+file] = v;
-            white_section[rank+file+1] = v;
-            white_section[rank+file+10] = v;
-            white_section[rank+file+11] = v;
-            black_section[70-rank+file] = -v;
-            black_section[71-rank+file] = -v;
-            black_section[60-rank+file] = -v;
-            black_section[61-rank+file] = -v;
+            PST[phase][piece | WHITE][rank+file] = v;
+            PST[phase][piece | WHITE][rank+file+1] = v;
+            PST[phase][piece | WHITE][rank+file+10] = v;
+            PST[phase][piece | WHITE][rank+file+11] = v;
+            PST[phase][piece | BLACK][70-rank+file] = -v;
+            PST[phase][piece | BLACK][71-rank+file] = -v;
+            PST[phase][piece | BLACK][60-rank+file] = -v;
+            PST[phase][piece | BLACK][61-rank+file] = -v;
         }
     }
 }
@@ -56,19 +52,17 @@ void unpack_smol(int phase, int piece, double scale, int offset) {
 void unpack_half(
     int phase, int piece, double scale, int qll, int qlr, int qrl, int qrr
 ) {
-    int16_t *white_section = PST[phase][piece | WHITE];
-    int16_t *black_section = PST[phase][piece | BLACK];
     for (int rank = 0; rank < 40; rank+=10) {
         for (int file = 0; file < 4; file++) {
             int v = (*DATA_STRING++ - ' ') * scale;
-            white_section[rank+file] = v + qll;
-            white_section[7+rank-file] = v + qrl;
-            white_section[70-rank+file] = v + qlr;
-            white_section[77-rank-file] = v + qrr;
-            black_section[rank+file] = -v - qlr;
-            black_section[7+rank-file] = -v - qrr;
-            black_section[70-rank+file] = -v - qll;
-            black_section[77-rank-file] = -v - qrl;
+            PST[phase][piece | WHITE][rank+file] = v + qll;
+            PST[phase][piece | WHITE][7+rank-file] = v + qrl;
+            PST[phase][piece | WHITE][70-rank+file] = v + qlr;
+            PST[phase][piece | WHITE][77-rank-file] = v + qrr;
+            PST[phase][piece | BLACK][rank+file] = -v - qlr;
+            PST[phase][piece | BLACK][7+rank-file] = -v - qrr;
+            PST[phase][piece | BLACK][70-rank+file] = -v - qll;
+            PST[phase][piece | BLACK][77-rank-file] = -v - qrl;
         }
     }
 }
