@@ -13,6 +13,7 @@ void uci() {
     int wtime, btime;
 #ifdef OPENBENCH
     int opt, value;
+    int first_move = 1;
 #endif
     fgets(buf, 4096, stdin); // uci
     printf(
@@ -27,6 +28,9 @@ void uci() {
     for (;;) {
         fgets(buf, 4096, stdin);
         switch (*strtok(buf, " \n")) {
+            case 'u': // ucinewgame
+                first_move = 1;
+                break;
             case 'i': // isready
                 printf("readyok\n");
                 break;
@@ -93,7 +97,14 @@ void uci() {
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
 #endif
-                double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
+                int t = (ROOT.stm == WHITE ? wtime : btime);
+                if (first_move) {
+                    t /= 2;
+                    usleep(t * 1000);
+                    first_move = 0;
+                }
+
+                double time_alotment = t / 1000.0;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
