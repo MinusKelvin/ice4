@@ -11,8 +11,7 @@ void uci() {
     int prehistory_len;
 #ifdef OPENBENCH
     int opt, value;
-#else
-    int firstmove = 1;
+    int first_move = 1;
 #endif
     uint64_t prehistory[256];
     fgets(buf, 4096, stdin); // uci
@@ -38,6 +37,7 @@ void uci() {
                 uint64_t nnue_idx;
                 fread(&nnue_idx, sizeof(nnue_idx), 1, RNG_FILE);
                 QNNUE = VARIANTS[nnue_idx % (sizeof(VARIANTS) / sizeof(QuantizedNnue))];
+                first_move = 1;
                 break;
             case 's': // setoption
                 strtok(0, " \n"); // name
@@ -106,16 +106,14 @@ void uci() {
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
 #endif
-                double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
-#ifdef OPENBENCH
-#else
-                if (firstmove) {
-                    double n = now();
-                    train();
-                    time_alotment -= now() - n;
-                    firstmove = 0;
+                int t = (ROOT.stm == WHITE ? wtime : btime);
+                if (first_move) {
+                    t /= 2;
+                    usleep(t * 1000);
+                    first_move = 0;
                 }
-#endif
+
+                double time_alotment = t / 1000.0;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
