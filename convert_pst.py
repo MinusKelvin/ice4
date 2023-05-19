@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import json, math
-with open("0-10.json", "r") as f:
+with open("0-5.json", "r") as f:
     data = json.load(f)
 
 print("FT weights:", [v for l in data["ft.weight"] for v in l])
