@@ -271,11 +271,13 @@ struct Board {
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
+            // 60.0+0.6: 6.46 +- 4.69 (2473 - 2287 - 5240) 0.15 elo/byte
             if (pawn_counts[ci][file]) {
                 pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN[file - 1];
             }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
+            // 60.0+0.6: 16.79 +- 4.82 (2749 - 2266 - 4985) 0.93 elo/byte
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
@@ -306,6 +308,7 @@ struct Board {
         }
         // Pawn shield: 65 bytes (f3241b8 vs 7f7c2b5)
         // 8.0+0.08: 19.58 +- 5.17 (3159 - 2596 - 4245) 0.30 elo/byte
+        // 60.0+0.6: 14.88 +- 4.63 (2526 - 2098 - 5376) 0.23 elo/byte
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
@@ -324,12 +327,14 @@ struct Board {
 
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
+        // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
         int e = inc_eval + pawn_eval +
             BISHOP_PAIR * bishop_pair +
             (stm == WHITE ? TEMPO : -TEMPO);
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
+        // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
         for (int file = 1; file < 9; file++) {
             if (!pawn_counts[0][file]) {
                 e += (pawn_counts[1][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[0][file-1];
