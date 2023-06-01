@@ -39,6 +39,7 @@ struct Searcher {
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
         int tt_good = (data ^ board.zobrist) == hash_xor_data;
         TtData tt;
+        tt.mv = Move(0);
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
 
@@ -303,7 +304,7 @@ struct Searcher {
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
-            if (!tt_good || tt.bound != BOUND_UPPER) {
+            if (tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
             memcpy(&data, &tt, sizeof(TtData));
