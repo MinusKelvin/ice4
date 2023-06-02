@@ -82,7 +82,7 @@ struct Searcher {
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 109 + depth * 3 / 8 + 2;
+            int reduction = (eval - beta + 30) / 109 + depth * 3 / 8 + 2;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
