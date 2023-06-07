@@ -297,7 +297,11 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if (
+            (depth > 0 || best != eval) &&
+            best > LOST + ply &&
+            (!tt_good || depth + 3*pv >= tt.depth)
+        ) {
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
