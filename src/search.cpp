@@ -14,13 +14,16 @@ Move BEST_MOVE(0);
 typedef int16_t HTable[16][SQUARE_SPAN];
 
 struct Searcher {
-    uint64_t nodes;
+    vector<TtEntry> *tt_ptr;
     double abort_time;
-    int16_t evals[256];
+    uint64_t nodes;
+    uint64_t *prehistory;
+    uint64_t rep_list[256];
+    int prehistory_len;
+    int evals[256];
+    HTable *conthist_stack[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
-    HTable *conthist_stack[256];
-    uint64_t rep_list[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
@@ -34,7 +37,7 @@ struct Searcher {
         // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
         int in_check = 0;
 
-        TtEntry& slot = TT[board.zobrist % TT.size()];
+        TtEntry& slot = tt_ptr[0][board.zobrist % tt_ptr->size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
         int tt_good = (data ^ board.zobrist) == hash_xor_data;
@@ -158,8 +161,8 @@ struct Searcher {
                 for (int i = ply-1; depth > 0 && !is_rep && i >= 0; i -= 2) {
                     is_rep |= rep_list[i] == mkmove.zobrist;
                 }
-                for (int i = 0; depth > 0 && !is_rep && i < PREHISTORY_LENGTH; i++) {
-                    is_rep |= PREHISTORY[i] == mkmove.zobrist;
+                for (int i = 0; depth > 0 && !is_rep && i < prehistory_len; i++) {
+                    is_rep |= prehistory[i] == mkmove.zobrist;
                 }
 
                 int v;

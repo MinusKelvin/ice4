@@ -94,6 +94,7 @@ int64_t perft(Board& board, int depth) {
 
 int main(int argc, char *argv[]) {
     init_tables();
+    vector<TtEntry> tt(HASH_SIZE);
     if (argc == 2 && !strcmp(argv[1], "bench")) {
         char fens[] = BENCH_FENS;
         strtok(fens, " \n");
@@ -104,6 +105,9 @@ int main(int argc, char *argv[]) {
             ROOT = Board();
             parse_fen();
             Searcher s;
+            s.tt_ptr = &tt;
+            s.prehistory = 0;
+            s.prehistory_len = 0;
             s.iterative_deepening(1.0/0.0, 10);
             nodes += s.nodes;
         }

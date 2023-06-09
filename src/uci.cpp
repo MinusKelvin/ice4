@@ -8,9 +8,12 @@ int THREADS = 1;
 #endif
 
 void uci() {
+    vector<TtEntry> tt(HASH_SIZE);
     setbuf(stdout, 0);
     char buf[4096], *move;
     int wtime, btime;
+    int prehistory_len;
+    uint64_t prehistory[256];
 #ifdef OPENBENCH
     int opt, value;
 #endif
@@ -40,7 +43,7 @@ void uci() {
                 value = atoi(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
-                        TT = vector<TtEntry>(value * 65536);
+                        tt = vector<TtEntry>(value * 65536);
                         break;
                     case 'T':
                         THREADS = value;
@@ -58,9 +61,9 @@ void uci() {
                 strtok(0, " \n"); // startpos
 #endif
                 strtok(0, " \n"); // moves
-                PREHISTORY_LENGTH = 0;
+                prehistory_len = 0;
                 while (move = strtok(0, " \n")) {
-                    PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
+                    prehistory[prehistory_len++] = ROOT.zobrist;
                     Move mv(
                         (move[1] - '1') * 10 + move[0] - 'a' + A1,
                         (move[3] - '1') * 10 + move[2] - 'a' + A1,
@@ -70,7 +73,7 @@ void uci() {
                         move[4] == 'n' ? KNIGHT : 0
                     );
                     if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
-                        PREHISTORY_LENGTH = 0;
+                        prehistory_len = 0;
                     }
                     ROOT.make_move(mv);
                 }
@@ -98,8 +101,11 @@ void uci() {
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
+                    threads.emplace_back([&]() {
                         Searcher s;
+                        s.tt_ptr = &tt;
+                        s.prehistory = prehistory;
+                        s.prehistory_len = prehistory_len;
                         s.iterative_deepening(time_alotment);
                         ABORT = 1;
                     });

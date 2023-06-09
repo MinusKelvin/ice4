@@ -1,3 +1,6 @@
+// 8MB. Replaced for TCEC builds by the minifier.
+#define HASH_SIZE 524288
+
 #define LOST -30000
 #define WON 30000
 
