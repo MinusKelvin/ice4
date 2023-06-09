@@ -38,9 +38,9 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
         } else if let Some(captures) = DEFINE.captures(line) {
             let text = regex::escape(captures.get(1).unwrap().as_str());
             let mut replacement = " ".to_owned();
-            // TCEC builds use 64 GB hash and 101 threads
+            // TCEC builds use 96 GB hash and 101 threads
             match &*text {
-                "HASH_SIZE" if tcec => replacement.push_str("0x100000000ull"),
+                "HASH_SIZE" if tcec => replacement.push_str("0x180000000ull"),
                 "THREADS" if tcec => replacement.push_str("101"),
                 _ => replacement.push_str(captures.get(2).unwrap().as_str()),
             }
