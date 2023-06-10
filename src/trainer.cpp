@@ -72,7 +72,7 @@ void train() {
                 MUTEX.lock();
                 data.insert(data.end(), game_data.begin(), game_data.end());
                 not_done = data.size() < DATAGEN_SIZE;
-                printf("datagen: %ld\n", data.size());
+                // printf("datagen: %ld\n", data.size());
                 MUTEX.unlock();
             }
         });
