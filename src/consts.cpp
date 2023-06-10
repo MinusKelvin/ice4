@@ -1,6 +1,19 @@
 // 8MB. Replaced for TCEC builds by the minifier.
 #define HASH_SIZE 524288
 
+#ifdef OPENBENCH
+int THREADS = 1;
+#else
+// Replaced for TCEC builds by the minifier.
+#define THREADS 1
+#endif
+
+#define DATAGEN_DEPTH 6
+#define DATAGEN_SIZE 1000000
+#define OUTCOME_PART 0.1
+#define EVAL_PART 0.9
+#define EVAL_SCALE 203
+
 #define LOST -30000
 #define WON 30000
 

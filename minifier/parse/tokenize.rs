@@ -638,6 +638,7 @@ impl Statement {
             Statement::Declaration(_) => false,
             Statement::Expression(_) => false,
             Statement::Case(_) => false,
+            Statement::Label(_) => false,
             Statement::Try(_) => false,
             Statement::For(_, _, _, b) => b.len() == 1 && b.last().unwrap().catches_else(),
             Statement::ForEach(_, _, b) => b.len() == 1 && b.last().unwrap().catches_else(),
@@ -645,6 +646,7 @@ impl Statement {
             Statement::If(_, _, f) => f.is_empty(),
             Statement::Switch(_, _) => false,
             Statement::While(_, b) => b.len() == 1 && b.last().unwrap().catches_else(),
+            Statement::Goto(_) => false,
             Statement::Continue => false,
             Statement::Break => false,
             Statement::Default => false,
@@ -665,6 +667,9 @@ impl Statement {
                 result.push(Keyword("case"));
                 v.tokenize(result, Precedence::Comma);
                 result.push(Colon);
+            }
+            Statement::Label(n) => {
+                result.extend([Identifier(n), Colon]);
             }
             Statement::Try(code) => {
                 result.push(Keyword("try"));
@@ -710,7 +715,7 @@ impl Statement {
                             v.tokenize(result, Precedence::Assignment);
                         }
                         result.push(RightBrace);
-                    },
+                    }
                 }
                 result.push(RightParen);
                 statement_block(b, result);
@@ -750,6 +755,7 @@ impl Statement {
                 result.extend([Semicolon, RightParen]);
                 statement_block(b, result);
             }
+            Statement::Goto(label) => result.extend([Keyword("goto"), Identifier(label), Colon]),
             Statement::Continue => result.extend([Keyword("continue"), Semicolon]),
             Statement::Break => result.extend([Keyword("break"), Semicolon]),
             Statement::Default => result.extend([Keyword("default"), Colon]),

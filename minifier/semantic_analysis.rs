@@ -295,6 +295,16 @@ fn process_statements(symbols: &mut Symbols, scope: &mut Scope, block: &mut [Sta
             Statement::Expression(e) | Statement::Case(e) => {
                 process_expr(symbols, &mut scope, e);
             }
+            Statement::Label(name) => {
+                let id = symbols.declare_type();
+                symbols.symbols[id].occurances += 1;
+                scope.in_scope(|id2| {
+                    symbols.symbols[id].others_in_scope.push(id2);
+                    symbols.symbols[id2].others_in_scope.push(id);
+                });
+                scope.define(name.clone(), id);
+                *name = format!("${id}");
+            }
             Statement::Try(b) => process_statements(symbols, &mut scope, b),
             Statement::For(decl, cond, inc, body) => {
                 let mut scope = Scope::new(&scope);
@@ -339,6 +349,13 @@ fn process_statements(symbols: &mut Symbols, scope: &mut Scope, block: &mut [Sta
             Statement::Switch(cond, body) | Statement::While(cond, body) => {
                 process_expr(symbols, &mut scope, cond);
                 process_statements(symbols, &mut scope, body);
+            }
+            Statement::Goto(name) => {
+                let id = scope
+                    .lookup(name)
+                    .unwrap_or_else(|| panic!("unrecognized label: {name}"));
+                *name = format!("${id}");
+                symbols.symbols[id].occurances += 1;
             }
             Statement::Continue => {}
             Statement::Break => {}

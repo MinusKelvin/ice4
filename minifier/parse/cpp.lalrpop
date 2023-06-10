@@ -153,6 +153,7 @@ Statement: Statement = {
     <CommaExpression> ";" => Statement::Expression(<>),
     "case" <CommaExpression> ":" => Statement::Case(<>),
     "default" ":" => Statement::Default,
+    <Identifier> ":" => Statement::Label(<>),
     "try" "{" <Statement*> "}" "catch" "(" "..." ")" "{" "}" => Statement::Try(<>),
     "for" "(" <Declaration?> ";" <CommaExpression?> ";" <CommaExpression?> ")" "{" <Statement*> "}" => {
         Statement::For(<>)
@@ -169,6 +170,7 @@ Statement: Statement = {
     "return" <CommaExpression?> ";" => Statement::Return(<>),
     "continue" ";" => Statement::Continue,
     "break" ";" => Statement::Break,
+    "goto" <Identifier> ";" => Statement::Goto(<>),
 };
 
 If: Statement = {

@@ -73,6 +73,8 @@ uint32_t rng_32() {
 uint64_t rng() {
     return (uint64_t) rng_32() << 32 | rng_32();
 }
+#else
+FILE *RNG_FILE;
 #endif
 
 struct Zobrist {
@@ -114,7 +116,7 @@ void init_tables() {
     ZOBRIST.castle_rights[3] = rng();
     ZOBRIST.stm = rng();
 #else
-    auto rng = fopen("/dev/urandom", "r");
-    fread(&ZOBRIST, sizeof(ZOBRIST), 1, rng);
+    RNG_FILE = fopen("/dev/urandom", "r");
+    fread(&ZOBRIST, sizeof(ZOBRIST), 1, RNG_FILE);
 #endif
 }

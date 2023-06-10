@@ -1,10 +1,6 @@
 
 #ifdef OPENBENCH
 void parse_fen();
-int THREADS = 1;
-#else
-// Replaced for TCEC builds by the minifier.
-#define THREADS 1
 #endif
 
 void uci() {
@@ -49,6 +45,9 @@ void uci() {
                         THREADS = value;
                         break;
                 }
+                break;
+            case 't':
+                train();
                 break;
 #endif
             case 'p': // position
