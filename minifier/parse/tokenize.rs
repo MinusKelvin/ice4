@@ -755,7 +755,9 @@ impl Statement {
                 result.extend([Semicolon, RightParen]);
                 statement_block(b, result);
             }
-            Statement::Goto(label) => result.extend([Keyword("goto"), Identifier(label), Colon]),
+            Statement::Goto(label) => {
+                result.extend([Keyword("goto"), Identifier(label), Semicolon])
+            }
             Statement::Continue => result.extend([Keyword("continue"), Semicolon]),
             Statement::Break => result.extend([Keyword("break"), Semicolon]),
             Statement::Default => result.extend([Keyword("default"), Colon]),
