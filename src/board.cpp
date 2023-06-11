@@ -42,16 +42,27 @@ struct Board {
     uint8_t castle1, castle2;
     uint8_t stm;
     uint64_t zobrist;
+    float acc[2][NEURONS];
 
     void edit(int square, int piece) {
+        for (int i = 0; i < NEURONS; i++) {
+            acc[0][i] -= FT[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] -= FT[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+        }
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
+        for (int i = 0; i < NEURONS; i++) {
+            acc[0][i] += FT[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] += FT[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+        }
     }
 
     Board() {
         memset(this, 0, sizeof(Board));
         memset(board, INVALID, 120);
+        memcpy(acc[0], FT_BIAS, sizeof(FT_BIAS));
+        memcpy(acc[1], FT_BIAS, sizeof(FT_BIAS));
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
@@ -220,6 +231,14 @@ struct Board {
     }
 
     int eval() {
-        return 0;
+        float v = OUT_BIAS;
+        int first = stm == BLACK;
+        for (int i = 0; i < NEURONS; i++) {
+            v += OUT[i] * max(acc[first][i], 0.f);
+        }
+        for (int i = 0; i < NEURONS; i++) {
+            v += OUT[i+NEURONS] * max(acc[!first][i], 0.f);
+        }
+        return v * EVAL_SCALE;
     }
 } ROOT;

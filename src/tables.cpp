@@ -1,3 +1,10 @@
+float FT[768][NEURONS];
+float FT_BIAS[NEURONS];
+float OUT[NEURONS_X2];
+float OUT_BIAS;
+
+int FEATURE[25][SQUARE_SPAN];
+
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
 uint32_t rng_32() {
@@ -43,4 +50,15 @@ void init_tables() {
     RNG_FILE = fopen("/dev/urandom", "r");
     fread(&ZOBRIST, sizeof(ZOBRIST), 1, RNG_FILE);
 #endif
+
+    // feature mapping
+    int feature = 0;
+    for (int p = PAWN; p <= KING; p++) {
+        for (int file = 0; file < 8; file++) {
+            for (int rank = 0; rank < 8; rank++) {
+                FEATURE[p | WHITE][rank*10+file] = feature++;
+                FEATURE[p | BLACK][70-rank*10+file] = feature++;
+            }
+        }
+    }
 }

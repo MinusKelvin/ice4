@@ -13,6 +13,8 @@ int THREADS = 1;
 #define OUTCOME_PART 0.1
 #define EVAL_PART 0.9
 #define EVAL_SCALE 203
+#define NEURONS 16
+#define NEURONS_X2 32
 
 #define LOST -30000
 #define WON 30000
@@ -109,3 +111,5 @@ int THREADS = 1;
 #define F8 96
 #define G8 97
 #define H8 98
+
+#define FEATURE_FLIP 15

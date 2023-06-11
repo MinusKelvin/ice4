@@ -186,7 +186,7 @@ macro_rules! match_prefix {
 
 static WORD: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A[a-zA-Z_][a-zA-Z0-9_]*"#).unwrap());
 static NUMBER: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r#"\A[0-9][a-zA-Z0-9']*(\.[a-zA-Z0-9']+)?"#).unwrap());
+    Lazy::new(|| Regex::new(r#"\A[0-9][a-zA-Z0-9']*(\.[a-zA-Z0-9']+f?)?"#).unwrap());
 static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unwrap());
 static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
 

@@ -60,7 +60,16 @@ void train() {
                     }
                     Datapoint &elem = game_data.emplace_back();
                     elem.target = v;
-                    // TODO: fill feature vector
+                    int flip = board.stm == WHITE ? 0 : FEATURE_FLIP;
+                    int i = 0;
+                    for (int sq = A1; sq <= H8; sq++) {
+                        if (board.board[sq] & 7) {
+                            elem.features[i++] = FEATURE[board.board[sq]][sq-A1] ^ flip;
+                        }
+                    }
+                    while (i < 32) {
+                        elem.features[i++] = -1;
+                    }
                     board.make_move(mv);
                 }
                 int flip = 0;
