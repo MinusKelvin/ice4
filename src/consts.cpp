@@ -15,6 +15,8 @@ int THREADS = 1;
 #define EVAL_SCALE 203
 #define NEURONS 16
 #define NEURONS_X2 32
+#define FT_INIT_SCALE 0.036
+#define OUT_INIT_SCALE 0.25
 
 #define LOST -30000
 #define WON 30000

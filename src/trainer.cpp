@@ -7,6 +7,24 @@ void train() {
 #ifdef OPENBENCH
     auto RNG_FILE = fopen("/dev/urandom", "r");
 #endif
+
+    int32_t random[772][NEURONS];
+    fread(random, sizeof(random), 1, RNG_FILE);
+    for (int i = 0; i < 768; i++) {
+        if (!i || i == FEATURE_FLIP) {
+            continue;
+        }
+        for (int j = 0; j < NEURONS; j++) {
+            FT[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
+        }
+    }
+    for (int i = 0; i < NEURONS; i++) {
+        FT_BIAS[i] = FT_INIT_SCALE * random[768][i] / (float)(1 << 31);
+        OUT[i] = OUT_INIT_SCALE * random[769][i] / (float)(1 << 31);
+        OUT[i+NEURONS] = OUT_INIT_SCALE * random[770][i] / (float)(1 << 31);
+    }
+    OUT_BIAS = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
+
     vector<thread> threads;
     vector<Datapoint> data;
     for (int i = 0; i < THREADS; i++) {
@@ -27,11 +45,12 @@ void train() {
                 retry:
                 Board board;
                 fread(movenums, sizeof(movenums), 1, RNG_FILE);
+                board.movegen(moves, mvcount);
                 for (int j = 0; j < 8; j++) {
+                    board.make_move(moves[movenums[j] % mvcount]);
                     if (!board.movegen(moves, mvcount)) {
                         goto retry;
                     }
-                    board.make_move(moves[movenums[j] % mvcount]);
                 }
                 s.prehistory_len = 0;
                 game_data.clear();
@@ -53,9 +72,8 @@ void train() {
                     if (board.board[mv.to] || (board.board[mv.from] & 7) == PAWN) {
                         s.prehistory_len = 0;
                     }
-                    if (s.prehistory_len >= 50) {
+                    if (s.prehistory_len >= 50 || !mv.from) {
                         outcome = 0.5;
-                        game_data.resize(game_data.size() - 45);
                         break;
                     }
                     Datapoint &elem = game_data.emplace_back();
