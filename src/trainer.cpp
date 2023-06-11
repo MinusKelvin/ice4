@@ -45,12 +45,11 @@ void train() {
                 retry:
                 Board board;
                 fread(movenums, sizeof(movenums), 1, RNG_FILE);
-                board.movegen(moves, mvcount);
                 for (int j = 0; j < 8; j++) {
-                    board.make_move(moves[movenums[j] % mvcount]);
                     if (!board.movegen(moves, mvcount)) {
                         goto retry;
                     }
+                    board.make_move(moves[movenums[j] % mvcount]);
                 }
                 s.prehistory_len = 0;
                 game_data.clear();
