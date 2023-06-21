@@ -8,16 +8,16 @@ int THREADS = 1;
 #define THREADS 1
 #endif
 
-#define DATAGEN_DEPTH 3
-#define DATAGEN_SIZE 1000000
-#define OUTCOME_PART 0.9
-#define EVAL_PART 0.1
+#define DATAGEN_DEPTH 1
+#define DATAGEN_SIZE 100000
+#define OUTCOME_PART 1.0
+#define EVAL_PART 0.0
 #define EVAL_SCALE 203
 #define NEURONS 16
 #define NEURONS_X2 32
 #define FT_INIT_SCALE 0.036
 #define OUT_INIT_SCALE 0.25
-#define LR 0.001
+#define BATCH_SIZE 4096
 
 #define LOST -30000
 #define WON 30000

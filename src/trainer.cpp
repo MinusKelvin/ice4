@@ -80,11 +80,11 @@ void datagen(vector<Datapoint> &data) {
     }
 }
 
-void optimize(vector<Datapoint> &data, int &index) {
+void optimize(vector<Datapoint> &data, int &index, double &total_loss, float lr) {
     MUTEX.lock();
     while (index < data.size()) {
         int start = index;
-        int end = min((int) data.size(), index += 1024);
+        int end = min((int) data.size(), index += BATCH_SIZE);
         Nnue weights = NNUE;
         MUTEX.unlock();
 
@@ -155,21 +155,19 @@ void optimize(vector<Datapoint> &data, int &index) {
         }
 
         MUTEX.lock();
+        total_loss += batch_loss;
 
-        printf("batch loss: %g\n", batch_loss / (end - start));
-
-        float factor = LR / (end - start);
         for (int j = 0; j < 768; j++) {
             for (int k = 0; k < NEURONS; k++) {
-                NNUE.ft[j][k] -= grad_acc.ft[j][k] * factor;
+                NNUE.ft[j][k] -= grad_acc.ft[j][k] * lr;
             }
         }
         for (int k = 0; k < NEURONS; k++) {
-            NNUE.ft_bias[k] -= grad_acc.ft_bias[k] * factor;
-            NNUE.out[k] -= grad_acc.out[k] * factor;
-            NNUE.out[k+NEURONS] -= grad_acc.out[k+NEURONS] * factor;
+            NNUE.ft_bias[k] -= grad_acc.ft_bias[k] * lr;
+            NNUE.out[k] -= grad_acc.out[k] * lr;
+            NNUE.out[k+NEURONS] -= grad_acc.out[k+NEURONS] * lr;
         }
-        NNUE.out_bias -= grad_acc.out_bias * factor;
+        NNUE.out_bias -= grad_acc.out_bias * lr;
     }
     MUTEX.unlock();
 }
@@ -192,6 +190,7 @@ void train() {
     }
     NNUE.out_bias = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
 
+    float lr = 0.001;
     auto cycle = [&]() {
         vector<thread> threads;
         vector<Datapoint> data;
@@ -210,20 +209,23 @@ void train() {
             swap(data[i], data[shuffle[i] % (data.size() - i) + i]);
         }
 
-        for (int j = 0; j < 20; j++) {
+        for (int j = 0; j < 500; j++) {
             threads.clear();
             int index = 0;
+            double loss = 0;
             for (int i = 0; i < THREADS; i++) {
                 threads.emplace_back([&]() {
-                    optimize(data, index);
+                    optimize(data, index, loss, lr);
                 });
             }
             for (auto& t : threads) {
                 t.join();
             }
+            printf("epoch %d: %g\n", j, loss / data.size());
         }
     };
     cycle();
+    lr /= 10;
     cycle();
 
 #ifdef OPENBENCH
