@@ -28,26 +28,26 @@ ice4-tcec: launcher.sh $(DEPS)
 	@echo Compressed size: `du -b ice4-tcec`
 
 ice4.exe: $(DEPS)
-	x86_64-w64-mingw32-g++-posix -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
+	x86_64-w64-mingw32-g++-posix -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static -std=c++20 src/main.cpp -o "$@"
 
 $(EXE): $(DEPS) src/network.txt
-	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread -std=c++20 src/main.cpp -o "$@"
 
 ice4-asan: $(DEPS)
-	g++ -DOPENBENCH -g -fsanitize=address -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH -g -fsanitize=address -pthread -std=c++20 src/main.cpp -o "$@"
 
 ice4-usan: $(DEPS)
-	g++ -DOPENBENCH -g -fsanitize=undefined -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH -g -fsanitize=undefined -pthread -std=c++20 src/main.cpp -o "$@"
 
 ice4-tsan: $(DEPS)
-	g++ -DOPENBENCH -g -fsanitize=thread -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH -g -fsanitize=thread -pthread -std=c++20 src/main.cpp -o "$@"
 
 logo.png: ice4 logo_template.png
 	python3 make_ice4_logo.py < ice4
 
 .PHONY: check
 check:
-	g++ -DOPENBENCH -Wall -Wextra -O -fdiagnostics-color=always -fsyntax-only src/main.cpp
+	g++ -DOPENBENCH -Wall -Wextra -O -fdiagnostics-color=always -fsyntax-only -std=c++20 src/main.cpp
 
 .PHONY: clean
 clean:
