@@ -19,9 +19,8 @@ uint32_t rng_32() {
 uint64_t rng() {
     return (uint64_t) rng_32() << 32 | rng_32();
 }
-#else
-FILE *RNG_FILE;
 #endif
+FILE *RNG_FILE;
 
 struct Zobrist {
     uint64_t pieces[25][SQUARE_SPAN];
@@ -31,6 +30,8 @@ struct Zobrist {
 } ZOBRIST;
 
 void init_tables() {
+    RNG_FILE = fopen("/dev/urandom", "r");
+
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
@@ -47,7 +48,6 @@ void init_tables() {
     ZOBRIST.castle_rights[3] = rng();
     ZOBRIST.stm = rng();
 #else
-    RNG_FILE = fopen("/dev/urandom", "r");
     fread(&ZOBRIST, sizeof(ZOBRIST), 1, RNG_FILE);
 #endif
 
