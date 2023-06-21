@@ -96,9 +96,6 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
             float hidden[2][NEURONS];
             memcpy(hidden[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
             memcpy(hidden[1], NNUE.ft_bias, sizeof(NNUE.ft_bias));
-            for (int k = 0; k < NEURONS; k++) {
-                grad.ft_bias[k] = 1; // dhidden_dparam = 1
-            }
             for (int j = 0; data[i].features[j] != -1; j++) {
                 for (int k = 0; k < NEURONS; k++) {
                     hidden[0][k] += NNUE.ft[data[i].features[j]][k];
@@ -109,32 +106,24 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
                 }
             }
             float v = NNUE.out_bias;
-            grad.out_bias = 1;
             for (int i = 0; i < NEURONS; i++) {
                 float activated = max(hidden[0][i], 0.f);
-                float dactivated_dhidden = hidden[0][i] > 0;
                 v += NNUE.out[i] * activated;
                 grad.out[i] = activated; // dv_dparam = activated
-                float dv_dactivated = NNUE.out[i];
-                dv_dhidden[0][i] = dv_dactivated * dactivated_dhidden;
+                dv_dhidden[0][i] = NNUE.out[i] * (hidden[0][i] > 0);
 
                 activated = max(hidden[1][i], 0.f);
-                dactivated_dhidden = hidden[1][i] > 0;
                 v += NNUE.out[i+NEURONS] * activated;
                 grad.out[i+NEURONS] = activated; // dv_dparam = activated
-                dv_dactivated = NNUE.out[i+NEURONS];
-                dv_dhidden[1][i] = dv_dactivated * dactivated_dhidden;
+
+                dv_dhidden[1][i] = NNUE.out[i+NEURONS] * (hidden[1][i] > 0);
             }
-            float activated = sigmoid(v);
-            float dactivated_dv = sigmoid(v) * (1 - sigmoid(v));
-            float difference = data[i].target - activated;
-            float ddifference_dactivated = -1;
+            float difference = data[i].target - sigmoid(v);
             float loss = difference * difference;
-            float dloss_ddifference = 2 * difference;
 
-            float dloss_dv = dloss_ddifference * ddifference_dactivated * dactivated_dv;
+            float dloss_dv = difference * sigmoid(v) * (1 - sigmoid(v));
 
-            grad_acc.out_bias += dloss_dv * grad.out_bias; // dloss_dparam = dloss_dv * dv_dparam
+            grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
             for (int i = 0; i < NEURONS_X2; i++) {
                 grad_acc.out[i] += dloss_dv * grad.out[i]; // dloss_dparam = dloss_dv * dv_dparam
             }
@@ -142,7 +131,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
             float dloss_dhidden[NEURONS];
             for (int i = 0; i < NEURONS; i++) {
                 dloss_dhidden[i] = dloss_dv * (dv_dhidden[0][i] + dv_dhidden[1][i]); // dloss_dhidden = dloss_dv * dv_dhidden
-                grad_acc.ft_bias[i] += dloss_dhidden[i] * grad.ft_bias[i];
+                grad_acc.ft_bias[i] += dloss_dhidden[i];
                 // dloss_dparam = dloss_dhidden * dhidden_dparam
             }
             for (int j = 0; data[i].features[j] != -1; j++) {
@@ -161,15 +150,15 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
 
         for (int j = 0; j < 768; j++) {
             for (int k = 0; k < NEURONS; k++) {
-                NNUE.ft[j][k] -= grad_acc.ft[j][k] * lr;
+                NNUE.ft[j][k] += grad_acc.ft[j][k] * lr;
             }
         }
         for (int k = 0; k < NEURONS; k++) {
-            NNUE.ft_bias[k] -= grad_acc.ft_bias[k] * lr;
-            NNUE.out[k] -= grad_acc.out[k] * lr;
-            NNUE.out[k+NEURONS] -= grad_acc.out[k+NEURONS] * lr;
+            NNUE.ft_bias[k] += grad_acc.ft_bias[k] * lr;
+            NNUE.out[k] += grad_acc.out[k] * lr;
+            NNUE.out[k+NEURONS] += grad_acc.out[k+NEURONS] * lr;
         }
-        NNUE.out_bias -= grad_acc.out_bias * lr;
+        NNUE.out_bias += grad_acc.out_bias * lr;
         MUTEX.unlock();
     }
 }
