@@ -46,23 +46,23 @@ struct Board {
 
     void edit(int square, int piece) {
         for (int i = 0; i < NEURONS; i++) {
-            acc[0][i] -= FT[FEATURE[board[square]][square-A1]][i];
-            acc[1][i] -= FT[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+            acc[0][i] -= NNUE.ft[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] -= NNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
         }
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         for (int i = 0; i < NEURONS; i++) {
-            acc[0][i] += FT[FEATURE[board[square]][square-A1]][i];
-            acc[1][i] += FT[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+            acc[0][i] += NNUE.ft[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] += NNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
         }
     }
 
     Board() {
         memset(this, 0, sizeof(Board));
         memset(board, INVALID, 120);
-        memcpy(acc[0], FT_BIAS, sizeof(FT_BIAS));
-        memcpy(acc[1], FT_BIAS, sizeof(FT_BIAS));
+        memcpy(acc[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
+        memcpy(acc[1], NNUE.ft_bias, sizeof(NNUE.ft_bias));
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
@@ -231,13 +231,13 @@ struct Board {
     }
 
     int eval() {
-        float v = OUT_BIAS;
+        float v = NNUE.out_bias;
         int first = stm == BLACK;
         for (int i = 0; i < NEURONS; i++) {
-            v += OUT[i] * max(acc[first][i], 0.f);
+            v += NNUE.out[i] * max(acc[first][i], 0.f);
         }
         for (int i = 0; i < NEURONS; i++) {
-            v += OUT[i+NEURONS] * max(acc[!first][i], 0.f);
+            v += NNUE.out[i+NEURONS] * max(acc[!first][i], 0.f);
         }
         return v * EVAL_SCALE;
     }

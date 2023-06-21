@@ -78,6 +78,22 @@ void datagen(vector<Datapoint> &data) {
     }
 }
 
+void optimize(vector<Datapoint> &data, int &index) {
+    MUTEX.lock();
+    while (index < data.size()) {
+        int start = index;
+        int end = min((int) data.size(), index += 1024);
+        MUTEX.unlock();
+
+        Nnue grad;
+
+        MUTEX.lock();
+
+
+    }
+    MUTEX.unlock();
+}
+
 void train() {
     int32_t random[772][NEURONS];
     fread(random, sizeof(random), 1, RNG_FILE);
@@ -86,21 +102,37 @@ void train() {
             continue;
         }
         for (int j = 0; j < NEURONS; j++) {
-            FT[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
+            NNUE.ft[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
         }
     }
     for (int i = 0; i < NEURONS; i++) {
-        FT_BIAS[i] = FT_INIT_SCALE * random[768][i] / (float)(1 << 31);
-        OUT[i] = OUT_INIT_SCALE * random[769][i] / (float)(1 << 31);
-        OUT[i+NEURONS] = OUT_INIT_SCALE * random[770][i] / (float)(1 << 31);
+        NNUE.ft_bias[i] = FT_INIT_SCALE * random[768][i] / (float)(1 << 31);
+        NNUE.out[i] = OUT_INIT_SCALE * random[769][i] / (float)(1 << 31);
+        NNUE.out[i+NEURONS] = OUT_INIT_SCALE * random[770][i] / (float)(1 << 31);
     }
-    OUT_BIAS = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
+    NNUE.out_bias = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
 
     vector<thread> threads;
     vector<Datapoint> data;
     for (int i = 0; i < THREADS; i++) {
         threads.emplace_back([&]() {
             datagen(data);
+        });
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    vector<uint64_t> shuffle(data.size());
+    fread(shuffle.data(), sizeof(uint64_t) * data.size(), 1, RNG_FILE);
+    for (int i = 0; i < data.size(); i++) {
+        swap(data[i], data[shuffle[i] % (data.size() - i) + i]);
+    }
+
+    int index = 0;
+    for (int i = 0; i < THREADS; i++) {
+        threads.emplace_back([&]() {
+            optimize(data, index);
         });
     }
     for (auto& t : threads) {

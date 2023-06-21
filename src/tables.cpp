@@ -1,7 +1,13 @@
-float FT[768][NEURONS];
-float FT_BIAS[NEURONS];
-float OUT[NEURONS_X2];
-float OUT_BIAS;
+struct Nnue {
+    float ft[768][NEURONS];
+    float ft_bias[NEURONS];
+    float out[NEURONS_X2];
+    float out_bias;
+
+    Nnue() {
+        memset(this, 0, sizeof(Nnue));
+    }
+} NNUE;
 
 int FEATURE[25][SQUARE_SPAN];
 
