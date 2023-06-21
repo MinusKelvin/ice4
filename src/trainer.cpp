@@ -99,10 +99,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
             for (int j = 0; data[i].features[j] != -1; j++) {
                 for (int k = 0; k < NEURONS; k++) {
                     hidden[0][k] += NNUE.ft[data[i].features[j]][k];
-                    grad.ft[data[i].features[j]][k] += 1; // dhidden_dparam
-
                     hidden[1][k] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
-                    grad.ft[data[i].features[j] ^ FEATURE_FLIP][k] += 1; // dhidden_dparam
                 }
             }
             float v = NNUE.out_bias;
@@ -121,22 +118,24 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
             float difference = data[i].target - sigmoid(v);
             float loss = difference * difference;
 
-            float dloss_dv = difference * sigmoid(v) * (1 - sigmoid(v));
+            float dloss_dv = lr * difference * sigmoid(v) * (1 - sigmoid(v));
 
             grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
             for (int i = 0; i < NEURONS_X2; i++) {
                 grad_acc.out[i] += dloss_dv * grad.out[i]; // dloss_dparam = dloss_dv * dv_dparam
             }
 
-            float dloss_dhidden[NEURONS];
+            float dloss_dhidden[2][NEURONS];
             for (int i = 0; i < NEURONS; i++) {
-                dloss_dhidden[i] = dloss_dv * (dv_dhidden[0][i] + dv_dhidden[1][i]); // dloss_dhidden = dloss_dv * dv_dhidden
-                grad_acc.ft_bias[i] += dloss_dhidden[i];
+                dloss_dhidden[0][i] = dloss_dv * dv_dhidden[0][i];
+                dloss_dhidden[1][i] = dloss_dv * dv_dhidden[1][i];
+                grad_acc.ft_bias[i] += dloss_dhidden[0][i] + dloss_dhidden[1][i];
                 // dloss_dparam = dloss_dhidden * dhidden_dparam
             }
             for (int j = 0; data[i].features[j] != -1; j++) {
                 for (int k = 0; k < NEURONS; k++) {
-                    grad_acc.ft[data[i].features[j]][k] += dloss_dhidden[k] * grad.ft[data[i].features[j]][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
+                    grad_acc.ft[data[i].features[j]][k] += dloss_dhidden[0][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
+                    grad_acc.ft[data[i].features[j] ^ FEATURE_FLIP][k] += dloss_dhidden[1][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
                 }
             }
 
@@ -150,15 +149,15 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
 
         for (int j = 0; j < 768; j++) {
             for (int k = 0; k < NEURONS; k++) {
-                NNUE.ft[j][k] += grad_acc.ft[j][k] * lr;
+                NNUE.ft[j][k] += grad_acc.ft[j][k];
             }
         }
         for (int k = 0; k < NEURONS; k++) {
-            NNUE.ft_bias[k] += grad_acc.ft_bias[k] * lr;
-            NNUE.out[k] += grad_acc.out[k] * lr;
-            NNUE.out[k+NEURONS] += grad_acc.out[k+NEURONS] * lr;
+            NNUE.ft_bias[k] += grad_acc.ft_bias[k];
+            NNUE.out[k] += grad_acc.out[k];
+            NNUE.out[k+NEURONS] += grad_acc.out[k+NEURONS];
         }
-        NNUE.out_bias += grad_acc.out_bias * lr;
+        NNUE.out_bias += grad_acc.out_bias;
         MUTEX.unlock();
     }
 }
