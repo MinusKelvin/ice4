@@ -1,5 +1,6 @@
 atomic_bool
 atomic_uint64_t
+barrier
 char8_t
 char16_t
 char32_t

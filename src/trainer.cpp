@@ -80,12 +80,12 @@ void datagen(vector<Datapoint> &data) {
     }
 }
 
-void optimize(vector<Datapoint> &data, int &index, double &total_loss, float lr) {
-    MUTEX.lock();
+void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_loss, float lr) {
     while (index < data.size()) {
-        int start = index;
-        int end = min((int) data.size(), index += BATCH_SIZE);
-        Nnue weights = NNUE;
+        b.arrive_and_wait();
+        MUTEX.lock();
+        int start = min((int) data.size(), index);
+        int end = min((int) data.size(), index += BATCH_SIZE / THREADS);
         MUTEX.unlock();
 
         Nnue grad_acc = {};
@@ -94,35 +94,35 @@ void optimize(vector<Datapoint> &data, int &index, double &total_loss, float lr)
             Nnue grad = {}; // dv_dparam for output layer, dhidden_dparam for ft
             float dv_dhidden[2][NEURONS];
             float hidden[2][NEURONS];
-            memcpy(hidden[0], weights.ft_bias, sizeof(weights.ft_bias));
-            memcpy(hidden[1], weights.ft_bias, sizeof(weights.ft_bias));
+            memcpy(hidden[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
+            memcpy(hidden[1], NNUE.ft_bias, sizeof(NNUE.ft_bias));
             for (int k = 0; k < NEURONS; k++) {
                 grad.ft_bias[k] = 1; // dhidden_dparam = 1
             }
             for (int j = 0; data[i].features[j] != -1; j++) {
                 for (int k = 0; k < NEURONS; k++) {
-                    hidden[0][k] += weights.ft[data[i].features[j]][k];
+                    hidden[0][k] += NNUE.ft[data[i].features[j]][k];
                     grad.ft[data[i].features[j]][k] += 1; // dhidden_dparam
 
-                    hidden[1][k] += weights.ft[data[i].features[j] ^ FEATURE_FLIP][k];
+                    hidden[1][k] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                     grad.ft[data[i].features[j] ^ FEATURE_FLIP][k] += 1; // dhidden_dparam
                 }
             }
-            float v = weights.out_bias;
+            float v = NNUE.out_bias;
             grad.out_bias = 1;
             for (int i = 0; i < NEURONS; i++) {
                 float activated = max(hidden[0][i], 0.f);
                 float dactivated_dhidden = hidden[0][i] > 0;
-                v += weights.out[i] * activated;
+                v += NNUE.out[i] * activated;
                 grad.out[i] = activated; // dv_dparam = activated
-                float dv_dactivated = weights.out[i];
+                float dv_dactivated = NNUE.out[i];
                 dv_dhidden[0][i] = dv_dactivated * dactivated_dhidden;
 
                 activated = max(hidden[1][i], 0.f);
                 dactivated_dhidden = hidden[1][i] > 0;
-                v += weights.out[i+NEURONS] * activated;
+                v += NNUE.out[i+NEURONS] * activated;
                 grad.out[i+NEURONS] = activated; // dv_dparam = activated
-                dv_dactivated = weights.out[i+NEURONS];
+                dv_dactivated = NNUE.out[i+NEURONS];
                 dv_dhidden[1][i] = dv_dactivated * dactivated_dhidden;
             }
             float activated = sigmoid(v);
@@ -154,6 +154,8 @@ void optimize(vector<Datapoint> &data, int &index, double &total_loss, float lr)
             batch_loss += loss;
         }
 
+        b.arrive_and_wait();
+
         MUTEX.lock();
         total_loss += batch_loss;
 
@@ -168,8 +170,8 @@ void optimize(vector<Datapoint> &data, int &index, double &total_loss, float lr)
             NNUE.out[k+NEURONS] -= grad_acc.out[k+NEURONS] * lr;
         }
         NNUE.out_bias -= grad_acc.out_bias * lr;
+        MUTEX.unlock();
     }
-    MUTEX.unlock();
 }
 
 void train() {
@@ -192,6 +194,7 @@ void train() {
 
     float lr = 0.001;
     auto cycle = [&]() {
+        barrier<> b(THREADS);
         vector<thread> threads;
         vector<Datapoint> data;
         for (int i = 0; i < THREADS; i++) {
@@ -215,7 +218,7 @@ void train() {
             double loss = 0;
             for (int i = 0; i < THREADS; i++) {
                 threads.emplace_back([&]() {
-                    optimize(data, index, loss, lr);
+                    optimize(b, data, index, loss, lr);
                 });
             }
             for (auto& t : threads) {
