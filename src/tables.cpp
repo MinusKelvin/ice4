@@ -11,6 +11,7 @@ struct Nnue {
 ;
 
 int FEATURE[25][SQUARE_SPAN];
+int MATERIAL[] = {0,100,280,310,500,900,0};
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency

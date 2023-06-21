@@ -1,5 +1,6 @@
 struct Datapoint {
     int features[33];
+    int material;
     float target;
 };
 
@@ -56,6 +57,7 @@ void datagen(vector<Datapoint> &data) {
             }
             Datapoint &elem = game_data.emplace_back();
             elem.target = v;
+            elem.material = board.stm == WHITE ? board.material : -board.material;
             int flip = board.stm == WHITE ? 0 : FEATURE_FLIP;
             int i = 0;
             for (int sq = A1; sq <= H8; sq++) {
@@ -102,7 +104,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
                     hidden[1][k] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                 }
             }
-            float v = NNUE.out_bias;
+            float v = NNUE.out_bias + data[i].material / EVAL_SCALE;
             for (int i = 0; i < NEURONS; i++) {
                 float activated = max(hidden[0][i], 0.f);
                 v += NNUE.out[i] * activated;
