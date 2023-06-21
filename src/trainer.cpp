@@ -91,7 +91,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
         Nnue grad_acc = {};
         float batch_loss = 0;
         for (int i = start; i < end; i++) {
-            Nnue grad = {}; // dv_dparam for output layer, dhidden_dparam for ft
+            float dv_dout[NEURONS_X2]; // dv_dparam for output layer
             float dv_dhidden[2][NEURONS];
             float hidden[2][NEURONS];
             memcpy(hidden[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
@@ -106,12 +106,12 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
             for (int i = 0; i < NEURONS; i++) {
                 float activated = max(hidden[0][i], 0.f);
                 v += NNUE.out[i] * activated;
-                grad.out[i] = activated; // dv_dparam = activated
+                dv_dout[i] = activated; // dv_dparam = activated
                 dv_dhidden[0][i] = NNUE.out[i] * (hidden[0][i] > 0);
 
                 activated = max(hidden[1][i], 0.f);
                 v += NNUE.out[i+NEURONS] * activated;
-                grad.out[i+NEURONS] = activated; // dv_dparam = activated
+                dv_dout[i+NEURONS] = activated; // dv_dparam = activated
 
                 dv_dhidden[1][i] = NNUE.out[i+NEURONS] * (hidden[1][i] > 0);
             }
@@ -122,7 +122,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
 
             grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
             for (int i = 0; i < NEURONS_X2; i++) {
-                grad_acc.out[i] += dloss_dv * grad.out[i]; // dloss_dparam = dloss_dv * dv_dparam
+                grad_acc.out[i] += dloss_dv * dv_dout[i]; // dloss_dparam = dloss_dv * dv_dparam
             }
 
             float dloss_dhidden[2][NEURONS];
@@ -200,7 +200,7 @@ void train() {
             swap(data[i], data[shuffle[i] % (data.size() - i) + i]);
         }
 
-        for (int j = 0; j < 500; j++) {
+        for (int j = 0; j < 1000; j++) {
             threads.clear();
             int index = 0;
             double loss = 0;
