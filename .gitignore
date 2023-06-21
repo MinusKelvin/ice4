@@ -4,3 +4,4 @@
 /ice4-ob
 /ice4.exe
 minifier/parse/cpp.rs
+src/network.txt

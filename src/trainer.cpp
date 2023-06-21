@@ -88,10 +88,10 @@ void optimize(vector<Datapoint> &data, int &index) {
         Nnue weights = NNUE;
         MUTEX.unlock();
 
-        Nnue grad_acc;
+        Nnue grad_acc = {};
         float batch_loss = 0;
         for (int i = start; i < end; i++) {
-            Nnue grad; // dv_dparam for output layer, dhidden_dparam for ft
+            Nnue grad = {}; // dv_dparam for output layer, dhidden_dparam for ft
             float dv_dhidden[2][NEURONS];
             float hidden[2][NEURONS];
             memcpy(hidden[0], weights.ft_bias, sizeof(weights.ft_bias));
@@ -192,33 +192,73 @@ void train() {
     }
     NNUE.out_bias = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
 
-    vector<thread> threads;
-    vector<Datapoint> data;
-    for (int i = 0; i < THREADS; i++) {
-        threads.emplace_back([&]() {
-            datagen(data);
-        });
-    }
-    for (auto& t : threads) {
-        t.join();
-    }
-
-    vector<uint64_t> shuffle(data.size());
-    fread(shuffle.data(), sizeof(uint64_t) * data.size(), 1, RNG_FILE);
-    for (int i = 0; i < data.size(); i++) {
-        swap(data[i], data[shuffle[i] % (data.size() - i) + i]);
-    }
-
-    for (int j = 0; j < 20; j++) {
-        threads.clear();
-        int index = 0;
+    auto cycle = [&]() {
+        vector<thread> threads;
+        vector<Datapoint> data;
         for (int i = 0; i < THREADS; i++) {
             threads.emplace_back([&]() {
-                optimize(data, index);
+                datagen(data);
             });
         }
         for (auto& t : threads) {
             t.join();
         }
+
+        vector<uint64_t> shuffle(data.size());
+        fread(shuffle.data(), sizeof(uint64_t) * data.size(), 1, RNG_FILE);
+        for (int i = 0; i < data.size(); i++) {
+            swap(data[i], data[shuffle[i] % (data.size() - i) + i]);
+        }
+
+        for (int j = 0; j < 20; j++) {
+            threads.clear();
+            int index = 0;
+            for (int i = 0; i < THREADS; i++) {
+                threads.emplace_back([&]() {
+                    optimize(data, index);
+                });
+            }
+            for (auto& t : threads) {
+                t.join();
+            }
+        }
+    };
+    cycle();
+    cycle();
+
+#ifdef OPENBENCH
+    FILE *outfile = fopen("network.txt", "wb");
+    fprintf(outfile, "{");
+    
+    // ft
+    fprintf(outfile, "{");
+    for (int i = 0; i < 768; i++) {
+        fprintf(outfile, "{");
+        for (int j = 0; j < NEURONS; j++) {
+            fprintf(outfile, "%g,", NNUE.ft[i][j]);
+        }
+        fprintf(outfile, "},\n");
     }
+    fprintf(outfile, "},\n");
+    
+    // ft_bias
+    fprintf(outfile, "{");
+    for (int j = 0; j < NEURONS; j++) {
+        fprintf(outfile, "%g,", NNUE.ft_bias[j]);
+    }
+    fprintf(outfile, "},\n");
+    
+    // out
+    fprintf(outfile, "{");
+    for (int j = 0; j < NEURONS_X2; j++) {
+        fprintf(outfile, "%g,", NNUE.out[j]);
+    }
+    fprintf(outfile, "},\n");
+
+    // out_bias
+    fprintf(outfile, "%g", NNUE.out_bias);
+
+    fprintf(outfile, "}");
+    fclose(outfile);
+#endif
 }

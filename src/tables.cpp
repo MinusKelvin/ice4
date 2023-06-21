@@ -3,11 +3,12 @@ struct Nnue {
     float ft_bias[NEURONS];
     float out[NEURONS_X2];
     float out_bias;
-
-    Nnue() {
-        memset(this, 0, sizeof(Nnue));
-    }
-} NNUE;
+} NNUE
+#ifdef OPENBENCH
+=
+#include "network.txt"
+#endif
+;
 
 int FEATURE[25][SQUARE_SPAN];
 

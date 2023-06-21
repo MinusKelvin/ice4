@@ -6,7 +6,16 @@ default: ice4
 EXE = ice4-ob
 endif
 
-DEPS := $(wildcard src/** minifier/** Cargo.toml build.rs)
+ifdef EVALFILE
+src/network.txt:
+	cp $(EVALFILE) $@
+else
+src/network.txt:
+	echo "{}" >$@
+endif
+.PHONY: src/network.txt
+
+DEPS := $(wildcard src/**.cpp minifier/** Cargo.toml build.rs)
 
 ice4: launcher.sh $(DEPS)
 	cargo run --release | ./compress.sh | cat launcher.sh - >ice4
@@ -21,7 +30,7 @@ ice4-tcec: launcher.sh $(DEPS)
 ice4.exe: $(DEPS)
 	x86_64-w64-mingw32-g++-posix -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
 
-$(EXE): $(DEPS)
+$(EXE): $(DEPS) src/network.txt
 	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread src/main.cpp -o "$@"
 
 ice4-asan: $(DEPS)
