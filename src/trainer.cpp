@@ -68,7 +68,7 @@ void datagen(vector<Datapoint> &data) {
         }
         int flip = 0;
         for (Datapoint &elem : game_data) {
-            elem.target = (flip - outcome) * OUTCOME_PART +
+            elem.target = (flip ? 1 - outcome : outcome) * OUTCOME_PART +
                 EVAL_PART * sigmoid(elem.target / EVAL_SCALE);
             flip ^= 1;
         }
