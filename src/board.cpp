@@ -242,6 +242,6 @@ struct Board {
         for (int i = 0; i < NEURONS; i++) {
             v += NNUE.out[i+NEURONS] * max(acc[!first][i], 0.f);
         }
-        return v * EVAL_SCALE + (stm == WHITE ? material : -material);
+        return v * EVAL_SCALE;// + (stm == WHITE ? material : -material);
     }
 } ROOT;

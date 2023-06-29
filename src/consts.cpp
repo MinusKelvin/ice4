@@ -18,6 +18,7 @@ int THREADS = 1;
 #define FT_INIT_SCALE 0.036
 #define OUT_INIT_SCALE 0.25
 #define BATCH_SIZE 4096
+#define FEATURE_FLIP 1
 
 #define LOST -30000
 #define WON 30000
@@ -114,5 +115,3 @@ int THREADS = 1;
 #define F8 96
 #define G8 97
 #define H8 98
-
-#define FEATURE_FLIP 15
