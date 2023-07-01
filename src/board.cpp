@@ -43,12 +43,12 @@ struct Board {
     uint8_t stm;
     int16_t material;
     uint64_t zobrist;
-    float acc[2][NEURONS];
+    int acc[2][NEURONS];
 
     void edit(int square, int piece) {
         for (int i = 0; i < NEURONS; i++) {
-            acc[0][i] -= NNUE.ft[FEATURE[board[square]][square-A1]][i];
-            acc[1][i] -= NNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+            acc[0][i] -= QNNUE.ft[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] -= QNNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
         }
         material += (!(board[square] & WHITE) - !(board[square] & BLACK)) * MATERIAL[board[square] & 7];
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
@@ -56,16 +56,16 @@ struct Board {
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         material -= (!(board[square] & WHITE) - !(board[square] & BLACK)) * MATERIAL[board[square] & 7];
         for (int i = 0; i < NEURONS; i++) {
-            acc[0][i] += NNUE.ft[FEATURE[board[square]][square-A1]][i];
-            acc[1][i] += NNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
+            acc[0][i] += QNNUE.ft[FEATURE[board[square]][square-A1]][i];
+            acc[1][i] += QNNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
         }
     }
 
     Board() {
         memset(this, 0, sizeof(Board));
         memset(board, INVALID, 120);
-        memcpy(acc[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
-        memcpy(acc[1], NNUE.ft_bias, sizeof(NNUE.ft_bias));
+        memcpy(acc[0], QNNUE.ft_bias, sizeof(QNNUE.ft_bias));
+        memcpy(acc[1], QNNUE.ft_bias, sizeof(QNNUE.ft_bias));
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
@@ -234,14 +234,14 @@ struct Board {
     }
 
     int eval() {
-        float v = NNUE.out_bias;
+        int v = QNNUE.out_bias;
         int first = stm == BLACK;
         for (int i = 0; i < NEURONS; i++) {
-            v += NNUE.out[i] * max(acc[first][i], 0.f);
+            v += QNNUE.out[i] * max(acc[first][i], 0);
         }
         for (int i = 0; i < NEURONS; i++) {
-            v += NNUE.out[i+NEURONS] * max(acc[!first][i], 0.f);
+            v += QNNUE.out[i+NEURONS] * max(acc[!first][i], 0);
         }
-        return v * EVAL_SCALE;// + (stm == WHITE ? material : -material);
+        return v / 40;// + (stm == WHITE ? material : -material);
     }
 } ROOT;
