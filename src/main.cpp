@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
         timespec start, end;
         clock_gettime(CLOCK_MONOTONIC, &start);
         for (int i = 0; i < 64; i++) {
+            QNNUE = VARIANTS[i % (sizeof(VARIANTS) / sizeof(QuantizedNnue))];
             ROOT = Board();
             parse_fen();
             Searcher s;

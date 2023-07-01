@@ -32,6 +32,11 @@ void uci() {
             case 'q': // quit
                 exit(0);
 #ifdef OPENBENCH
+            case 'u': // ucinewgame
+                uint64_t nnue_idx;
+                fread(&nnue_idx, sizeof(nnue_idx), 1, RNG_FILE);
+                QNNUE = VARIANTS[nnue_idx % (sizeof(VARIANTS) / sizeof(QuantizedNnue))];
+                break;
             case 's': // setoption
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");

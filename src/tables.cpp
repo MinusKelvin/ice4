@@ -15,7 +15,7 @@ struct QuantizedNnue {
     int out_bias;
 } QNNUE
 #ifdef OPENBENCH
-=
+, VARIANTS[] =
 #include "network.txt"
 #endif
 ;
