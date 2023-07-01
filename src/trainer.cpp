@@ -104,7 +104,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
                     hidden[1][k] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                 }
             }
-            float v = NNUE.out_bias + data[i].material / EVAL_SCALE;
+            float v = NNUE.out_bias - data[i].material / EVAL_SCALE;
             for (int i = 0; i < NEURONS; i++) {
                 float activated = max(hidden[0][i], 0.f);
                 v += NNUE.out[i] * activated;
