@@ -3,12 +3,7 @@ struct Nnue {
     float ft_bias[NEURONS];
     float out[NEURONS_X2];
     float out_bias;
-} NNUE
-#ifdef OPENBENCH
-=
-#include "network.txt"
-#endif
-;
+} NNUE;
 
 int FEATURE[25][SQUARE_SPAN];
 int MATERIAL[] = {0,100,280,310,500,900,0};
@@ -18,7 +13,12 @@ struct QuantizedNnue {
     int ft_bias[NEURONS];
     int out[NEURONS_X2];
     int out_bias;
-} QNNUE;
+} QNNUE
+#ifdef OPENBENCH
+=
+#include "network.txt"
+#endif
+;
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
@@ -76,16 +76,4 @@ void init_tables() {
             }
         }
     }
-
-    for (int f = 2; f < 768; f++) {
-        for (int i = 0; i < NEURONS; i++) {
-            QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
-        }
-    }
-    for (int i = 0; i < NEURONS; i++) {
-        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
-        QNNUE.out[i] = round(NNUE.out[i] * 64);
-        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
-    }
-    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 }

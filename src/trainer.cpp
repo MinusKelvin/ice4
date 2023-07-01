@@ -167,10 +167,7 @@ void optimize(barrier<> &b, vector<Datapoint> &data, int &index, double &total_l
 void train() {
     int32_t random[772][NEURONS];
     fread(random, sizeof(random), 1, RNG_FILE);
-    for (int i = 0; i < 768; i++) {
-        if (!i || i == FEATURE_FLIP) {
-            continue;
-        }
+    for (int i = 2; i < 768; i++) {
         for (int j = 0; j < NEURONS; j++) {
             NNUE.ft[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
         }
@@ -234,6 +231,18 @@ void train() {
     lr /= 10;
     cycle();
 
+    for (int f = 2; f < 768; f++) {
+        for (int i = 0; i < NEURONS; i++) {
+            QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
+        }
+    }
+    for (int i = 0; i < NEURONS; i++) {
+        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
+        QNNUE.out[i] = round(NNUE.out[i] * 64);
+        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
+    }
+    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
+
 #ifdef OPENBENCH
     FILE *outfile = fopen("network.txt", "wb");
     fprintf(outfile, "{");
@@ -243,7 +252,7 @@ void train() {
     for (int i = 0; i < 768; i++) {
         fprintf(outfile, "{");
         for (int j = 0; j < NEURONS; j++) {
-            fprintf(outfile, "%g,", NNUE.ft[i][j]);
+            fprintf(outfile, "%d,", QNNUE.ft[i][j]);
         }
         fprintf(outfile, "},\n");
     }
@@ -252,19 +261,19 @@ void train() {
     // ft_bias
     fprintf(outfile, "{");
     for (int j = 0; j < NEURONS; j++) {
-        fprintf(outfile, "%g,", NNUE.ft_bias[j]);
+        fprintf(outfile, "%d,", QNNUE.ft_bias[j]);
     }
     fprintf(outfile, "},\n");
     
     // out
     fprintf(outfile, "{");
     for (int j = 0; j < NEURONS_X2; j++) {
-        fprintf(outfile, "%g,", NNUE.out[j]);
+        fprintf(outfile, "%d,", QNNUE.out[j]);
     }
     fprintf(outfile, "},\n");
 
     // out_bias
-    fprintf(outfile, "%g", NNUE.out_bias);
+    fprintf(outfile, "%d", QNNUE.out_bias);
 
     fprintf(outfile, "}");
     fclose(outfile);
