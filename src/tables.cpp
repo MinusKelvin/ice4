@@ -87,5 +87,5 @@ void init_tables() {
         QNNUE.out[i] = round(NNUE.out[i] * 64);
         QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
     }
-    QNNUE.out_bias = round(NNUE.out_bias * 128 * 64);
+    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 }

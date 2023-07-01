@@ -187,6 +187,19 @@ void train() {
         barrier<> b(THREADS);
         vector<thread> threads;
         vector<Datapoint> data;
+
+        for (int f = 2; f < 768; f++) {
+            for (int i = 0; i < NEURONS; i++) {
+                QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
+            }
+        }
+        for (int i = 0; i < NEURONS; i++) {
+            QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
+            QNNUE.out[i] = round(NNUE.out[i] * 64);
+            QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
+        }
+        QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
+
         for (int i = 0; i < THREADS; i++) {
             threads.emplace_back([&]() {
                 datagen(data);
