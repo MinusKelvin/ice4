@@ -10,8 +10,8 @@ int THREADS = 1;
 
 #define DATAGEN_DEPTH 5
 #define DATAGEN_SIZE 1000000
-#define OUTCOME_PART 1.0
-#define EVAL_PART 0.0
+#define OUTCOME_PART 0.5
+#define EVAL_PART 0.5
 #define EVAL_SCALE 203.0
 #define NEURONS 16
 #define NEURONS_X2 32
