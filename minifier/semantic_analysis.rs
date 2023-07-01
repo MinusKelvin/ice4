@@ -376,7 +376,13 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             }
             None => TypeOf::Unknown(None),
         },
-        Expr::Lambda(args, body) => {
+        Expr::Lambda(caps, args, body) => {
+            for cap in caps {
+                if let Some(id) = scope.lookup(cap) {
+                    *cap = format!("${id}");
+                    symbols.symbols[id].occurances += 1;
+                }
+            }
             let mut scope = Scope::new(scope);
             for (ty, decl) in args {
                 let ty = process_base_type(symbols, &mut scope, ty);

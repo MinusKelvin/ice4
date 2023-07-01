@@ -11,7 +11,7 @@ struct Trainer {
     float total_loss;
 #endif
     float lr;
-    int index;
+    size_t index;
 
     Trainer() : data(), bar(THREADS) {}
 
@@ -69,7 +69,7 @@ struct Trainer {
                 Datapoint &elem = game_data.emplace_back();
                 elem.target = v;
                 elem.material = board.stm == WHITE ? board.material : -board.material;
-                int flip = board.stm == WHITE ? 0 : FEATURE_FLIP;
+                int flip = board.stm != WHITE;
                 int i = 0;
                 for (int sq = A1; sq <= H8; sq++) {
                     if (board.board[sq] & 7) {
@@ -99,8 +99,8 @@ struct Trainer {
         while (index < data.size()) {
             bar.arrive_and_wait();
             MUTEX.lock();
-            int start = min((int) data.size(), index);
-            int end = min((int) data.size(), index += BATCH_SIZE / THREADS);
+            int start = min(data.size(), index);
+            int end = min(data.size(), index += BATCH_SIZE / THREADS);
             MUTEX.unlock();
 
             Nnue grad_acc = {};
@@ -109,36 +109,29 @@ struct Trainer {
 #endif
             for (int i = start; i < end; i++) {
                 float dv_dout[NEURONS_X2]; // dv_dparam for output layer
-                float dv_dhidden[2][NEURONS];
-                float hidden[2][NEURONS];
-                memcpy(hidden[0], NNUE.ft_bias, sizeof(NNUE.ft_bias));
-                memcpy(hidden[1], NNUE.ft_bias, sizeof(NNUE.ft_bias));
+                float dv_dhidden[NEURONS_X2];
+                float hidden[NEURONS_X2];
+                memcpy(hidden, NNUE.ft_bias, sizeof(NNUE.ft_bias));
+                memcpy(&hidden[NEURONS], NNUE.ft_bias, sizeof(NNUE.ft_bias));
                 for (int j = 0; data[i].features[j] != -1; j++) {
                     for (int k = 0; k < NEURONS; k++) {
-                        hidden[0][k] += NNUE.ft[data[i].features[j]][k];
-                        hidden[1][k] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
+                        hidden[k] += NNUE.ft[data[i].features[j]][k];
+                        hidden[k+NEURONS] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                     }
                 }
                 float v = NNUE.out_bias - data[i].material / EVAL_SCALE;
-                for (int i = 0; i < NEURONS; i++) {
-                    float activated = max(hidden[0][i], 0.f);
-                    v += NNUE.out[i] * activated;
-                    dv_dout[i] = activated; // dv_dparam = activated
-                    dv_dhidden[0][i] = NNUE.out[i] * (hidden[0][i] > 0);
-
-                    activated = max(hidden[1][i], 0.f);
-                    v += NNUE.out[i+NEURONS] * activated;
-                    dv_dout[i+NEURONS] = activated; // dv_dparam = activated
-
-                    dv_dhidden[1][i] = NNUE.out[i+NEURONS] * (hidden[1][i] > 0);
+                for (int i = 0; i < NEURONS_X2; i++) {
+                    dv_dout[i] = max(hidden[i], 0.f); // dv_dparam = activated
+                    v += NNUE.out[i] * dv_dout[i];
+                    dv_dhidden[i] = NNUE.out[i] * (hidden[i] > 0);
                 }
-                float difference = data[i].target - sigmoid(v);
 
 #ifdef OPENBENCH
+                float difference = data[i].target - sigmoid(v);
                 batch_loss += difference * difference;
 #endif
 
-                float dloss_dv = lr * difference * sigmoid(v) * (1 - sigmoid(v));
+                float dloss_dv = lr * (data[i].target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
 
                 grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
                 for (int i = 0; i < NEURONS_X2; i++) {
@@ -147,8 +140,8 @@ struct Trainer {
 
                 float dloss_dhidden[2][NEURONS];
                 for (int i = 0; i < NEURONS; i++) {
-                    dloss_dhidden[0][i] = dloss_dv * dv_dhidden[0][i];
-                    dloss_dhidden[1][i] = dloss_dv * dv_dhidden[1][i];
+                    dloss_dhidden[0][i] = dloss_dv * dv_dhidden[i];
+                    dloss_dhidden[1][i] = dloss_dv * dv_dhidden[i+NEURONS];
                     grad_acc.ft_bias[i] += dloss_dhidden[0][i] + dloss_dhidden[1][i];
                     // dloss_dparam = dloss_dhidden * dhidden_dparam
                 }
@@ -185,25 +178,58 @@ struct Trainer {
 };
 
 void train() {
-    int32_t random[772][NEURONS];
+    auto parallel = [&](auto f) {
+        vector<thread> threads;
+        for (int i = 0; i < THREADS; i++) {
+            threads.emplace_back(f);
+        }
+        for (auto &t : threads) {
+            t.join();
+        }
+    };
+
+    int32_t random[768][NEURONS];
     fread(random, sizeof(random), 1, RNG_FILE);
     for (int i = 2; i < 768; i++) {
         for (int j = 0; j < NEURONS; j++) {
             NNUE.ft[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
+            QNNUE.ft[i][j] = round(NNUE.ft[i][j] * 127);
         }
     }
     for (int i = 0; i < NEURONS; i++) {
-        NNUE.ft_bias[i] = FT_INIT_SCALE * random[768][i] / (float)(1 << 31);
-        NNUE.out[i] = OUT_INIT_SCALE * random[769][i] / (float)(1 << 31);
-        NNUE.out[i+NEURONS] = OUT_INIT_SCALE * random[770][i] / (float)(1 << 31);
+        NNUE.ft_bias[i] = FT_INIT_SCALE * random[0][i] / (float)(1 << 31);
+        NNUE.out[i] = OUT_INIT_SCALE * random[1][i] / (float)(1 << 31);
+        NNUE.out[i+NEURONS] = OUT_INIT_SCALE * random[2][i] / (float)(1 << 31);
+        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
+        QNNUE.out[i] = round(NNUE.out[i] * 64);
+        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
     }
-    NNUE.out_bias = OUT_INIT_SCALE * random[771][0] / (float)(1 << 31);
+    NNUE.out_bias = OUT_INIT_SCALE * random[3][0] / (float)(1 << 31);
+    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 
     Trainer trainer;
     trainer.lr = 0.001;
 
     auto cycle = [&]() {
-        vector<thread> threads;
+        trainer.data.clear();
+        parallel([&]() { trainer.datagen(); });
+
+        vector<uint64_t> shuffle(trainer.data.size());
+        fread(shuffle.data(), sizeof(uint64_t) * trainer.data.size(), 1, RNG_FILE);
+        for (int i = 0; i < trainer.data.size(); i++) {
+            swap(trainer.data[i], trainer.data[shuffle[i] % (trainer.data.size() - i) + i]);
+        }
+
+        for (int j = 0; j < 1000; j++) {
+            trainer.index = 0;
+#ifdef OPENBENCH
+            trainer.total_loss = 0;
+#endif
+            parallel([&]() { trainer.optimize(); });
+#ifdef OPENBENCH
+            printf("epoch %d: %g\n", j, trainer.total_loss / trainer.data.size());
+#endif
+        }
 
         for (int f = 2; f < 768; f++) {
             for (int i = 0; i < NEURONS; i++) {
@@ -216,55 +242,10 @@ void train() {
             QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
         }
         QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
-
-        for (int i = 0; i < THREADS; i++) {
-            threads.emplace_back([&]() {
-                trainer.datagen();
-            });
-        }
-        for (auto& t : threads) {
-            t.join();
-        }
-
-        vector<uint64_t> shuffle(trainer.data.size());
-        fread(shuffle.data(), sizeof(uint64_t) * trainer.data.size(), 1, RNG_FILE);
-        for (int i = 0; i < trainer.data.size(); i++) {
-            swap(trainer.data[i], trainer.data[shuffle[i] % (trainer.data.size() - i) + i]);
-        }
-
-        for (int j = 0; j < 1000; j++) {
-            threads.clear();
-#ifdef OPENBENCH
-            trainer.total_loss = 0;
-#endif
-            for (int i = 0; i < THREADS; i++) {
-                threads.emplace_back([&]() {
-                    trainer.optimize();
-                });
-            }
-            for (auto& t : threads) {
-                t.join();
-            }
-#ifdef OPENBENCH
-            printf("epoch %d: %g\n", j, trainer.total_loss / trainer.data.size());
-#endif
-        }
     };
     cycle();
     trainer.lr /= 10;
     cycle();
-
-    for (int f = 2; f < 768; f++) {
-        for (int i = 0; i < NEURONS; i++) {
-            QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
-        }
-    }
-    for (int i = 0; i < NEURONS; i++) {
-        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
-        QNNUE.out[i] = round(NNUE.out[i] * 64);
-        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
-    }
-    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 
 #ifdef OPENBENCH
     FILE *outfile = fopen("network.txt", "wb");

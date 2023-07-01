@@ -17,3 +17,4 @@ uint64_t
 uint8_t
 vector
 FILE
+size_t

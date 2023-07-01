@@ -93,7 +93,7 @@ fn merge_decls_item(ast: &mut Vec<MemberItem>) {
 fn merge_decls_expr(ast: &mut Expr) {
     match ast {
         Expr::Number(_) | Expr::String(_) | Expr::Ident(_) | Expr::SizeOfType(_) => {}
-        Expr::Lambda(_, body) => merge_decls_stmt(body),
+        Expr::Lambda(_, _, body) => merge_decls_stmt(body),
         Expr::Comma(e1, e2)
         | Expr::Assign(e1, e2)
         | Expr::OrAssign(e1, e2)
