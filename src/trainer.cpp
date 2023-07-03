@@ -89,7 +89,9 @@ struct Trainer {
             data.insert(data.end(), game_data.begin(), game_data.end());
             not_done = data.size() < DATAGEN_SIZE;
 #ifdef OPENBENCH
-            printf("datagen: %ld\n", data.size());
+            if (data.size() / 10000 != (data.size() - game_data.size()) / 10000) {
+                printf("datagen: %ld\n", data.size());
+            }
 #endif
             MUTEX.unlock();
         }
@@ -208,7 +210,7 @@ void train() {
     QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 
     Trainer trainer;
-    trainer.lr = 0.001;
+    trainer.lr = LR;
 
     auto cycle = [&]() {
         trainer.data.clear();
@@ -220,14 +222,14 @@ void train() {
             swap(trainer.data[i], trainer.data[shuffle[i] % (trainer.data.size() - i) + i]);
         }
 
-        for (int j = 0; j < 1000; j++) {
+        for (int j = 0; j < EPOCHS; j++) {
             trainer.index = 0;
 #ifdef OPENBENCH
             trainer.total_loss = 0;
 #endif
             parallel([&]() { trainer.optimize(); });
 #ifdef OPENBENCH
-            printf("epoch %d: %g\n", j, trainer.total_loss / trainer.data.size());
+            printf("epoch %d: %g\n", j+1, trainer.total_loss / trainer.data.size());
 #endif
         }
 
@@ -243,8 +245,6 @@ void train() {
         }
         QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
     };
-    cycle();
-    trainer.lr /= 10;
     cycle();
 
 #ifdef OPENBENCH
