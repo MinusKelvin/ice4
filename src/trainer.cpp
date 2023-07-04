@@ -1,5 +1,6 @@
 struct Datapoint {
     int features[33];
+    int black;
     float target;
 };
 
@@ -68,23 +69,23 @@ struct Trainer {
                     outcome = 0.5;
                     break;
                 }
-                Datapoint &elem = game_data.emplace_back();
-                elem.target = v;
-                int flip = board.stm != WHITE;
-                int i = 0;
-                for (int sq = A1; sq <= H8; sq++) {
-                    if (board.board[sq] & 7) {
-                        elem.features[i++] = FEATURE[board.board[sq]][sq-A1] ^ flip;
+                if (!board.board[mv.to]) {
+                    Datapoint &elem = game_data.emplace_back();
+                    elem.target = v;
+                    elem.black = board.stm != WHITE;
+                    int i = 0;
+                    for (int sq = A1; sq <= H8; sq++) {
+                        if (board.board[sq] & 7) {
+                            elem.features[i++] = FEATURE[board.board[sq]][sq-A1] ^ elem.black;
+                        }
                     }
+                    elem.features[i] = -1;
                 }
-                elem.features[i] = -1;
                 board.make_move(mv);
             }
-            int flip = 0;
             for (Datapoint &elem : game_data) {
-                elem.target = (flip ? 1 - outcome : outcome) * outcome_part +
+                elem.target = (elem.black ? 1 - outcome : outcome) * outcome_part +
                     (1 - outcome_part) * sigmoid(elem.target / EVAL_SCALE);
-                flip ^= 1;
             }
             MUTEX.lock();
             data.insert(data.end(), game_data.begin(), game_data.end());
