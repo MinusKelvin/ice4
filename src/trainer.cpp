@@ -12,6 +12,8 @@ struct Trainer {
 #endif
     float lr;
     size_t index;
+    size_t datagen_size;
+    int datagen_depth;
 
     Trainer() : data(), bar(THREADS) {}
 
@@ -48,7 +50,7 @@ struct Trainer {
             for (;;) {
                 Move mv(0);
                 history[s.prehistory_len++] = board.zobrist;
-                for (int depth = 1; depth <= DATAGEN_DEPTH; depth++) {
+                for (int depth = 1; depth <= datagen_depth; depth++) {
                     v = s.negamax(board, mv, LOST, WON, depth, 0);
                 }
                 if (v > 20000) {
@@ -87,7 +89,7 @@ struct Trainer {
             }
             MUTEX.lock();
             data.insert(data.end(), game_data.begin(), game_data.end());
-            not_done = data.size() < DATAGEN_SIZE;
+            not_done = data.size() < datagen_size;
 #ifdef OPENBENCH
             if (data.size() / 10000 != (data.size() - game_data.size()) / 10000) {
                 printf("datagen: %ld\n", data.size());
@@ -210,7 +212,6 @@ void train() {
     QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
 
     Trainer trainer;
-    trainer.lr = LR;
 
     auto cycle = [&]() {
         trainer.data.clear();
@@ -245,6 +246,9 @@ void train() {
         }
         QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
     };
+    trainer.lr = 0.001;
+    trainer.datagen_depth = 2;
+    trainer.datagen_size = 10000000;
     cycle();
 
 #ifdef OPENBENCH

@@ -8,10 +8,7 @@ int THREADS = 1;
 #define THREADS 1
 #endif
 
-#define DATAGEN_DEPTH 2
-#define DATAGEN_SIZE 10000000
 #define EPOCHS 100
-#define LR 0.001
 #define OUTCOME_PART 0.1
 #define EVAL_PART 0.9
 #define EVAL_SCALE 203.0
