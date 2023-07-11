@@ -16,7 +16,9 @@ struct QuantizedNnue {
 } QNNUE
 #ifdef OPENBENCH
 , VARIANTS[] =
+{
 #include "network.txt"
+}
 #endif
 ;
 
