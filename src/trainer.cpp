@@ -287,6 +287,7 @@ void train() {
 
 #ifdef OPENBENCH
     write_network("networks/0.txt");
+    double start = now();
 #endif
 
     for (int i = 0; i < 1000; i++) {
@@ -300,10 +301,15 @@ void train() {
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);
         if ((i + 1) % 10 == 0) {
+            int ms = (now() - start) * 1000;
             char buf[256];
-            sprintf(buf, "networks/%d.txt", i+1);
+            sprintf(buf, "networks/%d.txt", ms);
             write_network(buf);
         }
 #endif
     }
+
+#ifdef OPENBENCH
+    write_network("network.txt");
+#endif
 }
