@@ -6,7 +6,6 @@ struct Nnue {
 } NNUE;
 
 int FEATURE[25][SQUARE_SPAN];
-int MATERIAL[] = {0,100,280,310,500,900,0};
 
 struct QuantizedNnue {
     int ft[768][NEURONS];

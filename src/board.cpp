@@ -41,7 +41,6 @@ struct Board {
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
-    int16_t material;
     uint64_t zobrist;
     int acc[2][NEURONS];
 
@@ -50,11 +49,9 @@ struct Board {
             acc[0][i] -= QNNUE.ft[FEATURE[board[square]][square-A1]][i];
             acc[1][i] -= QNNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
         }
-        material += (!(board[square] & WHITE) - !(board[square] & BLACK)) * MATERIAL[board[square] & 7];
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
-        material -= (!(board[square] & WHITE) - !(board[square] & BLACK)) * MATERIAL[board[square] & 7];
         for (int i = 0; i < NEURONS; i++) {
             acc[0][i] += QNNUE.ft[FEATURE[board[square]][square-A1]][i];
             acc[1][i] += QNNUE.ft[FEATURE[board[square]][square-A1] ^ FEATURE_FLIP][i];
@@ -242,6 +239,6 @@ struct Board {
         for (int i = 0; i < NEURONS; i++) {
             v += QNNUE.out[i+NEURONS] * max(acc[!first][i], 0);
         }
-        return v / 40;// + (first ? -material : material);
+        return v / 40;
     }
 } ROOT;

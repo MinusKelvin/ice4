@@ -1,6 +1,5 @@
 struct Datapoint {
     int features[33];
-    int material;
     float target;
 };
 
@@ -71,7 +70,6 @@ struct Trainer {
                 }
                 Datapoint &elem = game_data.emplace_back();
                 elem.target = v;
-                elem.material = board.stm == WHITE ? board.material : -board.material;
                 int flip = board.stm != WHITE;
                 int i = 0;
                 for (int sq = A1; sq <= H8; sq++) {
@@ -124,7 +122,7 @@ struct Trainer {
                         hidden[k+NEURONS] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                     }
                 }
-                float v = NNUE.out_bias;// - data[i].material / EVAL_SCALE;
+                float v = NNUE.out_bias;
                 for (int i = 0; i < NEURONS_X2; i++) {
                     dv_dout[i] = max(hidden[i], 0.f); // dv_dparam = activated
                     v += NNUE.out[i] * dv_dout[i];
@@ -181,6 +179,44 @@ struct Trainer {
         }
     }
 };
+
+#ifdef OPENBENCH
+void write_network(const char *file) {
+    FILE *outfile = fopen(file, "wb");
+    fprintf(outfile, "{");
+    
+    // ft
+    fprintf(outfile, "{");
+    for (int i = 0; i < 768; i++) {
+        fprintf(outfile, "{");
+        for (int j = 0; j < NEURONS; j++) {
+            fprintf(outfile, "%d,", QNNUE.ft[i][j]);
+        }
+        fprintf(outfile, "},\n");
+    }
+    fprintf(outfile, "},\n");
+    
+    // ft_bias
+    fprintf(outfile, "{");
+    for (int j = 0; j < NEURONS; j++) {
+        fprintf(outfile, "%d,", QNNUE.ft_bias[j]);
+    }
+    fprintf(outfile, "},\n");
+    
+    // out
+    fprintf(outfile, "{");
+    for (int j = 0; j < NEURONS_X2; j++) {
+        fprintf(outfile, "%d,", QNNUE.out[j]);
+    }
+    fprintf(outfile, "},\n");
+
+    // out_bias
+    fprintf(outfile, "%d", QNNUE.out_bias);
+
+    fprintf(outfile, "}");
+    fclose(outfile);
+}
+#endif
 
 void train() {
     auto parallel = [&](auto f) {
@@ -251,8 +287,11 @@ void train() {
     trainer.datagen_size = 10000;
     trainer.outcome_part = 1;
 
+#ifdef OPENBENCH
+    write_network("networks/0.txt");
+#endif
+
     for (int i = 0; i < 1000; i++) {
-        printf("%d\n", i);
         trainer.data.clear();
         cycle();
         if ((i + 1) % 100 == 0) {
@@ -261,42 +300,11 @@ void train() {
         }
 
 #ifdef OPENBENCH
+        printf("iter %d done\n", i);
         if ((i + 1) % 10 == 0) {
             char buf[256];
-            sprintf(buf, "networks/%d.txt", i);
-            FILE *outfile = fopen(buf, "wb");
-            fprintf(outfile, "{");
-            
-            // ft
-            fprintf(outfile, "{");
-            for (int i = 0; i < 768; i++) {
-                fprintf(outfile, "{");
-                for (int j = 0; j < NEURONS; j++) {
-                    fprintf(outfile, "%d,", QNNUE.ft[i][j]);
-                }
-                fprintf(outfile, "},\n");
-            }
-            fprintf(outfile, "},\n");
-            
-            // ft_bias
-            fprintf(outfile, "{");
-            for (int j = 0; j < NEURONS; j++) {
-                fprintf(outfile, "%d,", QNNUE.ft_bias[j]);
-            }
-            fprintf(outfile, "},\n");
-            
-            // out
-            fprintf(outfile, "{");
-            for (int j = 0; j < NEURONS_X2; j++) {
-                fprintf(outfile, "%d,", QNNUE.out[j]);
-            }
-            fprintf(outfile, "},\n");
-
-            // out_bias
-            fprintf(outfile, "%d", QNNUE.out_bias);
-
-            fprintf(outfile, "}");
-            fclose(outfile);
+            sprintf(buf, "networks/%d.txt", i+1);
+            write_network(buf);
         }
 #endif
     }
