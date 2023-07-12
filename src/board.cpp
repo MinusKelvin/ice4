@@ -242,6 +242,6 @@ struct Board {
         for (int i = 0; i < NEURONS; i++) {
             v += QNNUE.out[i+NEURONS] * max(acc[!first][i], 0);
         }
-        return v / 40 + (first ? -material : material);
+        return v / 40;// + (first ? -material : material);
     }
 } ROOT;

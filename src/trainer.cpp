@@ -11,6 +11,7 @@ struct Trainer {
     float total_loss;
 #endif
     float lr;
+    float outcome_part;
     size_t index;
     size_t datagen_size;
     int datagen_depth;
@@ -83,8 +84,8 @@ struct Trainer {
             }
             int flip = 0;
             for (Datapoint &elem : game_data) {
-                elem.target = (flip ? 1 - outcome : outcome) * OUTCOME_PART +
-                    EVAL_PART * sigmoid(elem.target / EVAL_SCALE);
+                elem.target = (flip ? 1 - outcome : outcome) * outcome_part +
+                    (1 - outcome_part) * sigmoid(elem.target / EVAL_SCALE);
                 flip ^= 1;
             }
             MUTEX.lock();
@@ -123,7 +124,7 @@ struct Trainer {
                         hidden[k+NEURONS] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
                     }
                 }
-                float v = NNUE.out_bias - data[i].material / EVAL_SCALE;
+                float v = NNUE.out_bias;// - data[i].material / EVAL_SCALE;
                 for (int i = 0; i < NEURONS_X2; i++) {
                     dv_dout[i] = max(hidden[i], 0.f); // dv_dparam = activated
                     v += NNUE.out[i] * dv_dout[i];
@@ -214,7 +215,6 @@ void train() {
     Trainer trainer;
 
     auto cycle = [&]() {
-        trainer.data.clear();
         parallel([&]() { trainer.datagen(); });
 
         vector<uint64_t> shuffle(trainer.data.size());
@@ -247,43 +247,57 @@ void train() {
         QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
     };
     trainer.lr = 0.001;
-    trainer.datagen_depth = 2;
-    trainer.datagen_size = 10000000;
-    cycle();
+    trainer.datagen_depth = 5;
+    trainer.datagen_size = 10000;
+    trainer.outcome_part = 1;
+
+    for (int i = 0; i < 1000; i++) {
+        printf("%d\n", i);
+        trainer.data.clear();
+        cycle();
+        if ((i + 1) % 100 == 0) {
+            trainer.lr *= 0.5;
+            trainer.outcome_part *= 0.9;
+        }
 
 #ifdef OPENBENCH
-    FILE *outfile = fopen("network.txt", "wb");
-    fprintf(outfile, "{");
-    
-    // ft
-    fprintf(outfile, "{");
-    for (int i = 0; i < 768; i++) {
-        fprintf(outfile, "{");
-        for (int j = 0; j < NEURONS; j++) {
-            fprintf(outfile, "%d,", QNNUE.ft[i][j]);
+        if ((i + 1) % 10 == 0) {
+            char buf[256];
+            sprintf(buf, "networks/%d.txt", i);
+            FILE *outfile = fopen(buf, "wb");
+            fprintf(outfile, "{");
+            
+            // ft
+            fprintf(outfile, "{");
+            for (int i = 0; i < 768; i++) {
+                fprintf(outfile, "{");
+                for (int j = 0; j < NEURONS; j++) {
+                    fprintf(outfile, "%d,", QNNUE.ft[i][j]);
+                }
+                fprintf(outfile, "},\n");
+            }
+            fprintf(outfile, "},\n");
+            
+            // ft_bias
+            fprintf(outfile, "{");
+            for (int j = 0; j < NEURONS; j++) {
+                fprintf(outfile, "%d,", QNNUE.ft_bias[j]);
+            }
+            fprintf(outfile, "},\n");
+            
+            // out
+            fprintf(outfile, "{");
+            for (int j = 0; j < NEURONS_X2; j++) {
+                fprintf(outfile, "%d,", QNNUE.out[j]);
+            }
+            fprintf(outfile, "},\n");
+
+            // out_bias
+            fprintf(outfile, "%d", QNNUE.out_bias);
+
+            fprintf(outfile, "}");
+            fclose(outfile);
         }
-        fprintf(outfile, "},\n");
-    }
-    fprintf(outfile, "},\n");
-    
-    // ft_bias
-    fprintf(outfile, "{");
-    for (int j = 0; j < NEURONS; j++) {
-        fprintf(outfile, "%d,", QNNUE.ft_bias[j]);
-    }
-    fprintf(outfile, "},\n");
-    
-    // out
-    fprintf(outfile, "{");
-    for (int j = 0; j < NEURONS_X2; j++) {
-        fprintf(outfile, "%d,", QNNUE.out[j]);
-    }
-    fprintf(outfile, "},\n");
-
-    // out_bias
-    fprintf(outfile, "%d", QNNUE.out_bias);
-
-    fprintf(outfile, "}");
-    fclose(outfile);
 #endif
+    }
 }
