@@ -157,15 +157,14 @@ struct Board {
 
     int movegen(Move list[], int& count, int quiets=1) {
         count = 0;
-        uint8_t other = stm ^ INVALID;
-        uint8_t opponent_king = other | KING;
+        int other = stm ^ INVALID;
+        int opponent_king = other | KING;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
             if (!board[sq] || board[sq] & other) {
                 continue;
             }
 
-            int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
@@ -203,6 +202,7 @@ struct Board {
                     list[count++] = Move(sq, upsq+1, promo);
                 }
             } else {
+                int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
                 int starts[] = {0,0,8,4,0,0,0};
                 int limits[] = {0,0,1,8,8,8,1};
                 int ends[] = {0,0,16,8,4,8,8};

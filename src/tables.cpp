@@ -1,11 +1,11 @@
+int FEATURE[25][SQUARE_SPAN];
+
 struct Nnue {
     float ft[768][NEURONS];
     float ft_bias[NEURONS];
     float out[NEURONS_X2];
     float out_bias;
 } NNUE;
-
-int FEATURE[25][SQUARE_SPAN];
 
 struct QuantizedNnue {
     int ft[768][NEURONS];

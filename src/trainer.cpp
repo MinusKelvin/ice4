@@ -115,6 +115,8 @@ struct Trainer {
                 float dv_dout[NEURONS_X2]; // dv_dparam for output layer
                 float dv_dhidden[NEURONS_X2];
                 float hidden[NEURONS_X2];
+                float dloss_dhidden[2][NEURONS];
+                float v = NNUE.out_bias;
                 memcpy(hidden, NNUE.ft_bias, sizeof(NNUE.ft_bias));
                 memcpy(&hidden[NEURONS], NNUE.ft_bias, sizeof(NNUE.ft_bias));
                 for (int j = 0; elem.features[j] != -1; j++) {
@@ -123,7 +125,6 @@ struct Trainer {
                         hidden[k+NEURONS] += NNUE.ft[elem.features[j] ^ FEATURE_FLIP][k];
                     }
                 }
-                float v = NNUE.out_bias;
                 for (int i = 0; i < NEURONS_X2; i++) {
                     dv_dout[i] = max(hidden[i], 0.f); // dv_dparam = activated
                     v += NNUE.out[i] * dv_dout[i];
@@ -142,7 +143,6 @@ struct Trainer {
                     grad_acc.out[i] += dloss_dv * dv_dout[i]; // dloss_dparam = dloss_dv * dv_dparam
                 }
 
-                float dloss_dhidden[2][NEURONS];
                 for (int i = 0; i < NEURONS; i++) {
                     dloss_dhidden[0][i] = dloss_dv * dv_dhidden[i];
                     dloss_dhidden[1][i] = dloss_dv * dv_dhidden[i+NEURONS];
@@ -219,6 +219,20 @@ void write_network(const char *file) {
 }
 #endif
 
+void install_net() {
+    for (int f = 2; f < 768; f++) {
+        for (int i = 0; i < NEURONS; i++) {
+            QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
+        }
+    }
+    for (int i = 0; i < NEURONS; i++) {
+        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
+        QNNUE.out[i] = round(NNUE.out[i] * 64);
+        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
+    }
+    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
+}
+
 void train() {
     auto parallel = [&](auto f) {
         vector<thread> threads;
@@ -237,22 +251,18 @@ void train() {
             NNUE.ft[i][0] += 0.5;
         }
         for (int j = 0; j < NEURONS; j++) {
-            NNUE.ft[i][j] += FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
-            QNNUE.ft[i][j] = round(NNUE.ft[i][j] * 127);
+            NNUE.ft[i][j] += FT_INIT_SCALE * random[i][j] / 0x1p31;
         }
     }
     NNUE.out[0] = 1;
     NNUE.out[NEURONS] = -1;
     for (int i = 0; i < NEURONS; i++) {
-        NNUE.ft_bias[i] = FT_INIT_SCALE * random[0][i] / (float)(1 << 31);
-        NNUE.out[i] += OUT_INIT_SCALE * random[1][i] / (float)(1 << 31);
-        NNUE.out[i+NEURONS] += OUT_INIT_SCALE * random[2][i] / (float)(1 << 31);
-        QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
-        QNNUE.out[i] = round(NNUE.out[i] * 64);
-        QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
+        NNUE.ft_bias[i] = FT_INIT_SCALE * random[0][i] / 0x1p31;
+        NNUE.out[i] += OUT_INIT_SCALE * random[1][i] / 0x1p31;
+        NNUE.out[i+NEURONS] += OUT_INIT_SCALE * random[2][i] / 0x1p31;
     }
-    NNUE.out_bias = OUT_INIT_SCALE * random[3][0] / (float)(1 << 31);
-    QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
+    NNUE.out_bias = OUT_INIT_SCALE * random[3][0] / 0x1p31;
+    install_net();
 
     Trainer trainer;
 
@@ -276,17 +286,7 @@ void train() {
 #endif
         }
 
-        for (int f = 2; f < 768; f++) {
-            for (int i = 0; i < NEURONS; i++) {
-                QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
-            }
-        }
-        for (int i = 0; i < NEURONS; i++) {
-            QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
-            QNNUE.out[i] = round(NNUE.out[i] * 64);
-            QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
-        }
-        QNNUE.out_bias = round(NNUE.out_bias * 127 * 64);
+        install_net();
     };
     trainer.lr = 0.001;
     trainer.datagen_depth = 5;

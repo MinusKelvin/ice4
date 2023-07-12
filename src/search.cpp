@@ -3,7 +3,7 @@
 double now() {
     timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
-    return t.tv_sec + t.tv_nsec / 1000000000.0;
+    return t.tv_sec + t.tv_nsec / 1e9;
 }
 
 atomic_bool ABORT;
