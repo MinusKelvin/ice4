@@ -165,17 +165,9 @@ struct Trainer {
             total_loss += batch_loss;
 #endif
 
-            for (int j = 0; j < 768; j++) {
-                for (int k = 0; k < NEURONS; k++) {
-                    NNUE.ft[j][k] += grad_acc.ft[j][k];
-                }
+            for (int i = 0; i < sizeof(NNUE)/4; i++) {
+                ((float*)&NNUE)[i] += ((float*)&grad_acc)[i];
             }
-            for (int k = 0; k < NEURONS; k++) {
-                NNUE.ft_bias[k] += grad_acc.ft_bias[k];
-                NNUE.out[k] += grad_acc.out[k];
-                NNUE.out[k+NEURONS] += grad_acc.out[k+NEURONS];
-            }
-            NNUE.out_bias += grad_acc.out_bias;
             MUTEX.unlock();
         }
     }
@@ -220,7 +212,7 @@ void write_network(const char *file) {
 #endif
 
 void install_net() {
-    for (int f = 2; f < 768; f++) {
+    for (int f = 0; f < 768; f++) {
         for (int i = 0; i < NEURONS; i++) {
             QNNUE.ft[f][i] = round(NNUE.ft[f][i] * 127);
         }

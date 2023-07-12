@@ -71,8 +71,8 @@ void uci() {
                 while (move = strtok(0, " \n")) {
                     prehistory[prehistory_len++] = ROOT.zobrist;
                     Move mv(
-                        (move[1] - '1') * 10 + move[0] - 'a' + A1,
-                        (move[3] - '1') * 10 + move[2] - 'a' + A1,
+                        move[1] * 10 + move[0] - 566,
+                        move[3] * 10 + move[2] - 566,
                         move[4] == 'q' ? QUEEN :
                         move[4] == 'r' ? ROOK :
                         move[4] == 'b' ? BISHOP :
