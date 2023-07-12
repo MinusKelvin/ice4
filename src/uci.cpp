@@ -9,10 +9,12 @@ void uci() {
     char buf[4096], *move;
     int wtime, btime;
     int prehistory_len;
-    uint64_t prehistory[256];
 #ifdef OPENBENCH
     int opt, value;
+#else
+    int firstmove = 1;
 #endif
+    uint64_t prehistory[256];
     fgets(buf, 4096, stdin); // uci
     printf(
 #ifdef OPENBENCH
@@ -101,6 +103,15 @@ void uci() {
                 btime = atoi(strtok(0, " \n"));
 #endif
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1000.0;
+#ifdef OPENBENCH
+#else
+                if (firstmove) {
+                    double n = now();
+                    train();
+                    time_alotment -= now() - n;
+                    firstmove = 0;
+                }
+#endif
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;

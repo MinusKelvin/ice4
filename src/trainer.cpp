@@ -111,15 +111,16 @@ struct Trainer {
             float batch_loss = 0;
 #endif
             for (int i = start; i < end; i++) {
+                Datapoint elem = data[i];
                 float dv_dout[NEURONS_X2]; // dv_dparam for output layer
                 float dv_dhidden[NEURONS_X2];
                 float hidden[NEURONS_X2];
                 memcpy(hidden, NNUE.ft_bias, sizeof(NNUE.ft_bias));
                 memcpy(&hidden[NEURONS], NNUE.ft_bias, sizeof(NNUE.ft_bias));
-                for (int j = 0; data[i].features[j] != -1; j++) {
+                for (int j = 0; elem.features[j] != -1; j++) {
                     for (int k = 0; k < NEURONS; k++) {
-                        hidden[k] += NNUE.ft[data[i].features[j]][k];
-                        hidden[k+NEURONS] += NNUE.ft[data[i].features[j] ^ FEATURE_FLIP][k];
+                        hidden[k] += NNUE.ft[elem.features[j]][k];
+                        hidden[k+NEURONS] += NNUE.ft[elem.features[j] ^ FEATURE_FLIP][k];
                     }
                 }
                 float v = NNUE.out_bias;
@@ -130,11 +131,11 @@ struct Trainer {
                 }
 
 #ifdef OPENBENCH
-                float difference = data[i].target - sigmoid(v);
+                float difference = elem.target - sigmoid(v);
                 batch_loss += difference * difference;
 #endif
 
-                float dloss_dv = lr * (data[i].target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
+                float dloss_dv = lr * (elem.target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
 
                 grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
                 for (int i = 0; i < NEURONS_X2; i++) {
@@ -148,10 +149,10 @@ struct Trainer {
                     grad_acc.ft_bias[i] += dloss_dhidden[0][i] + dloss_dhidden[1][i];
                     // dloss_dparam = dloss_dhidden * dhidden_dparam
                 }
-                for (int j = 0; data[i].features[j] != -1; j++) {
+                for (int j = 0; elem.features[j] != -1; j++) {
                     for (int k = 0; k < NEURONS; k++) {
-                        grad_acc.ft[data[i].features[j]][k] += dloss_dhidden[0][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
-                        grad_acc.ft[data[i].features[j] ^ FEATURE_FLIP][k] += dloss_dhidden[1][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
+                        grad_acc.ft[elem.features[j]][k] += dloss_dhidden[0][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
+                        grad_acc.ft[elem.features[j] ^ FEATURE_FLIP][k] += dloss_dhidden[1][k]; // dloss_dparam = dloss_dhidden * dhidden_dparam
                     }
                 }
             }
