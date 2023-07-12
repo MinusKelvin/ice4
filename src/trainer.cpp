@@ -232,15 +232,20 @@ void train() {
     int32_t random[768][NEURONS];
     fread(random, sizeof(random), 1, RNG_FILE);
     for (int i = 2; i < 768; i++) {
+        if (!(i & 1)) {
+            NNUE.ft[i][0] += 0.5;
+        }
         for (int j = 0; j < NEURONS; j++) {
-            NNUE.ft[i][j] = FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
+            NNUE.ft[i][j] += FT_INIT_SCALE * random[i][j] / (float)(1 << 31);
             QNNUE.ft[i][j] = round(NNUE.ft[i][j] * 127);
         }
     }
+    NNUE.out[0] = 1;
+    NNUE.out[NEURONS] = -1;
     for (int i = 0; i < NEURONS; i++) {
         NNUE.ft_bias[i] = FT_INIT_SCALE * random[0][i] / (float)(1 << 31);
-        NNUE.out[i] = OUT_INIT_SCALE * random[1][i] / (float)(1 << 31);
-        NNUE.out[i+NEURONS] = OUT_INIT_SCALE * random[2][i] / (float)(1 << 31);
+        NNUE.out[i] += OUT_INIT_SCALE * random[1][i] / (float)(1 << 31);
+        NNUE.out[i+NEURONS] += OUT_INIT_SCALE * random[2][i] / (float)(1 << 31);
         QNNUE.ft_bias[i] = round(NNUE.ft_bias[i] * 127);
         QNNUE.out[i] = round(NNUE.out[i] * 64);
         QNNUE.out[i+NEURONS] = round(NNUE.out[i+NEURONS] * 64);
@@ -300,7 +305,7 @@ void train() {
         }
 
 #ifdef OPENBENCH
-        printf("iter %d done\n", i);
+        printf("iter %d done\n", i+1);
         if ((i + 1) % 10 == 0) {
             char buf[256];
             sprintf(buf, "networks/%d.txt", i+1);
