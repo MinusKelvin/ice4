@@ -7,6 +7,7 @@ use regex::{NoExpand, Regex};
 static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)""#).unwrap());
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
+static UNDEF: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#undef (\w+)"#).unwrap());
 
 static S_EVAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"S\(([-0-9]+),\s+([-0-9]+)\)"#).unwrap());
 
@@ -22,7 +23,7 @@ pub fn preprocess(path: &Path, tcec: bool) -> Preprocessed {
     result
 }
 
-fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &Path, tcec: bool) {
+fn process(into: &mut Preprocessed, defines: &mut Vec<(String, Regex, String)>, path: &Path, tcec: bool) {
     let content =
         std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}: {}", path.display()));
 
@@ -37,16 +38,17 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             let file = captures.get(1).unwrap().as_str();
             into.lib_includes.push(file.to_owned());
         } else if let Some(captures) = DEFINE.captures(line) {
-            let text = regex::escape(captures.get(1).unwrap().as_str());
+            let name = captures.get(1).unwrap().as_str().to_owned();
             let mut replacement = " ".to_owned();
             // TCEC builds use 96 GB hash and 101 threads
-            match &*text {
+            match &*name {
                 "HASH_SIZE" if tcec => replacement.push_str("0x180000000ull"),
                 "THREADS" if tcec => replacement.push_str("101"),
                 _ => replacement.push_str(captures.get(2).unwrap().as_str()),
             }
             replacement.push(' ');
-            defines.push((Regex::new(&format!("\\b{text}\\b")).unwrap(), replacement));
+            let pattern = Regex::new(&format!("\\b{}\\b", regex::escape(&name))).unwrap();
+            defines.push((name, pattern, replacement));
         } else if line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
             // munch until end of block
             while !matches!(lines.next(), Some("#endif" | "#else")) {}
@@ -54,6 +56,9 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             // ignore, probably just the end of the #else of above case
         } else if line.starts_with("#define S") {
             // ignore, we'll hack this back in later
+        } else if let Some(captures) = UNDEF.captures(line) {
+            let name = captures.get(1).unwrap().as_str();
+            defines.retain(|(n, _, _)| n != name);
         } else if line.starts_with('#') {
             panic!(
                 "Unrecognized preprocessor directive in {}: {line}",
@@ -61,7 +66,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
             );
         } else {
             let mut line_replaced = line.to_owned();
-            for (pattern, replacement) in defines.iter().rev() {
+            for (_, pattern, replacement) in defines.iter().rev() {
                 if let Cow::Owned(s) = pattern.replace_all(&line_replaced, NoExpand(replacement)) {
                     line_replaced = s;
                 }
