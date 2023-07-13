@@ -69,15 +69,19 @@ void uci() {
                 strtok(0, " \n"); // moves
                 prehistory_len = 0;
                 while (move = strtok(0, " \n")) {
-                    prehistory[prehistory_len++] = ROOT.zobrist;
                     Move mv(
-                        move[1] * 10 + move[0] - 566,
-                        move[3] * 10 + move[2] - 566,
-                        move[4] == 'q' ? QUEEN :
-                        move[4] == 'r' ? ROOK :
-                        move[4] == 'b' ? BISHOP :
-                        move[4] == 'n' ? KNIGHT : 0
+                        move[0] + move[1] * 10 - 566,
+                        move[2] + move[3] * 10 - 566,
+                        // maps promotion chars to piece enums
+                        //       'q'    'r'    'b'    'n'    '\0' 
+                        // cast  113    114    98     110    0
+                        // % 53  7      8      45     4      0
+                        // * 5   35     40     225    20     0
+                        // % 6   5      4      3      2      0
+                        // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
+                        move[4] % 53 * 5 % 6
                     );
+                    prehistory[prehistory_len++] = ROOT.zobrist;
                     if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
                         prehistory_len = 0;
                     }

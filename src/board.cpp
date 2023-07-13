@@ -5,15 +5,12 @@ struct Move {
 
     Move() = default;
     Move(int8_t f, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
-    auto operator==(Move& r) {
-        return from == r.from && to == r.to && promo == r.promo;
-    }
 
     void put() {
-        putchar(from%10+'a'-1);
-        putchar(from/10+'0'-1);
-        putchar(to%10+'a'-1);
-        putchar(to/10+'0'-1);
+        putchar(from%10+96);
+        putchar(from/10+47);
+        putchar(to%10+96);
+        putchar(to/10+47);
         if (promo) {
             putchar('q');
         }
@@ -232,12 +229,11 @@ struct Board {
 
     int eval() {
         int v = QNNUE.out_bias;
-        int first = stm == BLACK;
         for (int i = 0; i < NEURONS; i++) {
-            v += QNNUE.out[i] * max(acc[first][i], 0);
+            v += QNNUE.out[i] * max(acc[stm == BLACK][i], 0);
         }
         for (int i = 0; i < NEURONS; i++) {
-            v += QNNUE.out[i+NEURONS] * max(acc[!first][i], 0);
+            v += QNNUE.out[i+NEURONS] * max(acc[stm != BLACK][i], 0);
         }
         return v / 40;
     }
