@@ -71,7 +71,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
                 let eg: i32 = captures.get(2).unwrap().as_str().parse().unwrap();
                 line_replaced.replace_range(
                     captures.get(0).unwrap().range(),
-                    &format!("{}", mg + eg << 16),
+                    &format!("{}", mg + (eg << 16)),
                 );
             }
 
