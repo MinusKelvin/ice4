@@ -45,18 +45,15 @@ struct Board {
     uint8_t ep_square;
     uint8_t castle1, castle2;
     uint8_t stm;
-    uint8_t phase;
     int32_t inc_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         inc_eval -= PST[board[square]][square-A1];
-        phase -= PHASE[board[square] & 7];
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         inc_eval += PST[board[square]][square-A1];
-        phase += PHASE[board[square] & 7];
     }
 
     Board() {
@@ -230,11 +227,7 @@ struct Board {
     }
 
     int eval() {
-        int value = (
-            (int16_t)inc_eval * phase +
-            (int16_t)(inc_eval + 0x8000 >> 16) * (24 - phase)
-        ) / 24;
-        return stm == WHITE ? value : -value;
+        return stm == WHITE ? inc_eval : -inc_eval;
     }
 } ROOT;
 
