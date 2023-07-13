@@ -1,4 +1,4 @@
-#define S(a, b) (a + (b * 0x10000))
+#define S(a, b) ((a + b) * 0x10000)
 int PST[25][SQUARE_SPAN];
 #define BISHOP_PAIR S(23, 41)
 int DOUBLED_PAWN[] = {S(8, 30), S(-8, 22), S(16, 15), S(18, 10), S(19, 8), S(14, 17), S(-4, 21), S(6, 35)};
