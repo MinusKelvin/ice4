@@ -215,31 +215,36 @@ struct Searcher {
                 if (v >= beta) {
                     if (!victim) {
                         int16_t *hist;
+// repetition to reduce code size (compressor deduplicates)
+#define APPLY_HISTORY_MALUS *hist -= depth * depth + depth * depth * *hist / MAX_HIST
+#define APPLY_HISTORY_BONUS *hist += depth * depth - depth * depth * *hist / MAX_HIST
                         for (int j = 0; j < i; j++) {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
                             hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            APPLY_HISTORY_MALUS;
                             if (ply) {
                                 hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                                APPLY_HISTORY_MALUS;
                             }
                             if (ply > 1) {
                                 hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                                APPLY_HISTORY_MALUS;
                             }
                         }
                         hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        APPLY_HISTORY_BONUS;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                            APPLY_HISTORY_BONUS;
                         }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                            APPLY_HISTORY_BONUS;
                         }
+#undef APPLY_HISTORY_MALUS
+#undef APPLY_HISTORY_BONUS
                     }
                     break;
                 }
