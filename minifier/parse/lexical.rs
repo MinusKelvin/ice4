@@ -70,14 +70,14 @@ pub struct ParsedNumber {
     suffix: String,
 }
 
-impl ParsedNumber {
-    pub fn to_string(&self) -> String {
+impl std::fmt::Display for ParsedNumber {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let decimal = format!("{}{}", self.value, self.suffix);
         let hex = format!("0x{:x}{}", self.value, self.suffix);
         if decimal.len() <= hex.len() {
-            decimal
+            write!(f, "{}", decimal)
         } else {
-            hex
+            write!(f, "{}", hex)
         }
     }
 }
@@ -161,7 +161,7 @@ impl Token {
             (l, _) if l.is_wordlike() => false,
             (_, r) if r.is_wordlike() => false,
             _ => {
-                let buf = self.as_str().to_owned() + other.as_str();
+                let buf = self.as_str() + other.as_str();
                 tokenize(&buf).get(0) != Some(self)
             }
         }
@@ -294,11 +294,11 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
     result
 }
 
-const BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)(\w*)\z"#).unwrap());
-const OCTAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A(0[0-7]*)(\w*)\z"#).unwrap());
-const DECIMAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A([1-9][0-9]*)(\w*)\z"#).unwrap());
-const HEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0x([0-9A-Fa-f]+)(\w*)\z"#).unwrap());
-const CHAR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'(([^'\\]|\\.)+)'\z"#).unwrap());
+static BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)(\w*)\z"#).unwrap());
+static OCTAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A(0[0-7]*)(\w*)\z"#).unwrap());
+static DECIMAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A([1-9][0-9]*)(\w*)\z"#).unwrap());
+static HEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0x([0-9A-Fa-f]+)(\w*)\z"#).unwrap());
+static CHAR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'(([^'\\]|\\.)+)'\z"#).unwrap());
 
 fn parse_number(text: &str) -> Token {
     Token::Integer(if let Some(captures) = OCTAL.captures(text) {
@@ -308,7 +308,7 @@ fn parse_number(text: &str) -> Token {
         }
     } else if let Some(captures) = DECIMAL.captures(text) {
         ParsedNumber {
-            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 10).unwrap(),
+            value: captures.get(1).unwrap().as_str().parse::<u64>().unwrap(),
             suffix: captures.get(2).unwrap().as_str().to_owned(),
         }
     } else if let Some(captures) = HEX.captures(text) {

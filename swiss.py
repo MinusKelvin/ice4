@@ -161,7 +161,9 @@ for p in participants:
 for i in range(args.rounds):
     print(f"Starting Round {i+1} of {args.rounds}", flush=True)
     current_processes = []
-    for i, (p1, p2) in enumerate(round_pairings(participants[:])):
+    p = participants[:]
+    p.sort(key=lambda p: (p.score, p.seed))
+    for i, (p1, p2) in enumerate(round_pairings(p)):
         if len(current_processes) == args.match_concurrency:
             handle_completion(current_processes, bayeselo)
 

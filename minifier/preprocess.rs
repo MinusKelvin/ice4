@@ -28,6 +28,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
 
     let mut lines = content.lines();
     while let Some(line) = lines.next() {
+        #[allow(clippy::if_same_then_else)]
         if let Some(captures) = LOCAL_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             let path = path.parent().unwrap().join(file);
@@ -71,7 +72,7 @@ fn process(into: &mut Preprocessed, defines: &mut Vec<(Regex, String)>, path: &P
                 let eg: i32 = captures.get(2).unwrap().as_str().parse().unwrap();
                 line_replaced.replace_range(
                     captures.get(0).unwrap().range(),
-                    &format!("{}", mg + eg << 16),
+                    &format!("{}", mg + (eg << 16)),
                 );
             }
 

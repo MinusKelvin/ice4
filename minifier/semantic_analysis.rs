@@ -69,7 +69,7 @@ impl Symbols {
     fn declare(&mut self, base: &TypeOf, form: &DeclForm) -> usize {
         let id = self.symbols.len();
         self.symbols.push(Identifier {
-            kind: IdentKind::Ident(self.get_type(base, form)),
+            kind: IdentKind::Ident(Self::get_type(base, form)),
             others_in_scope: vec![],
             occurances: 0,
         });
@@ -80,7 +80,7 @@ impl Symbols {
         let id = self.symbols.len();
         self.symbols.push(Identifier {
             kind: IdentKind::Ident(TypeOf::Function(Box::new(
-                self.get_type(ret_type, &function.decl_form),
+                Self::get_type(ret_type, &function.decl_form),
             ))),
             others_in_scope: vec![],
             occurances: 0,
@@ -98,17 +98,17 @@ impl Symbols {
         id
     }
 
-    fn get_type(&self, base: &TypeOf, form: &DeclForm) -> TypeOf {
+    fn get_type(base: &TypeOf, form: &DeclForm) -> TypeOf {
         match form {
             DeclForm::OpEquals => TypeOf::Unknown(None),
             DeclForm::Name(_) => base.clone(),
             DeclForm::Pointer(f) | DeclForm::Array(f, None) => {
-                TypeOf::Pointer(Box::new(self.get_type(base, f)))
+                TypeOf::Pointer(Box::new(Self::get_type(base, f)))
             }
-            DeclForm::LReference(f) => self.get_type(base, f),
-            DeclForm::RReference(f) => self.get_type(base, f),
+            DeclForm::LReference(f) => Self::get_type(base, f),
+            DeclForm::RReference(f) => Self::get_type(base, f),
             DeclForm::Array(f, Some(n)) => {
-                TypeOf::Array(Box::new(self.get_type(base, f)), n.as_ref().unwrap().value)
+                TypeOf::Array(Box::new(Self::get_type(base, f)), n.as_ref().unwrap().value)
             }
         }
     }
@@ -235,7 +235,7 @@ fn process_declexpr(
     declexpr: &mut DeclExpr,
 ) {
     process_init(symbols, scope, &mut declexpr.init);
-    let id = symbols.declare(&base, &declexpr.form);
+    let id = symbols.declare(base, &declexpr.form);
     symbols.symbols[id].occurances += 1;
     scope.in_scope(|id2| {
         symbols.symbols[id].others_in_scope.push(id2);

@@ -1,4 +1,5 @@
 mod ast;
+#[allow(clippy::all)]
 mod cpp;
 mod lexical;
 mod tokenize;
