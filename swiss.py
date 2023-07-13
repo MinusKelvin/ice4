@@ -143,7 +143,7 @@ def handle_completion(current_processes, bayeselo):
                         print(f"addresult {white} {black} 1", file=bayeselo)
 
             w, l, d = map(int, re.search(r"(\d+) - (\d+) - (\d+)", last_score_line).groups())
-            print(f"Finished {p1.name} vs {p2.name}: {w} - {l} - {d}")
+            print(f"Finished {p1.name} vs {p2.name}: {w} - {l} - {d}", flush=True)
             p1.score += w + d / 2
             p2.score += l + d / 2
 
@@ -159,13 +159,13 @@ for p in participants:
     print(f"addplayer {p.seed}", file=bayeselo)
 
 for i in range(args.rounds):
-    print(f"Starting Round {i+1} of {args.rounds}")
+    print(f"Starting Round {i+1} of {args.rounds}", flush=True)
     current_processes = []
-    for p1, p2 in round_pairings(participants[:]):
+    for i, (p1, p2) in enumerate(round_pairings(participants[:])):
         if len(current_processes) == args.match_concurrency:
             handle_completion(current_processes, bayeselo)
 
-        print(f"Starting match {p1.name} vs {p2.name}")
+        print(f"Starting match {i+1} of {len(participants)//2} ({p1.name} vs {p2.name})", flush=True)
         p1.met.add(p2.seed)
         p2.met.add(p1.seed)
         proc = subprocess.Popen(
@@ -185,6 +185,7 @@ for i in range(args.rounds):
     ranked = sorted(participants, key=lambda p: (p.score, p.seed), reverse=True)
     for i, p in enumerate(ranked):
         print(f"{i+1:>4}    {p.name:<16}{p.score}")
+    print(flush=True)
 
 print("elo", file=bayeselo)
 print("advantage 0", file=bayeselo)
@@ -204,6 +205,7 @@ if args.bayeselo is not None:
             result = re.match(r"\s*\d+\s+(\d+)\s+(-?\d+)\s+(\d+)\s+(\d+)", line)
             if result is not None:
                 i, elo, plus, minus = map(int, result.groups())
-                print(f"{participants[i].name:<16}{elo:>8}{plus:>8}{minus:>8}")
+                if i != baseline:
+                    print(f"{participants[i].name:<16}{elo:>8}{plus:>8}{minus:>8}")
         if line.startswith("Rank"):
             process = True
