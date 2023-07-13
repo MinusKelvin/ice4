@@ -290,11 +290,11 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 2000; i++) {
         trainer.data.clear();
         cycle();
         if ((i + 1) % 100 == 0) {
-            trainer.lr *= 0.5;
+            trainer.lr *= 0.8;
             trainer.outcome_part *= 0.9;
         }
 
