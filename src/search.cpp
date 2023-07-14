@@ -298,7 +298,7 @@ struct Searcher {
         }
 
         if ((depth > 0 || best != eval) && best > LOST + ply) {
-            tt.eval = best;
+            tt.eval = clamp(best, -20000, 20000);
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
