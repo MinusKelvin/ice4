@@ -23,6 +23,11 @@ parser.add_argument(
     "--bayeselo",
     help="Path to bayeselo, or 'auto' to autodetect"
 )
+parser.add_argument(
+    "--result-csv",
+    default=os.devnull,
+    help="Path to file to write CSV bayeselo results"
+)
 
 args = parser.parse_args()
 
@@ -199,8 +204,11 @@ print("ratings", file=bayeselo)
 if args.bayeselo is not None:
     result = subprocess.run(args.bayeselo, input=bayeselo.getvalue(), text=True, capture_output=True)
 
+    result_csv = open(args.result_csv, "w")
+
     print("Bayeselo Results:")
     print("Name                 Elo       +       -")
+    print("Name,Elo,+,-", file=result_csv)
     process = False
     for line in result.stdout.splitlines():
         if process:
@@ -209,5 +217,8 @@ if args.bayeselo is not None:
                 i, elo, plus, minus = map(int, result.groups())
                 if i != baseline:
                     print(f"{participants[i].name:<16}{elo:>8}{plus:>8}{minus:>8}")
+                    print(f"{participants[i].name},{elo},{plus},{minus}", file=result_csv)
         if line.startswith("Rank"):
             process = True
+
+    result_csv.close()
