@@ -15,7 +15,16 @@ struct QuantizedNnue {
 } QNNUE
 #ifdef OPENBENCH
 , VARIANTS[] =
-#include "network.txt"
+// due to the minifier not having proper support for nested preprocessor conditionals,
+// we have to write `if (a) { if (b) { ... } else {...} }` like this
+#ifdef EVALFILE
+#include EVALFILE
+#endif
+#endif
+#ifdef OPENBENCH
+#ifndef EVALFILE
+{{}}
+#endif
 #endif
 ;
 
