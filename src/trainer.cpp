@@ -6,14 +6,17 @@ struct Datapoint {
 struct Trainer {
     vector<Datapoint> data;
     barrier<> bar;
+    size_t index;
+    size_t datagen_size;
+    int datagen_depth;
 #ifdef OPENBENCH
     float total_loss;
 #endif
     float lr;
     float outcome_part;
-    size_t index;
-    size_t datagen_size;
-    int datagen_depth;
+    float beta1_bias_correcter;
+    float beta2_bias_correcter;
+    float moment[12337], norm[12337], grad[12337];
 
     Trainer() : data(), bar(THREADS) {}
 
@@ -100,6 +103,7 @@ struct Trainer {
 
     void optimize() {
         while (index < data.size()) {
+            int start_index = index;
             bar.arrive_and_wait();
             MUTEX.lock();
             int start = min(data.size(), index);
@@ -136,7 +140,7 @@ struct Trainer {
                 batch_loss += difference * difference;
 #endif
 
-                float dloss_dv = lr * (elem.target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
+                float dloss_dv = (elem.target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
 
                 grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
                 for (int i = 0; i < NEURONS_X2; i++) {
@@ -157,18 +161,32 @@ struct Trainer {
                 }
             }
 
-            bar.arrive_and_wait();
-
             MUTEX.lock();
 
 #ifdef OPENBENCH
             total_loss += batch_loss;
 #endif
 
-            for (int i = 0; i < sizeof(NNUE)/4; i++) {
-                ((float*)&NNUE)[i] += ((float*)&grad_acc)[i];
+            for (int i = 0; i < sizeof(Nnue)/4; i++) {
+                grad[i] += ((float*)&grad_acc)[i];
             }
             MUTEX.unlock();
+
+            bar.arrive_and_wait();
+
+            if (start_index == start) {
+                for (int i = 0; i < sizeof(Nnue)/4; i++) {
+                    moment[i] = BETA1 * moment[i] + (1 - BETA1) * grad[i];
+                    norm[i] = BETA2 * norm[i] + (1 - BETA2) * grad[i] * grad[i];
+                    float corrected_moment = moment[i] / (1 - beta1_bias_correcter);
+                    float corrected_norm = norm[i] / (1 - beta2_bias_correcter);
+                    ((float*)&NNUE)[i] += lr * corrected_moment / (sqrt(corrected_norm) + 1e-8);
+                }
+                beta1_bias_correcter *= BETA1;
+                beta2_bias_correcter *= BETA2;
+
+                memset(grad, 0, sizeof(grad));
+            }
         }
     }
 };
@@ -284,6 +302,12 @@ void train() {
     trainer.datagen_depth = 5;
     trainer.datagen_size = 10000;
     trainer.outcome_part = 1;
+    trainer.beta1_bias_correcter = BETA1;
+    trainer.beta2_bias_correcter = BETA2;
+
+    memset(trainer.grad, 0, sizeof(trainer.grad));
+    memset(trainer.moment, 0, sizeof(trainer.grad));
+    memset(trainer.norm, 0, sizeof(trainer.grad));
 
 #ifdef OPENBENCH
     write_network("networks/0.txt");
