@@ -14,6 +14,7 @@ struct Trainer {
     size_t index;
     size_t datagen_size;
     int datagen_depth;
+    float grad[12337], sum_grad_sq[12337];
 
     Trainer() : data(), bar(THREADS) {}
 
@@ -100,6 +101,7 @@ struct Trainer {
 
     void optimize() {
         while (index < data.size()) {
+            int start_index = index;
             bar.arrive_and_wait();
             MUTEX.lock();
             int start = min(data.size(), index);
@@ -136,7 +138,7 @@ struct Trainer {
                 batch_loss += difference * difference;
 #endif
 
-                float dloss_dv = lr * (elem.target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
+                float dloss_dv = (elem.target - sigmoid(v)) * sigmoid(v) * (1 - sigmoid(v));
 
                 grad_acc.out_bias += dloss_dv; // dloss_dparam = dloss_dv * dv_dparam
                 for (int i = 0; i < NEURONS_X2; i++) {
@@ -157,18 +159,27 @@ struct Trainer {
                 }
             }
 
-            bar.arrive_and_wait();
-
             MUTEX.lock();
 
 #ifdef OPENBENCH
             total_loss += batch_loss;
 #endif
 
-            for (int i = 0; i < sizeof(NNUE)/4; i++) {
-                ((float*)&NNUE)[i] += ((float*)&grad_acc)[i];
+            for (int i = 0; i < 12337; i++) {
+                grad[i] += ((float*)&grad_acc)[i];
             }
             MUTEX.unlock();
+
+            bar.arrive_and_wait();
+
+            if (start_index == start) {
+                for (int i = 0; i < 12337; i++) {
+                    sum_grad_sq[i] += grad[i] * grad[i];
+                    ((float*)&NNUE)[i] += lr * grad[i] / (sqrt(sum_grad_sq[i]) + 1e-8);
+                }
+
+                memset(grad, 0, sizeof(grad));
+            }
         }
     }
 };
@@ -284,6 +295,8 @@ void train() {
     trainer.datagen_depth = 5;
     trainer.datagen_size = 10000;
     trainer.outcome_part = 1;
+    memset(trainer.grad, 0, sizeof(trainer.grad));
+    memset(trainer.sum_grad_sq, 0, sizeof(trainer.sum_grad_sq));
 
 #ifdef OPENBENCH
     write_network("networks/0.txt");
