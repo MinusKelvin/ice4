@@ -1,4 +1,4 @@
-#define MAX_HIST 4096
+#define MAX_HIST 512
 
 double now() {
     timespec t;
