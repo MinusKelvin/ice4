@@ -140,6 +140,10 @@ struct Searcher {
                     break;
                 }
 
+                if (i && !victim && depth > 0 && depth <= 4 && eval + 300 * depth < alpha) {
+                    break;
+                }
+
                 // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
                 // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
                 // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
