@@ -140,7 +140,7 @@ struct Searcher {
                     break;
                 }
 
-                if (i && !victim && depth > 0 && depth <= 4 && eval + 300 * depth < alpha) {
+                if (i && !victim && depth > 0 && depth <= 4 && eval + 200 * depth < alpha) {
                     break;
                 }
 
