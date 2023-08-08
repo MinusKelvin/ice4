@@ -289,7 +289,7 @@ void train() {
 
         install_net();
     };
-    trainer.lr = 0.001;
+    trainer.lr = 0.01;
     trainer.datagen_depth = 5;
     trainer.datagen_size = 10000;
     trainer.outcome_part = 1;
