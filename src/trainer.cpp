@@ -3,8 +3,25 @@ struct Datapoint {
     float target;
 };
 
-struct Trainer {
+struct Buffer {
     vector<Datapoint> data;
+    int bufferSize = 5e5;
+    int head = 0;
+    int filled = 0;
+    Buffer() {
+        data.resize(bufferSize);
+    }
+    void add(Datapoint toAdd) {
+        data[head] = toAdd;
+        head++;
+        filled = max(filled, head);
+        head %= bufferSize;
+    }
+
+};
+
+struct Trainer {
+    Buffer data;
     barrier<> bar;
 #ifdef OPENBENCH
     float total_loss;
@@ -13,6 +30,7 @@ struct Trainer {
     float outcome_part;
     size_t index;
     size_t datagen_size;
+    int generated;
     int datagen_depth;
     float grad[12337], sum_grad_sq[12337];
 
@@ -82,30 +100,31 @@ struct Trainer {
                 board.make_move(mv);
             }
             int flip = 0;
+            MUTEX.lock();
             for (Datapoint &elem : game_data) {
                 elem.target = (flip ? 1 - outcome : outcome) * outcome_part +
                     (1 - outcome_part) * sigmoid(elem.target / EVAL_SCALE);
                 flip ^= 1;
+                data.add(elem);
+                generated++;
             }
-            MUTEX.lock();
-            data.insert(data.end(), game_data.begin(), game_data.end());
-            not_done = data.size() < datagen_size;
+            not_done = generated < datagen_size;
 #ifdef OPENBENCH
-            if (data.size() / 10000 != (data.size() - game_data.size()) / 10000) {
-                printf("datagen: %ld\n", data.size());
+            if (generated / 10000 != (generated - game_data.size()) / 10000) {
+                printf("datagen: %ld\n", generated);
             }
 #endif
             MUTEX.unlock();
         }
     }
 
-    void optimize() {
-        while (index < data.size()) {
+    void optimize(vector<Datapoint> dataVector) {
+        while (index < dataVector.size()) {
             int start_index = index;
             bar.arrive_and_wait();
             MUTEX.lock();
-            int start = min(data.size(), index);
-            int end = min(data.size(), index += BATCH_SIZE / THREADS);
+            int start = min(dataVector.size(), index);
+            int end = min(dataVector.size(), index += BATCH_SIZE / THREADS);
             MUTEX.unlock();
 
             Nnue grad_acc = {};
@@ -113,7 +132,7 @@ struct Trainer {
             float batch_loss = 0;
 #endif
             for (int i = start; i < end; i++) {
-                Datapoint elem = data[i];
+                Datapoint elem = dataVector[i];
                 float dv_dout[NEURONS_X2]; // dv_dparam for output layer
                 float dv_dhidden[NEURONS_X2];
                 float hidden[NEURONS_X2];
@@ -272,26 +291,35 @@ void train() {
     auto cycle = [&]() {
         parallel([&]() { trainer.datagen(); });
 
-        vector<uint64_t> shuffle(trainer.data.size());
-        fread(shuffle.data(), sizeof(uint64_t) * trainer.data.size(), 1, RNG_FILE);
-        for (int i = 0; i < trainer.data.size(); i++) {
-            swap(trainer.data[i], trainer.data[shuffle[i] % (trainer.data.size() - i) + i]);
+        vector<Datapoint> dataVector(&trainer.data.data[0], &trainer.data.data[trainer.data.filled]);
+        cout << dataVector.size() << endl;
+        vector<uint64_t> shuffle(dataVector.size());
+        fread(shuffle.data(), sizeof(uint64_t) * dataVector.size(), 1, RNG_FILE);
+        for (int i = 0; i < dataVector.size(); i++)
+        {
+            swap(dataVector[i], dataVector[shuffle[i] % (dataVector.size() - i) + i]);
         }
 
         trainer.index = 0;
 #ifdef OPENBENCH
         trainer.total_loss = 0;
 #endif
-        parallel([&]() { trainer.optimize(); });
+        for (int j = 0; j < 2; j++) {
+            trainer.total_loss = 0;
+            trainer.index = 0;
+            parallel([&]()
+                     { trainer.optimize(dataVector); });
+            printf("epoch %d: %g\n", j + 1, trainer.total_loss / dataVector.size());
+        }
 #ifdef OPENBENCH
-        printf("loss: %g\n", trainer.total_loss / trainer.data.size());
+        printf("loss: %g\n", trainer.total_loss / trainer.data.filled);
 #endif
 
         install_net();
     };
     trainer.lr = 0.001;
     trainer.datagen_depth = 5;
-    trainer.datagen_size = 10000;
+    trainer.datagen_size = 1e4;
     trainer.outcome_part = 1;
     memset(trainer.grad, 0, sizeof(trainer.grad));
     memset(trainer.sum_grad_sq, 0, sizeof(trainer.sum_grad_sq));
@@ -302,7 +330,7 @@ void train() {
 #endif
 
     for (int i = 0; i < 4000; i++) {
-        trainer.data.clear();
+        trainer.generated = 0;
         cycle();
 
 #ifdef OPENBENCH
