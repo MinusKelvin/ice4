@@ -285,16 +285,14 @@ void train() {
             swap(trainer.data[i], trainer.data[shuffle[i] % (trainer.data.size() - i) + i]);
         }
 
-        for (int j = 0; j < EPOCHS; j++) {
-            trainer.index = 0;
+        trainer.index = 0;
 #ifdef OPENBENCH
-            trainer.total_loss = 0;
+        trainer.total_loss = 0;
 #endif
-            parallel([&]() { trainer.optimize(); });
+        parallel([&]() { trainer.optimize(); });
 #ifdef OPENBENCH
-            printf("epoch %d: %g\n", j+1, trainer.total_loss / trainer.data.size());
+        printf("loss: %g\n", trainer.total_loss / trainer.data.size());
 #endif
-        }
 
         install_net();
     };
@@ -314,13 +312,9 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 4000; i++) {
         trainer.data.clear();
         cycle();
-        if ((i + 1) % 100 == 0) {
-            trainer.lr *= 0.8;
-            trainer.outcome_part *= 0.9;
-        }
 
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);

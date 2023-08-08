@@ -10,7 +10,6 @@ int THREADS = 1;
 
 #define BETA1 0.9
 #define BETA2 0.999
-#define EPOCHS 5
 #define EVAL_SCALE 203.0
 #define NEURONS 16
 #define NEURONS_X2 32
