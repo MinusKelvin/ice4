@@ -8,7 +8,6 @@ int THREADS = 1;
 #define THREADS 1
 #endif
 
-#define EPOCHS 5
 #define EVAL_SCALE 203.0
 #define NEURONS 16
 #define NEURONS_X2 32
