@@ -291,7 +291,7 @@ void train() {
     };
     trainer.lr = 0.001;
     trainer.datagen_depth = 5;
-    trainer.datagen_size = 10000;
+    trainer.datagen_size = 100000;
     trainer.outcome_part = 1;
     memset(trainer.grad, 0, sizeof(trainer.grad));
     memset(trainer.sum_grad_sq, 0, sizeof(trainer.sum_grad_sq));
@@ -301,13 +301,13 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 400; i++) {
         trainer.data.clear();
         cycle();
 
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);
-        if ((i + 1) % 10 == 0) {
+        if ((i + 1) % 1 == 0) {
             int ms = (now() - start) * 1000;
             char buf[256];
             sprintf(buf, "networks/%d.txt", ms);
