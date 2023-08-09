@@ -311,20 +311,16 @@ void train() {
 #ifdef OPENBENCH
         trainer.total_loss = 0;
 #endif
-        for (int j = 0; j < 2; j++) {
-            trainer.total_loss = 0;
-            trainer.index = 0;
-            parallel([&]()
-                     { trainer.optimize(dataVector); });
-            printf("epoch %d: %g\n", j + 1, trainer.total_loss / dataVector.size());
-        }
+        trainer.total_loss = 0;
+        trainer.index = 0;
+        parallel([&](){ trainer.optimize(dataVector); });
 #ifdef OPENBENCH
         printf("loss: %g\n", trainer.total_loss / trainer.data.filled);
 #endif
 
         install_net();
     };
-    trainer.lr = 0.001;
+    trainer.lr = 0.01;
     trainer.datagen_depth = 5;
     trainer.datagen_size = 1e4;
     trainer.outcome_part = 1;
@@ -340,9 +336,11 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 2000; i++) {
         trainer.generated = 0;
         cycle();
+        trainer.lr *= 0.999;
+        trainer.outcome_part *= 0.9995;
 
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);
