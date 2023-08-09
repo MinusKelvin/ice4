@@ -187,7 +187,7 @@ struct Trainer {
 #endif
 
             for (int i = 0; i < sizeof(Nnue)/4; i++) {
-                grad[i] += ((float*)&grad_acc)[i];
+                grad[i] += ((float*)&grad_acc)[i] / (BATCH_SIZE / THREADS * THREADS);
             }
             MUTEX.unlock();
 
@@ -320,7 +320,7 @@ void train() {
 
         install_net();
     };
-    trainer.lr = 0.01;
+    trainer.lr = 0.001;
     trainer.datagen_depth = 5;
     trainer.datagen_size = 1e4;
     trainer.outcome_part = 1;
