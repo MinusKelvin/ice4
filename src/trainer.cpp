@@ -86,6 +86,7 @@ struct Trainer {
                 }
                 if (s.prehistory_len >= 50 || !mv.from) {
                     outcome = 0.5;
+                    game_data.resize(game_data.size() - 45);
                     break;
                 }
                 if (!board.board[mv.to]) {
