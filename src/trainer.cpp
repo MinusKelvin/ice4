@@ -315,7 +315,7 @@ void train() {
         install_net();
     };
     trainer.lr = 0.01;
-    trainer.datagen_depth = 5;
+    trainer.datagen_depth = 7;
     trainer.datagen_size = 1e4;
     trainer.outcome_part = 1;
     memset(trainer.grad, 0, sizeof(trainer.grad));
