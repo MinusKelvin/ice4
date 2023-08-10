@@ -315,7 +315,7 @@ void train() {
         install_net();
     };
     trainer.lr = 0.01;
-    trainer.datagen_depth = 5;
+    trainer.datagen_depth = 3;
     trainer.datagen_size = 1e4;
     trainer.outcome_part = 1;
     memset(trainer.grad, 0, sizeof(trainer.grad));
@@ -326,7 +326,7 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 4000; i++) {
         trainer.generated = 0;
         cycle();
         trainer.lr *= 0.999;
