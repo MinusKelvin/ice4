@@ -6,7 +6,7 @@ struct Datapoint {
 
 struct Buffer {
     vector<Datapoint> data;
-    int bufferSize = 5e5;
+    int bufferSize = REPLAY_BUFFER_SIZE;
     int head = 0;
     int filled = 0;
     Buffer() {
@@ -326,7 +326,7 @@ void train() {
     double start = now();
 #endif
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 200; i++) {
         trainer.generated = 0;
         cycle();
         trainer.lr *= 0.999;
@@ -334,7 +334,7 @@ void train() {
 
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);
-        if ((i + 1) % 10 == 0) {
+        if ((i + 1) % 1 == 0) {
             int ms = (now() - start) * 1000;
             char buf[256];
             sprintf(buf, "networks/%d.txt", ms);

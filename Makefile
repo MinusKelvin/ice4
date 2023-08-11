@@ -15,6 +15,8 @@ else
 	EVALHASHFILE := .none.nnhash
 endif
 
+REPLAY_BUFFER_SIZE = 500000
+
 %.nnhash:
 	rm -f .*.nnhash
 	touch $@
@@ -28,10 +30,10 @@ ice4.exe: $(DEPS) $(EVALHASHFILE)
 	x86_64-w64-mingw32-g++ -Wl,--stack,16777216 -DOPENBENCH $(EVALFLAGS) -O3 -pthread -static -std=c++20 src/main.cpp -o "$@"
 
 $(EXE): $(DEPS)
-	g++ -DOPENBENCH -DAVOID_ADJUDICATION $(EVALFLAGS) -g -O3 -pthread -std=c++20 src/main.cpp -o "$@"
+	g++ -DOPENBENCH -DAVOID_ADJUDICATION -DREPLAY_BUFFER_SIZE=$(REPLAY_BUFFER_SIZE) $(EVALFLAGS) -g -O3 -pthread -std=c++20 src/main.cpp -o "$@"
 
 ice4-ob: $(DEPS) $(EVALHASHFILE)
-	g++ -DOPENBENCH $(EVALFLAGS) -g -O3 -pthread -std=c++20 src/main.cpp -o "$@"
+	g++ -DOPENBENCH $(EVALFLAGS) -DREPLAY_BUFFER_SIZE=$(REPLAY_BUFFER_SIZE) -g -O3 -pthread -std=c++20 src/main.cpp -o "$@"
 
 ice4-asan: $(DEPS) $(EVALHASHFILE)
 	g++ -DOPENBENCH $(EVALFLAGS) -g -fsanitize=address -pthread -std=c++20 src/main.cpp -o "$@"
