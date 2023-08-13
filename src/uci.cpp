@@ -59,6 +59,7 @@ void uci() {
 #endif
             case 'p': // position
                 ROOT = Board();
+                DO_LMP = 1;
 #ifdef OPENBENCH
                 if (!strcmp(strtok(0, " \n"), "fen")) {
                     parse_fen();

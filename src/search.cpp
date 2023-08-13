@@ -9,6 +9,7 @@ double now() {
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
+int DO_LMP = 0;
 Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
@@ -118,7 +119,7 @@ struct Searcher {
         }
 
         int quiets_to_check_table[] = { 0, 7, 8, 17, 49 };
-        int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
+        int quiets_to_check = DO_LMP && depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
         int legals = 0;
