@@ -70,6 +70,8 @@ struct Trainer {
             for (;;) {
                 Move mv(0);
                 history[s.prehistory_len++] = board.zobrist;
+                memset(s.history, 0, sizeof(s.history));
+                memset(s.conthist, 0, sizeof(s.conthist));
                 for (int depth = 1; depth <= datagen_depth; depth++) {
                     v = s.negamax(board, mv, LOST, WON, depth, 0);
                 }
