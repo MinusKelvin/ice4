@@ -50,11 +50,10 @@ struct Trainer {
         uint64_t movenums[8];
         int mvcount;
         int v;
-        int not_done = 1;
         s.tt_ptr = &tt;
         s.prehistory = history;
         s.abort_time = 1.0 / 0.0;
-        while (not_done) {
+        for (;;) {
             retry:
             Board board;
             fread(movenums, sizeof(movenums), 1, RNG_FILE);
@@ -109,7 +108,7 @@ struct Trainer {
                 data.add(elem);
                 generated++;
             }
-            not_done = generated < datagen_size;
+            ABORT = generated > datagen_size;
 #ifdef OPENBENCH
             if (generated / 10000 != (generated - game_data.size()) / 10000) {
                 printf("datagen: %ld\n", generated);
@@ -290,7 +289,12 @@ void train() {
     Trainer trainer;
 
     auto cycle = [&]() {
-        parallel([&]() { trainer.datagen(); });
+        ABORT = 0;
+        parallel([&]() {
+            try {
+                trainer.datagen();
+            } catch (...) {}
+        });
 
         vector<Datapoint> dataVector(&trainer.data.data[0], &trainer.data.data[trainer.data.filled]);
         cout << dataVector.size() << endl;
