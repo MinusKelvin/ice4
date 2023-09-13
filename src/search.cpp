@@ -179,6 +179,7 @@ struct Searcher {
                     // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                     // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                     reduction -= score[i] / 346;
+                    reduction += board.board[hashmv.to] != 0;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
