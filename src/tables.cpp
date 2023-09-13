@@ -13,6 +13,8 @@ int32_t PAWN_SHIELD[] = {S(11, -21), S(21, -39), S(23, -31), S(30, -24)};
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
+double LOG[64];
+
 const char *DATA_STRING = "9MO0*2* =I@856)&?BNLH>/+HN^YRG>6Y_}jf^GB>\"f~qkPb%+6D<835  034+)(#)'%&+.+.0.*-566=N>JIEK@fipodoug5B88223;8/)''%/;25$ ))<E2<7:=DNI0*;@FKYYYZFH]TiW('$ #%-%*4-(#)0+>C=60168QQH<78@Gic[B>JS_z~nQSRYchMNqK\" :dJEAf}ed$40 1ML2@Y[F/=F1 '(-13:587643231($)) (/7%BQP2LXg14:@ .73+;45)*11 %'#'%%&\" %$%**(#' #2=;10A=<24?K +%,!/3739DG,BFJ $.0,1B;/GGQ?>RR CU[P]ajWgqw`qz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
@@ -117,4 +119,8 @@ void init_tables() {
     auto rng = fopen("/dev/urandom", "r");
     fread(&ZOBRIST, sizeof(ZOBRIST), 1, rng);
 #endif
+
+    for (int i = 1; i < 64; i++) {
+        LOG[i] = log(i);
+    }
 }
