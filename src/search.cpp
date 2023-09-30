@@ -74,6 +74,10 @@ struct Searcher {
             return eval;
         }
 
+        if (!pv && depth == 1 && eval <= alpha - 150) {
+            return negamax(board, bestmv, alpha, beta, 0, ply);
+        }
+
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
