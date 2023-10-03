@@ -322,19 +322,20 @@ void train() {
     memset(trainer.sum_grad_sq, 0, sizeof(trainer.sum_grad_sq));
 
 #ifdef OPENBENCH
-    write_network("networks/0.txt");
     double start = now();
 #endif
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 101000; i++) {
         trainer.generated = 0;
         cycle();
-        trainer.lr *= 0.999;
-        trainer.outcome_part *= 0.9995;
+        if ((i + 1) % 10 == 0) {
+            trainer.lr *= 0.9995;
+            trainer.outcome_part *= 0.9999;
+        }
 
 #ifdef OPENBENCH
         printf("iter %d done\n", i+1);
-        if ((i + 1) % 10 == 0) {
+        if ((i + 1) % 1000 == 0) {
             int ms = (now() - start) * 1000;
             char buf[256];
             sprintf(buf, "networks/%d.txt", ms);
