@@ -33,7 +33,7 @@ struct Trainer {
     size_t datagen_size;
     int generated;
     int datagen_depth;
-    float grad[12337], sum_grad_sq[12337];
+    float grad[sizeof(NNUE)/4], sum_grad_sq[sizeof(NNUE)/4];
 
     Trainer() : data(), bar(THREADS) {}
 
@@ -185,7 +185,7 @@ struct Trainer {
             total_loss += batch_loss;
 #endif
 
-            for (int i = 0; i < 12337; i++) {
+            for (int i = 0; i < sizeof(NNUE)/4; i++) {
                 grad[i] += ((float*)&grad_acc)[i];
             }
             MUTEX.unlock();
@@ -193,7 +193,7 @@ struct Trainer {
             bar.arrive_and_wait();
 
             if (start_index == start) {
-                for (int i = 0; i < 12337; i++) {
+                for (int i = 0; i < sizeof(NNUE)/4; i++) {
                     sum_grad_sq[i] += grad[i] * grad[i];
                     ((float*)&NNUE)[i] += lr * grad[i] / (sqrt(sum_grad_sq[i]) + 1e-8);
                 }
