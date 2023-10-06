@@ -9,8 +9,8 @@ int THREADS = 1;
 #endif
 
 #define EVAL_SCALE 203.0
-#define NEURONS 16
-#define NEURONS_X2 32
+#define NEURONS 32
+#define NEURONS_X2 64
 #define FT_INIT_SCALE 0.036
 #define OUT_INIT_SCALE 0.25
 #define BATCH_SIZE 4096
