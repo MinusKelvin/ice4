@@ -22,7 +22,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, Move excluded = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -37,7 +37,7 @@ struct Searcher {
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        int tt_good = (data ^ board.zobrist) == hash_xor_data && !excluded.from;
         TtData tt;
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
@@ -151,6 +151,20 @@ struct Searcher {
                     continue;
                 }
 
+                int extension = in_check;
+                if (!in_check && tt_good && tt.bound != BOUND_UPPER && i == 0 && depth > 5) {
+                    if (excluded.from) {
+                        printf("what 1\n");
+                    }
+                    if (moves[i].from != hashmv.from || moves[i].to != hashmv.to || moves[i].promo != hashmv.promo) {
+                        printf("what 2\n");
+                    }
+                    int s_beta = tt.eval - 3 * depth;
+                    int s_score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, hashmv);
+
+                    extension += s_score < s_beta;
+                }
+
                 Board mkmove = board;
                 mkmove.make_move(moves[i]);
                 conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
@@ -183,7 +197,7 @@ struct Searcher {
                     // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                     // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                     reduction -= score[i] / 346;
-                    if (reduction < 0 || victim || in_check) {
+                    if (reduction < 0 || victim || extension) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -198,7 +212,7 @@ struct Searcher {
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + extension, ply + 1);
                 }
                 if (v == LOST) {
                     moves[i].from = 1;
