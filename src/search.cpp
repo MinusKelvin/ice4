@@ -22,7 +22,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, Move excluded = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -37,7 +37,7 @@ struct Searcher {
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        int tt_good = (data ^ board.zobrist) == hash_xor_data && !excluded.from;
         TtData tt;
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
@@ -70,18 +70,18 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
+        if (!pv && !excluded.from && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 188) {
+        if (!pv && !excluded.from && depth == 1 && eval <= alpha - 188) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 2) {
+        if (!pv && !excluded.from && eval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
@@ -104,7 +104,7 @@ struct Searcher {
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
-        if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+        if (depth >= 2 && pv && !excluded.from && (!tt_good || tt.bound != BOUND_EXACT)) {
             negamax(board, hashmv, alpha, beta, depth - 4, ply);
         }
 
@@ -124,7 +124,7 @@ struct Searcher {
         int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
-            if (moves[i].from) {
+            if (moves[i].from && !(moves[i].from == excluded.from && moves[i].to == excluded.to)) {
                 int best_so_far = i;
                 for (int j = i+1; j < mvcount; j++) {
                     if (score[j] > score[best_so_far]) {
@@ -149,6 +149,15 @@ struct Searcher {
                 // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
                 if (depth <= 0 && eval + deltas[victim] <= alpha) {
                     continue;
+                }
+
+                int extension = in_check;
+                if (!in_check && tt_good && tt.bound != BOUND_UPPER && i == 0 && tt.depth + 2 >= depth && ply) {
+                    int s_beta = tt.eval - 3 * depth;
+                    int s_score = depth < 6 ? eval :
+                        negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, hashmv);
+
+                    extension += s_score < s_beta;
                 }
 
                 Board mkmove = board;
@@ -183,7 +192,7 @@ struct Searcher {
                     // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                     // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                     reduction -= score[i] / 578;
-                    if (reduction < 0 || victim || in_check) {
+                    if (reduction < 0 || victim || extension) {
                         reduction = 0;
                     }
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -198,7 +207,7 @@ struct Searcher {
                     }
                 } else {
                     // first legal move is always searched with full window
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + extension, ply + 1);
                 }
                 legals += v != LOST;
                 if (v > best) {
