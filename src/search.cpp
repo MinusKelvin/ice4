@@ -61,7 +61,10 @@ struct Searcher {
         }
 
         evals[ply] = board.eval();
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 && (
+            tt.bound & BOUND_LOWER && tt.eval > evals[ply] ||
+            tt.bound & BOUND_UPPER && tt.eval < evals[ply]
+        ) ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
@@ -256,7 +259,7 @@ struct Searcher {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
-                    if (hashmv == moves[j]) {
+                    if (hashmv.from == moves[j].from && hashmv.to == moves[j].to && hashmv.promo == moves[j].promo) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {

@@ -5,9 +5,6 @@ struct Move {
 
     Move() = default;
     Move(int8_t f, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
-    auto operator==(Move& r) {
-        return from == r.from && to == r.to && promo == r.promo;
-    }
 
     void put() {
         putchar(from%10+'a'-1);
