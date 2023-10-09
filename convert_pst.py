@@ -1,39 +1,58 @@
 #!/usr/bin/python3
 
-import json, math
-with open("0-20.json", "r") as f:
+import json
+from math import cos, sqrt, pi, copysign
+with open("dct-psts.json", "r") as f:
     data = json.load(f)
 
-def dump_string(piece_data, stuff, extra=None):
-    smallest = float("inf")
-    largest = -smallest
-    average = 0
-    for value in piece_data:
-        smallest = smallest if smallest < value else value
-        largest = largest if largest > value else value
-        average += value / len(piece_data)
+def dump_string(data):
+    smallest = min(data)
+    largest = max(data)
 
-    scale_factor = max((largest - smallest) / 94, 1.0)
+    scale_factor = (largest - smallest) / 95
 
     s = ""
-    for value in piece_data:
-        c = chr(round((value - smallest) / scale_factor) + 32)
+    quantized = []
+    for value in data:
+        v = round((value - smallest) / scale_factor)
+        quantized.append(v * scale_factor + smallest)
+        c = chr(v + 32)
         if c == "\\" or c == "\"":
             s += "\\"
         s += c
 
-    print(f"{stuff}, {scale_factor:.4}, {round(smallest)}", end="")
-    if extra:
-        for v in extra:
-            print(f", {round(smallest + v)}", end="")
-    print(f"); // average: {average:.0f}")
+    return s, smallest, scale_factor, quantized
 
-    return s
+def dct2(x):
+    return [
+        [
+            sum(
+                x[n1][n2] * cos((2 * n1 + 1) * k1 * pi / 2 / len(x)) * cos((2 * n2 + 1) * k2 * pi / 2 / len(x[n1])) / 2**((k1 == 0) + (k2 == 0)) * 4 / len(x) / len(x[0])
+                for n1 in range(len(x))
+                for n2 in range(len(x[n1]))
+            )
+            for k2 in range(len(x[k1]))
+        ]
+        for k1 in range(len(x))
+    ]
+
+def idct2(x):
+    return [
+        [
+            sum(
+                x[k1][k2] * cos((2 * n1 + 1) * k1 * pi / 2 / len(x)) * cos((2 * n2 + 1) * k2 * pi / 2 / len(x[n1]))
+                for k1 in range(len(x))
+                for k2 in range(len(x[k1]))
+            )
+            for n2 in range(len(x[n1]))
+        ]
+        for n1 in range(len(x))
+    ]
 
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
+sizes = [64, 64, 64, 64, 64, 64, 64, 0, 0, 0, 0, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -41,23 +60,37 @@ for s in sizes:
 
 eg = len(sections)//2
 
-data_string = ""
-data_string += dump_string(sections[0], "unpack_full(1, PAWN")
-data_string += dump_string(sections[eg+0], "unpack_full(0x10000, PAWN")
-data_string += dump_string(sections[10], "unpack_full(1, PASSED_PAWN")
-data_string += dump_string(sections[eg+10], "unpack_full(0x10000, PASSED_PAWN")
-data_string += dump_string(sections[9], "unpack_smol(1, KING")
-data_string += dump_string(sections[eg+9], "unpack_smol(0x10000, KING")
-data_string += dump_string(sections[7], "unpack_half(1, QUEEN", sections[8])
-data_string += dump_string(sections[eg+7], "unpack_half(0x10000, QUEEN", sections[eg+8])
-data_string += dump_string(sections[5], "unpack_half(1, ROOK", sections[6])
-data_string += dump_string(sections[eg+5], "unpack_half(0x10000, ROOK", sections[eg+6])
-data_string += dump_string(sections[3], "unpack_half(1, BISHOP", sections[4])
-data_string += dump_string(sections[eg+3], "unpack_half(0x10000, BISHOP", sections[eg+4])
-data_string += dump_string(sections[1], "unpack_half(1, KNIGHT", sections[2])
-data_string += dump_string(sections[eg+1], "unpack_half(0x10000, KNIGHT", sections[eg+2])
+psts = [
+    [
+        sections[i][sq:sq+8]
+        for sq in range(0, 64, 8)
+    ]
+    for i in [0, 1, 2, 3, 4, 5, 6, eg+0, eg+1, eg+2, eg+3, eg+4, eg+5, eg+6]
+]
 
-print(f"data string: \"{data_string}\"")
+dct_psts = [dct2(pst) for pst in psts]
+
+freq = []
+for i, pst in enumerate(dct_psts):
+    for r, rank in enumerate(pst):
+        for f, value in enumerate(rank):
+            freq.append((i, r * 8 + f, copysign(sqrt(abs(value)), value)))
+freq.sort(key=lambda x: abs(x[2]), reverse=True)
+freq = freq[:896]
+
+freq.sort()
+boards = [b for b, _, _ in freq]
+frequencies = [f for _, f, _ in freq]
+amplitudes = [a for _, _, a in freq]
+
+print(boards)
+print(frequencies)
+data_string, smallest, scale, quantized = dump_string(amplitudes)
+
+print(quantized)
+
+print(f"amplitudes: \"{data_string}\"")
+print(f"smallest, scale: {smallest}, {scale}")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
 print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
