@@ -1,63 +1,19 @@
 #define S(a, b) (a + (b * 0x10000))
 int PST[25][SQUARE_SPAN];
-#define BISHOP_PAIR S(26, 47)
-int32_t DOUBLED_PAWN[] = {S(7, 28), S(-12, 25), S(12, 23), S(14, 16), S(17, 11), S(12, 23), S(-10, 25), S(8, 35)};
-#define TEMPO S(10, 8)
-#define ISOLATED_PAWN S(10, 8)
-int32_t PROTECTED_PAWN[] = {0, S(8, 7), S(9, 6)};
-#define ROOK_OPEN S(36, 12)
-#define ROOK_SEMIOPEN S(18, 16)
-int32_t PAWN_SHIELD[] = {S(11, -21), S(21, -39), S(23, -31), S(30, -24)};
-#define KING_OPEN S(-43, -1)
-#define KING_SEMIOPEN S(-11, 20)
+#define BISHOP_PAIR S(23, 49)
+int32_t DOUBLED_PAWN[] = {S(6, 23), S(-10, 21), S(10, 21), S(13, 15), S(14, 12), S(11, 23), S(-7, 20), S(7, 33)};
+#define TEMPO S(10, 12)
+#define ISOLATED_PAWN S(10, 9)
+int32_t PROTECTED_PAWN[] = {0, S(8, 8), S(9, 8)};
+#define ROOK_OPEN S(33, 12)
+#define ROOK_SEMIOPEN S(16, 17)
+int32_t PAWN_SHIELD[] = {S(1, -13), S(11, -29), S(14, -26), S(23, -24)};
+#define KING_OPEN S(-44, -3)
+#define KING_SEMIOPEN S(-12, 19)
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
-const char *DATA_STRING = "9MO0*2* =I@856)&?BNLH>/+HN^YRG>6Y_}jf^GB>\"f~qkPb%+6D<835  034+)(#)'%&+.+.0.*-566=N>JIEK@fipodoug5B88223;8/)''%/;25$ ))<E2<7:=DNI0*;@FKYYYZFH]TiW('$ #%-%*4-(#)0+>C=60168QQH<78@Gic[B>JS_z~nQSRYchMNqK\" :dJEAf}ed$40 1ML2@Y[F/=F1 '(-13:587643231($)) (/7%BQP2LXg14:@ .73+;45)*11 %'#'%%&\" %$%**(#' #2=;10A=<24?K +%,!/3739DG,BFJ $.0,1B;/GGQ?>RR CU[P]ajWgqw`qz~";
-
-void unpack_full(int phase, int piece, double scale, int offset) {
-    for (int rank = 10; rank < 70; rank+=10) {
-        for (int file = 0; file < 8; file++) {
-            int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[piece | WHITE][rank+file] += v * phase;
-            PST[piece | BLACK][70-rank+file] += v * phase;
-        }
-    }
-}
-
-void unpack_smol(int phase, int piece, double scale, int offset) {
-    for (int rank = 0; rank < 80; rank+=20) {
-        for (int file = 0; file < 8; file+=2) {
-            int v = (*DATA_STRING++ - ' ') * scale + offset;
-            PST[piece | WHITE][rank+file] += v * phase;
-            PST[piece | WHITE][rank+file+1] += v * phase;
-            PST[piece | WHITE][rank+file+10] += v * phase;
-            PST[piece | WHITE][rank+file+11] += v * phase;
-            PST[piece | BLACK][70-rank+file] += -v * phase;
-            PST[piece | BLACK][71-rank+file] += -v * phase;
-            PST[piece | BLACK][60-rank+file] += -v * phase;
-            PST[piece | BLACK][61-rank+file] += -v * phase;
-        }
-    }
-}
-
-void unpack_half(
-    int phase, int piece, double scale, int qll, int qlr, int qrl, int qrr
-) {
-    for (int rank = 0; rank < 40; rank+=10) {
-        for (int file = 0; file < 4; file++) {
-            int v = (*DATA_STRING++ - ' ') * scale;
-            PST[piece | WHITE][rank+file] += (v + qll) * phase;
-            PST[piece | WHITE][7+rank-file] += (v + qrl) * phase;
-            PST[piece | WHITE][70-rank+file] += (v + qlr) * phase;
-            PST[piece | WHITE][77-rank-file] += (v + qrr) * phase;
-            PST[piece | BLACK][rank+file] += (-v - qlr) * phase;
-            PST[piece | BLACK][7+rank-file] += (-v - qrr) * phase;
-            PST[piece | BLACK][70-rank+file] += (-v - qll) * phase;
-            PST[piece | BLACK][77-rank-file] += (-v - qrl) * phase;
-        }
-    }
-}
+const char *AMPLITUDES = "A7*.3/53(773+.-0%+6252//9.,.4453&.64/3-26+,2834/*664,/.1/,/263//U+'1/.32,5;4,6//$3+-7-25</56+55,'5/,7./58365,52--2,05.,6235/155,U-,0-0.3654.323/&49202/6:-+3./3,(53.640550/32./.--2/32.//4////1.Z),5-412&74/31-474/33/5/7--3/0///54/5/32020.524/5.53//-4033/313.i+,3-33/)76.4/-5/3*3-5204.634.3/-4+/33.3,37340436.-1/2-/,45/2340(3;-,-.4*787/5-2@)7*8-584.*6-3--,67,-/67*3)254+,6,66.,05,6-,54-07+5/-3.3*75.6-3.37-4/32/7+,3.534+4304.3/5/55-4.4+.//70515404-300F,-/02/0&5./3230$0./33429053//./ 674//30;-.10333#7442.-28-/03354X5'/+4-3.-448/6/&2,2,2//-0617253./+5,414.0405042-0-0-3123//44//3[4+4-3./*/.43/./+/5422//,/53/0.042/4/0...3./.0.043443/5020/031.0g8/./020)/.2034//./30202/44222335/22/30/42/4.0/0/202223/33/303/3~-(.1.03$874430.'79/6-435--444/3237/430.7.-.20/0-064-4546..1./.523&3*4,0,07-8/70%5-5+4-.9380/250*2-3.4./7360/.53-0.//5//4/42./32<89.-//2'**434/0'.,53023;67/1/43*+*0530/686/..002+,/144/.630/..0";
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
@@ -82,21 +38,37 @@ struct Zobrist {
     uint64_t stm;
 } ZOBRIST;
 
+void extract(int piece, int phase, int colmul) {
+    for (int rank1 = 0; rank1 < 8; rank1++) {
+        for (int file1 = 0; file1 < 8; file1++) {
+            double amplitude = (*AMPLITUDES++ - ' ') * 0.4485 - 7.664;
+            amplitude = copysign(amplitude * amplitude, amplitude);
+            for (int rank2 = 0; rank2 < 8; rank2++) {
+                for (int file2 = 0; file2 < 8; file2++) {
+                    int v = amplitude * cos((2 * file2 + 1) * file1 * 0.19634954084936207) * cos((2 * rank2 + 1) * rank1 * 0.19634954084936207);
+                    PST[piece | WHITE][rank2*10+file2] += phase * v;
+                    PST[piece | BLACK][70-rank2*10+file2] += phase * colmul * v;
+                }
+            }
+        }
+    }
+}
+
 void init_tables() {
-    unpack_full(1, PAWN, 1.14, 27); // average: 72
-    unpack_full(0x10000, PAWN, 1.0, 86); // average: 114
-    unpack_full(1, PASSED_PAWN, 1.0, -19); // average: 10
-    unpack_full(0x10000, PASSED_PAWN, 1.533, -8); // average: 42
-    unpack_smol(1, KING, 1.0, -56); // average: -6
-    unpack_smol(0x10000, KING, 1.0, -26); // average: 2
-    unpack_half(1, QUEEN, 1.0, 563, 561, 565, 585); // average: 580
-    unpack_half(0x10000, QUEEN, 1.0, 1080, 1138, 1089, 1143); // average: 1105
-    unpack_half(1, ROOK, 1.0, 301, 329, 308, 351); // average: 319
-    unpack_half(0x10000, ROOK, 1.0, 538, 560, 531, 548); // average: 543
-    unpack_half(1, BISHOP, 1.0, 248, 258, 249, 265); // average: 268
-    unpack_half(0x10000, BISHOP, 1.0, 298, 304, 300, 303); // average: 319
-    unpack_half(1, KNIGHT, 1.0, 226, 251, 233, 259); // average: 253
-    unpack_half(0x10000, KNIGHT, 1.346, 199, 204, 198, 203); // average: 285
+    extract(PAWN, 1, 1);
+    extract(KNIGHT, 1, -1);
+    extract(BISHOP, 1, -1);
+    extract(ROOK, 1, -1);
+    extract(QUEEN, 1, -1);
+    extract(KING, 1, -1);
+    extract(PASSED_PAWN, 1, 1);
+    extract(PAWN, 0x10000, 1);
+    extract(KNIGHT, 0x10000, -1);
+    extract(BISHOP, 0x10000, -1);
+    extract(ROOK, 0x10000, -1);
+    extract(QUEEN, 0x10000, -1);
+    extract(KING, 0x10000, -1);
+    extract(PASSED_PAWN, 0x10000, 1);
     
     // Zobrist keys
 #ifdef OPENBENCH
