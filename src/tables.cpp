@@ -14,8 +14,12 @@ int32_t PAWN_SHIELD[] = {S(1, -13), S(11, -29), S(14, -26), S(23, -24)};
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 int SKIP = 0;
 
-const char *AMPLITUDES = "e=_9deAF.?bkC^0aFb?Bg<`aCDb?4D_oBa-@FeF^t_bA]^C5De_g`^D^GFDCb]^^EFCHa^2ialFAD9^b^GH;C]G0cGecHF^^^]G?EG<daG]?GaEBEc`FGEoGCG=cfc_F~;e=gE^e=aGBacCac>;`@DaCaaC_DbGC^GB^F?d^`GcFd@DB_]F@c^_CG2^*j^ `cqE)cHgG]5@HEga3ECH`c_BC_FEF@F>@C]^f;_F9,gc4ejbG^FFdcEGaG_`2>CDdHfe/^G^@Ekf>Edb^GgjG5=>5Cqbe=B>_bga@E`";
-const char *SKIPS = " #!  !!!  %!#!!#!  !#  !$\"# %  ! \"!   ! !      \" \" !   ! !# \"\"    !# &!$   $  \"#' .   # $!'  )'#!#) !#  # \"!%%!%!%!#!(   \"   ! !       \" #    \"  !!!     !!     !! !#  ! # %  %'!!##!!' % &'!%  % & $! $\"!!\"\"!!!!#!!!#!'#!!,!#''!;)&7? %  %  ! \"  '%!%!!!!(!!!!  !!    !!!%!%!#!/ !#  %!%  %  !#  & &";
+const char *AMPLITUDES = "594.55:&?:36 ><3&3: 5943  3 &->/6>043(&/35&,:7 4( 4?:&5&>(43:,> @ 5454> >&&  3,>> @:&53-  434: 4&&&& 3>-636&: .>3>&:&9: ,9 &<3&53&>>>,&594: &953&:&3&: 34&& &.?537563&>&&53&&3&44(& &93534&=9595&>593& 33 33994: 4 33 4 3& >&-9  5&55?>&>:&659&53>&:>&:3,4&3&5: :4,&:3>456&@99@ (359:94354: 4";
+const char *SKIPS = " #!  !!!  %!#!!#!  !#  !$\"# % &'!%  % & & $! %  ! \"!   ! !      \" \" !   ! !# \"\"  !!$\"!!!!%!!#!'#!!+ % &!$   $  \"#'0!#''=) !# $!'!)'#!#)&7? !#  ##!%%!%!%!#!' %  %  ! \"  '%!%!!!!(   \"   ! !       \" #    \"  !!!     !!     !\"!!!!  !!    !!!%!%!#!/ !#  ! # %  %'!!##!!' !#  %!%  %  !#  & &";
+
+double AMP_PALETTE[36];
+double AMP_1[] = {-11.469, -7.372, 5.6327, -1.2777, 2.567, 7.233};
+double AMP_2[] = {0.4494, -4.3098, -2.8459, -6.644, -10.439, 16.965};
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
@@ -43,16 +47,11 @@ struct Zobrist {
 void extract(int piece, int phase, int colmul, int matvalue) {
     for (int rank1 = 0; rank1 < 8; rank1++) {
         for (int file1 = 0; file1 < 8; file1++) {
-            double amplitude = 0;
-            if (rank1 || file1) {
-                if (!SKIP--) {
-                    amplitude = (*AMPLITUDES++ - ' ') * 0.15179 - 7.6643;
-                    amplitude = copysign(amplitude * amplitude, amplitude);
-                    SKIP = *SKIPS++ - ' ';
-                }
-            } else {
-                amplitude = matvalue;
-            }
+            double amplitude = rank1 || file1
+                ? SKIP--
+                    ? 0
+                    : (SKIP = *SKIPS++ - ' ', AMP_PALETTE[*AMPLITUDES++ - ' '])
+                : matvalue;
             for (int rank2 = 0; rank2 < 8; rank2++) {
                 for (int file2 = 0; file2 < 8; file2++) {
                     int v = round(
@@ -69,19 +68,25 @@ void extract(int piece, int phase, int colmul, int matvalue) {
 }
 
 void init_tables() {
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            AMP_PALETTE[i*6+j] = AMP_1[i] * AMP_2[j];
+        }
+    }
+
     extract(PAWN, 1, 1, 51);
-    extract(KNIGHT, 1, -1, 254);
-    extract(BISHOP, 1, -1, 260);
-    extract(ROOK, 1, -1, 333);
-    extract(QUEEN, 1, -1, 630);
-    extract(KING, 1, -1, -15);
-    extract(PASSED_PAWN, 1, 1, 7);
     extract(PAWN, 0x10000, 1, 91);
+    extract(KNIGHT, 1, -1, 254);
     extract(KNIGHT, 0x10000, -1, 312);
+    extract(BISHOP, 1, -1, 260);
     extract(BISHOP, 0x10000, -1, 348);
+    extract(ROOK, 1, -1, 333);
     extract(ROOK, 0x10000, -1, 583);
+    extract(QUEEN, 1, -1, 630);
     extract(QUEEN, 0x10000, -1, 1190);
+    extract(KING, 1, -1, -15);
     extract(KING, 0x10000, -1, 0);
+    extract(PASSED_PAWN, 1, 1, 7);
     extract(PASSED_PAWN, 0x10000, 1, 26);
     
     // Zobrist keys
