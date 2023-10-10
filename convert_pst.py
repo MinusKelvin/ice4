@@ -1,13 +1,18 @@
 #!/usr/bin/python3
 
-import json
+import json, sys
 from math import cos, sqrt, pi, copysign
+from scipy.optimize import least_squares
+import numpy as np
+
 with open("dct-psts.json", "r") as f:
     data = json.load(f)
 
 def stringdata(data):
     s = ""
     for v in data:
+        if v + 32 not in range(32, 127):
+            print()
         c = chr(v + 32)
         if c == "\\" or c == "\"":
             s += "\\"
@@ -66,7 +71,7 @@ psts = [
         sections[i][sq:sq+8]
         for sq in range(0, 64, 8)
     ]
-    for i in [0, 1, 2, 3, 4, 5, 6, eg+0, eg+1, eg+2, eg+3, eg+4, eg+5, eg+6]
+    for i in [0, eg+0, 1, eg+1, 2, eg+2, 3, eg+3, 4, eg+4, 5, eg+5, 6, eg+6]
 ]
 
 dct_psts = [dct2(pst) for pst in psts]
@@ -75,27 +80,60 @@ freq = []
 for i, pst in enumerate(dct_psts):
     for r, rank in enumerate(pst):
         for f, value in enumerate(rank):
-            if r == 0 and f == 0:
-                print(i, round(value))
-                continue
-            freq.append((i*63 + r * 8 + f, copysign(sqrt(abs(value)), value)))
+            freq.append((i*64 + r * 8 + f, value))
 freq.sort(key=lambda x: abs(x[1]), reverse=True)
-freq = freq[:len(freq)//3]
+freq = freq[:]
 
 freq.sort()
-frequencies = [f for f, _ in freq]
-amplitudes = [a for _, a in freq]
+lossy_dct_psts = [[[0] * 8 for _ in range(8)] for _ in range(len(dct_psts))]
+for i, v in freq:
+    lossy_dct_psts[i // 64][i % 64 // 8][i % 8] = v
 
+compressed_psts = [idct2(pst) for pst in lossy_dct_psts]
+print(f"lossy error: {(np.array(compressed_psts) - np.array(psts)).std()}")
+
+def pick(palette, x):
+    palette = [p * r for p in palette[:8] for r in palette[8:]]
+    i = min(range(64), key=lambda i: abs(palette[i] - x))
+    return i, palette[i]
+
+def residuals(palette):
+    residual = []
+    for pst in lossy_dct_psts:
+        for i, r in enumerate(pst):
+            for j, v in enumerate(r):
+                if (i != 0 or j != 0) and v != 0:
+                    residual.append(v - pick(palette, v)[1])
+    return residual
+
+soln = least_squares(residuals, list(range(8)) + [1] * 8)
+
+amplitudes = []
+for i, v in freq:
+    if i % 64 == 0:
+        lossy_dct_psts[i // 64][i % 64 // 8][i % 8] = v
+    else:
+        j, v = pick(soln.x, v)
+        lossy_dct_psts[i // 64][i % 64 // 8][i % 8] = v
+        amplitudes.append(j)
+amplitudes_string = stringdata(amplitudes)
+
+compressed_psts = [idct2(pst) for pst in lossy_dct_psts]
+print(f"quantized error: {(np.array(compressed_psts) - np.array(psts)).std()}")
+
+frequencies = [f for f, _ in freq]
 skips_string = stringdata(f1 - f2 - 1 for f1, f2 in zip(frequencies[1:], frequencies))
 
 # print(boards)
-data_string, smallest, scale = dump_string(amplitudes)
 
 # print(quantized)
 
-print(f"amplitudes: \"{data_string}\"")
+print(f"amplitudes: \"{amplitudes_string}\"")
 print(f"skips: \"{skips_string}\"")
-print(f"smallest, scale: {smallest}, {scale}")
+print(f"base palette: {soln.x[:8]}")
+print(f"residual palette: {soln.x[8:]}")
+
+print(f"material palette: {[round(pst[0][0]) for pst in lossy_dct_psts]}")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
 print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
