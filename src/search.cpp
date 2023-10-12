@@ -270,7 +270,7 @@ struct Searcher {
                         // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                         // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                         // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        score[j] = 2 * history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                             // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                             // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
