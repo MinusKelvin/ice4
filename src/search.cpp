@@ -325,9 +325,16 @@ struct Searcher {
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
         Move mv(0);
+        int last_score, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                if (depth > 1) {
+                    v = negamax(ROOT, mv, last_score - 25, last_score + 25, depth, 0);
+                }
+                if (depth == 1 || v <= last_score - 25 || v >= last_score + 25) {
+                    v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                }
+                last_score = v;
 #ifdef AVOID_ADJUDICATION
                 v = 100;
 #endif
