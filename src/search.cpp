@@ -256,7 +256,7 @@ struct Searcher {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
-                    if (hashmv == moves[j]) {
+                    if (hashmv.from == moves[j].from && hashmv.to == moves[j].to && hashmv.promo == moves[j].promo) {
                         swap(moves[0], moves[j]);
                         swap(score[0], score[j]);
                     } else if (board.board[moves[j].to]) {
@@ -325,13 +325,11 @@ struct Searcher {
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
         Move mv(0);
-        int last_score, v;
+        int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                if (depth > 1) {
-                    v = negamax(ROOT, mv, last_score - 25, last_score + 25, depth, 0);
-                }
-                if (depth == 1 || v <= last_score - 25 || v >= last_score + 25) {
+                v = negamax(ROOT, mv, last_score - 25, last_score + 25, depth, 0);
+                if (v <= last_score - 25 || v >= last_score + 25) {
                     v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 }
                 last_score = v;
