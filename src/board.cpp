@@ -51,6 +51,7 @@ struct Board {
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
+    uint8_t halfmove_clock;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -128,6 +129,7 @@ struct Board {
     void make_move(Move mv) {
         int piece = mv.promo ? mv.promo | stm : board[mv.from];
         int btm = stm != WHITE;
+        halfmove_clock++;
         castle1 = 0;
         castle2 = 0;
         edit(mv.to, piece);
@@ -137,6 +139,7 @@ struct Board {
         zobrist ^= ZOBRIST.ep[ep_square];
         int ep = btm ? 10 : -10;
         if ((piece & 7) == PAWN) {
+            halfmove_clock = 0;
             if (mv.to == ep_square) {
                 edit(mv.to + ep, EMPTY);
             }
@@ -180,6 +183,10 @@ struct Board {
         }
         if (mv.from == H8 || mv.to == H8) {
             remove_castle_rights(1, SHORT_CASTLE);
+        }
+
+        if (board[mv.to]) {
+            halfmove_clock = 0;
         }
 
         stm ^= INVALID;
@@ -343,7 +350,7 @@ struct Board {
                 e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
             }
         }
-        int value = ((int16_t)e * phase + (int16_t)(e + 0x8000 >> 16) * (24 - phase)) / 24;
+        int value = ((int16_t)e * phase + (int16_t)(e + 0x8000 >> 16) * (24 - phase)) / (24 + max(halfmove_clock - 20, 0));
         return stm == WHITE ? value : -value;
     }
 } ROOT;
