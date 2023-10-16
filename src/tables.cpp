@@ -1,19 +1,19 @@
 #define S(a, b) (a + (b * 0x10000))
 int PST[25][SQUARE_SPAN];
-#define BISHOP_PAIR S(26, 47)
-int32_t DOUBLED_PAWN[] = {S(7, 28), S(-12, 25), S(12, 23), S(14, 16), S(17, 11), S(12, 23), S(-10, 25), S(8, 35)};
-#define TEMPO S(10, 8)
-#define ISOLATED_PAWN S(10, 8)
-int32_t PROTECTED_PAWN[] = {0, S(8, 7), S(9, 6)};
-#define ROOK_OPEN S(36, 12)
-#define ROOK_SEMIOPEN S(18, 16)
-int32_t PAWN_SHIELD[] = {S(11, -21), S(21, -39), S(23, -31), S(30, -24)};
-#define KING_OPEN S(-43, -1)
-#define KING_SEMIOPEN S(-11, 20)
+#define BISHOP_PAIR S(50, 43)
+int32_t DOUBLED_PAWN[] = {S(2, 32), S(-21, 32), S(11, 31), S(6, 19), S(11, 12), S(12, 28), S(-17, 30), S(11, 36)};
+#define TEMPO S(15, 12)
+#define ISOLATED_PAWN S(13, 4)
+int32_t PROTECTED_PAWN[] = {0, S(13, 10), S(15, 8)};
+#define ROOK_OPEN S(45, 25)
+#define ROOK_SEMIOPEN S(23, 18)
+int32_t PAWN_SHIELD[] = {S(20, -30), S(29, -45), S(31, -37), S(39, -34)};
+#define KING_OPEN S(-55, 0)
+#define KING_SEMIOPEN S(-15, 17)
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
-const char *DATA_STRING = "9MO0*2* =I@856)&?BNLH>/+HN^YRG>6Y_}jf^GB>\"f~qkPb%+6D<835  034+)(#)'%&+.+.0.*-566=N>JIEK@fipodoug5B88223;8/)''%/;25$ ))<E2<7:=DNI0*;@FKYYYZFH]TiW('$ #%-%*4-(#)0+>C=60168QQH<78@Gic[B>JS_z~nQSRYchMNqK\" :dJEAf}ed$40 1ML2@Y[F/=F1 '(-13:587643231($)) (/7%BQP2LXg14:@ .73+;45)*11 %'#'%%&\" %$%**(#' #2=;10A=<24?K +%,!/3739DG,BFJ $.0,1B;/GGQ?>RR CU[P]ajWgqw`qz~";
+const char *DATA_STRING = ">SU+#5/ AM<707+'AAPQKA3*JUc]TJD5ga~kjeL?7%Xvl_8G(-7SH;7< !310**,#2(\"#,3.29.*,<:;BOEMaOMI^jYUOYn^1=/A/2/=5*/'+%0;1., *,:E8?D9>EKH+2:EDGTVeX~Zfdne/-+ ,.4*3:02-18/KIBB96=@\\WPC>:ISspcF;Obh~{se_dhueJJkA!\"9O1( D*%~$<7 ;`Y7Xzz\\PsvJ1+ '9<<:A;:59;69 5IX->ZY7bqvGZt~15;C ,63*<3,+.,/\"$(\"))'& !$'\")-&0=# ;IH9<KHI8;KX .%.)/496@KO.LNU RXWZ]kg]st~jj~} 5GKAMP^EZhsTjz~";
 
 void unpack_full(int phase, int piece, double scale, int offset) {
     for (int rank = 10; rank < 70; rank+=10) {
@@ -83,20 +83,20 @@ struct Zobrist {
 } ZOBRIST;
 
 void init_tables() {
-    unpack_full(1, PAWN, 1.14, 27); // average: 72
-    unpack_full(0x10000, PAWN, 1.0, 86); // average: 114
-    unpack_full(1, PASSED_PAWN, 1.0, -19); // average: 10
-    unpack_full(0x10000, PASSED_PAWN, 1.533, -8); // average: 42
-    unpack_smol(1, KING, 1.0, -56); // average: -6
-    unpack_smol(0x10000, KING, 1.0, -26); // average: 2
-    unpack_half(1, QUEEN, 1.0, 563, 561, 565, 585); // average: 580
-    unpack_half(0x10000, QUEEN, 1.0, 1080, 1138, 1089, 1143); // average: 1105
-    unpack_half(1, ROOK, 1.0, 301, 329, 308, 351); // average: 319
-    unpack_half(0x10000, ROOK, 1.0, 538, 560, 531, 548); // average: 543
-    unpack_half(1, BISHOP, 1.0, 248, 258, 249, 265); // average: 268
-    unpack_half(0x10000, BISHOP, 1.0, 298, 304, 300, 303); // average: 319
-    unpack_half(1, KNIGHT, 1.0, 226, 251, 233, 259); // average: 253
-    unpack_half(0x10000, KNIGHT, 1.346, 199, 204, 198, 203); // average: 285
+    unpack_full(1, PAWN, 1.273, 34); // average: 84
+    unpack_full(0x10000, PAWN, 1.0, 90); // average: 118
+    unpack_full(1, PASSED_PAWN, 1.487, -28); // average: 19
+    unpack_full(0x10000, PASSED_PAWN, 1.703, -20); // average: 50
+    unpack_smol(1, KING, 1.406, -66); // average: -21
+    unpack_smol(0x10000, KING, 1.0, -36); // average: 13
+    unpack_half(1, QUEEN, 1.0, 556, 523, 547, 559); // average: 578
+    unpack_half(0x10000, QUEEN, 1.153, 795, 983, 882, 979); // average: 853
+    unpack_half(1, ROOK, 1.0, 312, 339, 323, 362); // average: 329
+    unpack_half(0x10000, ROOK, 1.0, 504, 546, 504, 533); // average: 510
+    unpack_half(1, BISHOP, 1.0, 244, 257, 245, 266); // average: 274
+    unpack_half(0x10000, BISHOP, 1.0, 284, 298, 293, 293); // average: 310
+    unpack_half(1, KNIGHT, 1.342, 168, 200, 178, 211); // average: 259
+    unpack_half(0x10000, KNIGHT, 1.113, 220, 232, 222, 229); // average: 279
     
     // Zobrist keys
 #ifdef OPENBENCH
