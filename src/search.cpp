@@ -200,11 +200,7 @@ struct Searcher {
                     // first legal move is always searched with full window
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
                 }
-                if (v == LOST) {
-                    moves[i].from = 1;
-                } else {
-                    legals++;
-                }
+                legals += v != LOST;
                 if (v > best) {
                     best = v;
                     bestmv = moves[i];
