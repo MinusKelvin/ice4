@@ -99,9 +99,10 @@ void uci() {
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
                     threads.emplace_back([time_alotment]() {
-                        Searcher s;
-                        s.iterative_deepening(time_alotment);
+                        Searcher *s = new Searcher();
+                        s->iterative_deepening(time_alotment);
                         ABORT = 1;
+                        delete s;
                     });
                 }
 #ifdef OPENBENCH

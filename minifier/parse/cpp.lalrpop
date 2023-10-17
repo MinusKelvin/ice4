@@ -118,6 +118,8 @@ PrefixExprNoParen = {
     "--" <PrefixExpr> => Box::new(Expr::PreDecrement(<>)),
     "sizeof" <PrefixExprNoParen> => Box::new(Expr::SizeOf(<>)),
     "sizeof" "(" <ModifiedType> ")" => Box::new(Expr::SizeOfType(<>)),
+    "new" <BaseType> "(" <Comma<Expression>> ")" => Box::new(Expr::New(<>)),
+    "delete" <PrefixExpr> => Box::new(Expr::Delete(<>)),
     PostfixExpr,
 };
 

@@ -139,6 +139,8 @@ pub enum Expr {
     PreDecrement(Expression),
     SizeOf(Expression),
     SizeOfType(ModifiedType),
+    New(BaseType, Vec<Expression>),
+    Delete(Expression),
     Cast(ModifiedType, Expression),
     Index(Expression, Expression),
     Call(Expression, Vec<Expression>),

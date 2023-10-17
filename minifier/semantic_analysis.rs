@@ -432,7 +432,8 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
         | Expr::PreIncrement(e)
         | Expr::PreDecrement(e)
         | Expr::PostIncrement(e)
-        | Expr::PostDecrement(e) => process_expr(symbols, scope, e),
+        | Expr::PostDecrement(e)
+        | Expr::Delete(e) => process_expr(symbols, scope, e),
         Expr::SizeOf(e) => {
             process_expr(symbols, scope, e);
             TypeOf::Unknown(Some("size_t".to_owned()))
@@ -465,7 +466,7 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
                 _ => TypeOf::Unknown(None),
             }
         }
-        Expr::Construct(ty, args) | Expr::BraceConstruct(ty, args) => {
+        Expr::Construct(ty, args) | Expr::BraceConstruct(ty, args) | Expr::New(ty, args) => {
             let ty = process_base_type(symbols, scope, ty);
             for arg in args {
                 process_expr(symbols, scope, arg);

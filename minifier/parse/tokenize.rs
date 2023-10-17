@@ -320,6 +320,8 @@ impl Expr {
             Expr::PreDecrement(_) => Precedence::Prefix,
             Expr::SizeOf(_) => Precedence::Prefix,
             Expr::SizeOfType(_) => Precedence::Prefix,
+            Expr::New(_, _) => Precedence::Prefix,
+            Expr::Delete(_) => Precedence::Prefix,
             Expr::Cast(_, _) => Precedence::Prefix,
             Expr::Index(_, _) => Precedence::Postfix,
             Expr::Call(_, _) => Precedence::Postfix,
@@ -568,6 +570,22 @@ impl Expr {
                 result.extend([Keyword("sizeof"), LeftParen]);
                 ty.tokenize(result);
                 result.push(RightParen);
+            }
+            Expr::New(ty, args) => {
+                result.push(Keyword("new"));
+                ty.tokenize(result);
+                result.push(LeftParen);
+                for (i, arg) in args.into_iter().enumerate() {
+                    if i != 0 {
+                        result.push(Comma);
+                    }
+                    arg.tokenize(result, Precedence::Assignment);
+                }
+                result.push(RightParen);
+            }
+            Expr::Delete(e) => {
+                result.push(Keyword("delete"));
+                e.tokenize(result, Precedence::Prefix);
             }
             Expr::Cast(ty, e) => {
                 result.push(LeftParen);

@@ -11,13 +11,13 @@ mutex MUTEX;
 int FINISHED_DEPTH;
 Move BEST_MOVE(0);
 
-typedef int16_t HTable[16][SQUARE_SPAN];
+typedef int16_t HTable[2][SQUARE_SPAN][SQUARE_SPAN];
 
 struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int16_t history[2][SQUARE_SPAN][SQUARE_SPAN];
+    HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -224,22 +224,22 @@ struct Searcher {
                             hist = &history[board.stm == WHITE][moves[j].from-A1][moves[j].to-A1];
                             *hist -= change + change * *hist / MAX_HIST;
                             if (ply) {
-                                hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                                hist = &(*conthist_stack[ply - 1])[board.stm == WHITE][moves[j].from-A1][moves[j].to-A1];
                                 *hist -= change + change * *hist / MAX_HIST;
                             }
                             if (ply > 1) {
-                                hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                                hist = &(*conthist_stack[ply - 2])[board.stm == WHITE][moves[j].from-A1][moves[j].to-A1];
                                 *hist -= change + change * *hist / MAX_HIST;
                             }
                         }
                         hist = &history[board.stm == WHITE][moves[i].from - A1][moves[i].to-A1];
                         *hist += change - change * *hist / MAX_HIST;
                         if (ply) {
-                            hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                            hist = &(*conthist_stack[ply - 1])[board.stm == WHITE][moves[i].from - A1][moves[i].to-A1];
                             *hist += change - change * *hist / MAX_HIST;
                         }
                         if (ply > 1) {
-                            hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                            hist = &(*conthist_stack[ply - 2])[board.stm == WHITE][moves[i].from - A1][moves[i].to-A1];
                             *hist += change - change * *hist / MAX_HIST;
                         }
                     }
@@ -278,13 +278,13 @@ struct Searcher {
                             // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                             // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
                             + 2 * (ply ?
-                                (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                                (*conthist_stack[ply - 1])[board.stm == WHITE][moves[j].from - A1][moves[j].to-A1]
                             : 0)
                             // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                             // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                             // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
                             + 3 * (ply > 1 ?
-                                (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                                (*conthist_stack[ply - 2])[board.stm == WHITE][moves[j].from - A1][moves[j].to-A1]
                             : 0);
                     }
                 }
