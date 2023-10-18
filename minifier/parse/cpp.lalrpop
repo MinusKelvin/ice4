@@ -140,7 +140,7 @@ Atom: Expression = {
     Number => Box::new(Expr::Number(<>)),
     String => Box::new(Expr::String(<>)),
     "this" => Box::new(Expr::Ident("this".to_owned())),
-    "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
+    "[" "&" <("," <Identifier>)*> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
     "(" <CommaExpression> ")",
 };
 

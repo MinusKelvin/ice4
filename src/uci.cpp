@@ -24,6 +24,7 @@ void uci() {
 #endif
         "uciok\n"
     );
+    vector<Searcher> searchers(THREADS);
     for (;;) {
         fgets(buf, 4096, stdin);
         switch (*strtok(buf, " \n")) {
@@ -44,6 +45,7 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        searchers.resize(THREADS);
                         break;
                 }
                 break;
@@ -98,11 +100,9 @@ void uci() {
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
-                        Searcher *s = new Searcher();
-                        s->iterative_deepening(time_alotment);
+                    threads.emplace_back([&,i]() {
+                        searchers[i].iterative_deepening(time_alotment);
                         ABORT = 1;
-                        delete s;
                     });
                 }
 #ifdef OPENBENCH

@@ -344,12 +344,9 @@ impl Expr {
             Expr::String(s) => result.push(String(s)),
             Expr::Ident(n) => result.push(Identifier(n)),
             Expr::Lambda(caps, args, b) => {
-                result.push(LeftBracket);
-                for (i, cap) in caps.into_iter().enumerate() {
-                    if i != 0 {
-                        result.push(Comma);
-                    }
-                    result.push(Identifier(cap));
+                result.extend([LeftBracket, Ampersand]);
+                for cap in caps {
+                    result.extend([Comma, Identifier(cap)]);
                 }
                 result.push(RightBracket);
                 result.push(LeftParen);

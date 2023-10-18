@@ -100,10 +100,11 @@ int main(int argc, char *argv[]) {
         uint64_t nodes = 0;
         timespec start, end;
         clock_gettime(CLOCK_MONOTONIC, &start);
+        auto s = make_unique<Searcher>();
         for (int i = 0; i < 64; i++) {
             ROOT = Board();
             parse_fen();
-            auto s = make_unique<Searcher>();
+            s->nodes = 0;
             s->iterative_deepening(1.0/0.0, 10);
             nodes += s->nodes;
         }

@@ -22,7 +22,7 @@ enum IdentKind {
     Ident(TypeOf),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum TypeOf {
     Unknown(Option<String>),
     User(usize),
@@ -543,10 +543,17 @@ fn process_base_type(symbols: &mut Symbols, scope: &mut Scope, ty: &mut BaseType
             r = TypeOf::Unknown(Some(name.clone()));
         }
     }
+    let mut param = None;
     for ty in ty.template_parameters.iter_mut().flatten() {
-        process_base_type(symbols, scope, ty);
+        param = Some(process_base_type(symbols, scope, ty));
     }
-    r
+    // bit of a hack but we need to special-case vectors of things to be a type that we can get the
+    // contained element type from during indexing. this should be fine since you can't associate
+    // a renamable thing with vectors anyways.
+    match (r, param) {
+        (TypeOf::Unknown(Some(s)), Some(of)) if &*s == "vector" => TypeOf::Pointer(Box::new(of)),
+        (r, _) => r,
+    }
 }
 
 fn get_name_mut(form: &mut DeclForm) -> Option<&mut String> {
