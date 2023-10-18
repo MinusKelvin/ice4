@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
             ROOT = Board();
             parse_fen();
             Searcher s;
-            s.iterative_deepening(1.0/0.0, 10);
+            s.iterative_deepening(1.0/0.0, 12);
             nodes += s.nodes;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);

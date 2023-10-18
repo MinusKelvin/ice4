@@ -3,4 +3,6 @@
 /ice4-tcec
 /ice4-ob
 /ice4.exe
+/ice4-usan
+/ice4-asan
 minifier/parse/cpp.rs
