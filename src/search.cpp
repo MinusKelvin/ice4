@@ -47,8 +47,8 @@ struct Searcher {
             }
             if (depth <= tt.depth && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
-                tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                tt.bound == BOUND_UPPER && tt.eval <= alpha
+                !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
+                !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
             )) {
                 bestmv = tt.mv;
                 return tt.eval;
@@ -191,7 +191,7 @@ struct Searcher {
                         // reduced search failed high, re-search at full depth
                         v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                     }
-                    if (v > alpha && v < beta) {
+                    if (v > alpha && pv) {
                         // at pv nodes, we need to re-search with full window when move raises alpha
                         // at non-pv nodes, this would be equivalent to the previous search, so skip it
                         v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
