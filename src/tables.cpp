@@ -1,13 +1,13 @@
 #define S(a, b) (a + (b * 0x10000))
 int PST[25][SQUARE_SPAN];
 #define BISHOP_PAIR S(26, 47)
-int32_t DOUBLED_PAWN[] = {S(7, 28), S(-12, 25), S(12, 23), S(14, 16), S(17, 11), S(12, 23), S(-10, 25), S(8, 35)};
+int DOUBLED_PAWN[] = {S(7, 28), S(-12, 25), S(12, 23), S(14, 16), S(17, 11), S(12, 23), S(-10, 25), S(8, 35)};
 #define TEMPO S(10, 8)
 #define ISOLATED_PAWN S(10, 8)
-int32_t PROTECTED_PAWN[] = {0, S(8, 7), S(9, 6)};
+int PROTECTED_PAWN[] = {0, S(8, 7), S(9, 6)};
 #define ROOK_OPEN S(36, 12)
 #define ROOK_SEMIOPEN S(18, 16)
-int32_t PAWN_SHIELD[] = {S(11, -21), S(21, -39), S(23, -31), S(30, -24)};
+int PAWN_SHIELD[] = {S(11, -21), S(21, -39), S(23, -31), S(30, -24)};
 #define KING_OPEN S(-43, -1)
 #define KING_SEMIOPEN S(-11, 20)
 

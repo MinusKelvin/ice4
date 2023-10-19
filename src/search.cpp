@@ -70,11 +70,11 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
+        if (!pv && depth > 0 && depth < 7 && eval >= beta + 80 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 188) {
+        if (!pv && depth == 1 && eval <= alpha - 180) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
@@ -86,7 +86,7 @@ struct Searcher {
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 92 + depth / 3 + 3;
+            int reduction = (eval - beta) / 99 + depth / 3 + 2;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -104,8 +104,8 @@ struct Searcher {
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
-        if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 4, ply);
+        if (depth >= 3 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+            negamax(board, hashmv, alpha, beta, depth - 3, ply);
         }
 
         rep_list[ply] = board.zobrist;
@@ -118,7 +118,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check_table[] = { 0, 7, 5, 12, 21 };
+        int quiets_to_check_table[] = { 0, 7, 6, 10, 18 };
         int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
@@ -135,7 +135,7 @@ struct Searcher {
                 swap(score[i], score[best_so_far]);
 
                 int victim = board.board[moves[i].to] & 7;
-                int deltas[] = {713, 105, 377, 412, 695, 940, 0};
+                int deltas[] = {743, 74, 291, 415, 714, 958, 0};
 
                 // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
                 // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
@@ -174,7 +174,7 @@ struct Searcher {
                     // All reductions: 41 bytes (cedac94 vs b915a59)
                     // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                     // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                    int reduction = legals * 0.112 + depth * 0.166;
+                    int reduction = legals * 0.109 + depth * 0.158;
                     // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                     // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                     // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
@@ -182,7 +182,7 @@ struct Searcher {
                     // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                     // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                     // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                    reduction -= score[i] / 578;
+                    reduction -= score[i] / 780;
                     if (reduction < 0 || victim || in_check) {
                         reduction = 0;
                     }
@@ -265,25 +265,25 @@ struct Searcher {
                         // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                         score[j] = (board.board[moves[j].to] & 7) * 8
                             - (board.board[moves[j].from] & 7)
-                            + 20000;
+                            + 200000;
                     } else {
                         // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                         // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                         // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                        score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        score[j] = 5 * history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                             // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                             // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
                             // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                             // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                             // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                            + 2 * (ply ?
+                            + 12 * (ply ?
                                 (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0)
                             // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                             // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                             // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                            + 3 * (ply > 1 ?
+                            + 13 * (ply > 1 ?
                                 (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                             : 0);
                     }
