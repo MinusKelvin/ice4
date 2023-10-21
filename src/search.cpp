@@ -3,7 +3,7 @@
 double now() {
     timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
-    return t.tv_sec + t.tv_nsec / 1000000000.0;
+    return t.tv_sec + t.tv_nsec / 1e9;
 }
 
 atomic_bool ABORT;
@@ -215,32 +215,31 @@ struct Searcher {
                 }
                 if (v >= beta) {
                     if (!victim) {
-                        int change = depth * depth;
                         int16_t *hist;
                         for (int j = 0; j < i; j++) {
                             if (board.board[moves[j].to]) {
                                 continue;
                             }
                             hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= change + change * *hist / MAX_HIST;
+                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                             if (ply) {
                                 hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
+                                *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                             }
                             if (ply > 1) {
                                 hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                                *hist -= change + change * *hist / MAX_HIST;
+                                *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                             }
                         }
                         hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += change - change * *hist / MAX_HIST;
+                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
+                            *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                         }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                            *hist += change - change * *hist / MAX_HIST;
+                            *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                         }
                     }
                     break;
@@ -318,9 +317,8 @@ struct Searcher {
         return best;
     }
 
-    void iterative_deepening(double time_alotment, int max_depth=250) {
-        memset(history, 0, sizeof(history));
-        memset(conthist, 0, sizeof(conthist));
+    void iterative_deepening(double time_alotment, int max_depth=200) {
+        memset(this, 0, sizeof(Searcher));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;

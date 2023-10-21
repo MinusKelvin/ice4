@@ -194,6 +194,9 @@ struct Board {
             }
 
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+            int starts[] = {0,0,8,4,0,0,0};
+            int limits[] = {0,0,1,8,8,8,1};
+            int ends[] = {0,0,16,8,4,8,8};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
@@ -209,32 +212,27 @@ struct Board {
 
             if (piece == PAWN) {
                 int dir = stm == WHITE ? 10 : -10;
-                int upsq = sq + dir;
-                int promo = board[upsq + dir] == INVALID ? QUEEN : 0;
-                if (!board[upsq] && (quiets || promo || board[upsq + dir + dir] == INVALID)) {
-                    list[count++] = Move(sq, upsq, promo);
-                    if (board[sq - dir - dir] == INVALID && !board[upsq+dir]) {
-                        list[count++] = Move(sq, upsq+dir, promo);
+                int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
+                if (!board[sq + dir] && (quiets || promo || board[sq + dir + dir + dir] == INVALID)) {
+                    list[count++] = Move(sq, sq + dir, promo);
+                    if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
+                        list[count++] = Move(sq, sq + dir+dir, promo);
                     }
                 }
                 if (
-                    board[upsq+1] == opponent_king || board[upsq-1] == opponent_king ||
-                    upsq+1 == castle1 || upsq+1 == castle2 ||
-                    upsq-1 == castle1 || upsq-1 == castle2
+                    board[sq + dir+1] == opponent_king || board[sq + dir-1] == opponent_king ||
+                    sq + dir+1 == castle1 || sq + dir+1 == castle2 ||
+                    sq + dir-1 == castle1 || sq + dir-1 == castle2
                 ) {
                     return 0;
                 }
-                if (ep_square == upsq-1 || board[upsq-1] & other && ~board[upsq-1] & stm) {
-                    list[count++] = Move(sq, upsq-1, promo);
+                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
+                    list[count++] = Move(sq, sq + dir-1, promo);
                 }
-                if (ep_square == upsq+1 || board[upsq+1] & other && ~board[upsq+1] & stm) {
-                    list[count++] = Move(sq, upsq+1, promo);
+                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
+                    list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
-                int starts[] = {0,0,8,4,0,0,0};
-                int limits[] = {0,0,1,8,8,8,1};
-                int ends[] = {0,0,16,8,4,8,8};
-
                 for (int i = starts[piece]; i < ends[piece]; i++) {
                     int raysq = sq;
                     for (int j = 0; j < limits[piece]; j++) {
@@ -246,10 +244,10 @@ struct Board {
                             return 0;
                         }
                         if (board[raysq] & other) {
-                            list[count++] = Move(sq, raysq, 0);
+                            list[count++] = Move(sq, raysq);
                             break;
                         } else if (quiets) {
-                            list[count++] = Move(sq, raysq, 0);
+                            list[count++] = Move(sq, raysq);
                         }
                     }
                 }
