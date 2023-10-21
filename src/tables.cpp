@@ -1,5 +1,7 @@
 #define S(a, b) (a + (b * 0x10000))
 int PST[25][SQUARE_SPAN];
+int ARR_TO_BB[120];
+int BB_TO_ARR[64];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
@@ -57,6 +59,9 @@ struct Zobrist {
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
+            ARR_TO_BB[rank*10 + file + A1] = rank*8 + file;
+            BB_TO_ARR[rank*8 + file] = rank*10 + file + A1;
+
             PST[BLACK | KING][70-10*rank+file] = -(
                 PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+96)
             );

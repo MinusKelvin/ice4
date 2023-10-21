@@ -50,6 +50,7 @@ struct Board {
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
+    uint64_t bb[4];
 
     void edit(int square, int piece) {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
@@ -68,6 +69,7 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
+        bb[board[square] >> 3] &= ~(1ull << ARR_TO_BB[square]);
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -82,6 +84,7 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
+        bb[board[square] >> 3] |= 1ull << ARR_TO_BB[square];
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -187,11 +190,8 @@ struct Board {
         uint8_t other = side ^ INVALID;
         uint8_t opponent_king = other | KING;
         uint8_t all_good = 1;
-        for (int sq = A1; sq <= H8; sq++) {
-            // skip empty squares & opponent squares (& border squares)
-            if ((board[sq] & 0x18) != side) {
-                continue;
-            }
+        for (uint64_t bits = bb[1 + (side == BLACK)]; bits; bits &= bits - 1) {
+            int sq = BB_TO_ARR[__builtin_ctzll(bits)];
 
             int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
             int starts[] = {0,0,8,4,0,0,0};
