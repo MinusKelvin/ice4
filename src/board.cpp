@@ -189,7 +189,7 @@ struct Board {
         uint8_t opponent_king = other | KING;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
-            if (!board[sq] || board[sq] & other) {
+            if ((board[sq] & 0x18) != stm) {
                 continue;
             }
 
