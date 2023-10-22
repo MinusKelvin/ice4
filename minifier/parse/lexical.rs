@@ -294,10 +294,10 @@ pub fn tokenize(mut text: &str) -> Vec<Token> {
     result
 }
 
-const BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)(\w*)\z"#).unwrap());
-const OCTAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A(0[0-7]*)(\w*)\z"#).unwrap());
-const DECIMAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A([1-9][0-9]*)(\w*)\z"#).unwrap());
-const HEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0x([0-9A-Fa-f]+)(\w*)\z"#).unwrap());
+const BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)([a-zA-Z]*)\z"#).unwrap());
+const OCTAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A(0[0-7]*)([a-zA-Z]*)\z"#).unwrap());
+const DECIMAL: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A([1-9][0-9]*)([a-zA-Z]*)\z"#).unwrap());
+const HEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0x([0-9A-Fa-f]+)([a-zA-Z]*)\z"#).unwrap());
 const CHAR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'(([^'\\]|\\.)+)'\z"#).unwrap());
 
 fn parse_number(text: &str) -> Token {
