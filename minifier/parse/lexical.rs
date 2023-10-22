@@ -8,13 +8,13 @@ static KEYWORDS: Lazy<HashSet<&'static str>> =
     Lazy::new(|| include_str!("keywords").lines().collect());
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Token {
-    Identifier(String),
-    Typename(String),
+pub enum Token<S = String> {
+    Identifier(S),
+    Typename(S),
     Keyword(&'static str),
     Integer(ParsedNumber),
-    OtherNumber(String),
-    String(String),
+    OtherNumber(S),
+    String(S),
     Ampersand,
     AmpersandAmpersand,
     AmpersandEqual,
@@ -153,6 +153,15 @@ impl Token {
         )
     }
 
+    pub fn word(&self) -> Option<&str> {
+        match self {
+            Token::Identifier(s) => Some(&*s),
+            Token::Typename(s) => Some(&*s),
+            Token::Keyword(s) => Some(s),
+            _ => None,
+        }
+    }
+
     pub fn requires_space(&self, other: &Token) -> bool {
         match (self, other) {
             (l, r) if l.is_wordlike() && r.is_wordlike() => true,
@@ -162,7 +171,9 @@ impl Token {
             (_, r) if r.is_wordlike() => false,
             _ => {
                 let buf = self.as_str().to_owned() + other.as_str();
-                tokenize(&buf).get(0) != Some(self)
+                // horribly slow
+                let mut lexer = Lexer::new();
+                lexer.tokenize(&buf).get(0) != Some(self)
             }
         }
     }
@@ -190,108 +201,118 @@ static NUMBER: Lazy<Regex> =
 static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unwrap());
 static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
 
-pub fn tokenize(mut text: &str) -> Vec<Token> {
-    let mut typenames: HashSet<_> = include_str!("extern_types")
-        .lines()
-        .map(|s| s.to_owned())
-        .collect();
+pub struct Lexer {
+    typenames: HashSet<String>,
+}
 
-    let mut result = vec![];
-    while !text.is_empty() {
-        let type_introduction = matches!(
-            result.last(),
-            Some(Token::Keyword("struct" | "class" | "union" | "enum"))
-        ) || result
-            .iter()
-            .rev()
-            .take_while(|t| !matches!(t, Token::Semicolon))
-            .any(|t| matches!(t, Token::Keyword("typedef")));
-        let code = text;
-        let mut token = |token, rest| {
-            result.push(token);
-            text = rest;
-        };
-        match_prefix! { code;
-            " " | "\t" | "\n", rest => text = rest,
-            "&&", rest => token(Token::AmpersandAmpersand, rest),
-            "&=", rest => token(Token::AmpersandEqual, rest),
-            "&", rest => token(Token::Ampersand, rest),
-            "!=", rest => token(Token::BangEqual, rest),
-            "!", rest => token(Token::Bang, rest),
-            "||", rest => token(Token::BarBar, rest),
-            "|=", rest => token(Token::BarEqual, rest),
-            "|", rest => token(Token::Bar, rest),
-            "^=", rest => token(Token::CaretEqual, rest),
-            "^", rest => token(Token::Caret, rest),
-            "::", rest => token(Token::ColonColon, rest),
-            ":", rest => token(Token::Colon, rest),
-            ",", rest => token(Token::Comma, rest),
-            "...", rest => token(Token::DotDotDot, rest),
-            ".", rest => token(Token::Dot, rest),
-            "==", rest => token(Token::EqualEqual, rest),
-            "=", rest => token(Token::Equal, rest),
-            ">>=", rest => token(Token::GreaterGreaterEqual, rest),
-            ">=", rest => token(Token::GreaterEqual, rest),
-            ">>", rest => token(Token::GreaterGreater, rest),
-            ">", rest => token(Token::Greater, rest),
-            "{", rest => token(Token::LeftBrace, rest),
-            "[", rest => token(Token::LeftBracket, rest),
-            "(", rest => token(Token::LeftParen, rest),
-            "<<=", rest => token(Token::LessLessEqual, rest),
-            "<=", rest => token(Token::LessEqual, rest),
-            "<<", rest => token(Token::LessLess, rest),
-            "<", rest => token(Token::Less, rest),
-            "-=", rest => token(Token::MinusEqual, rest),
-            "->", rest => token(Token::MinusGreater, rest),
-            "--", rest => token(Token::MinusMinus, rest),
-            "-", rest => token(Token::Minus, rest),
-            "%=", rest => token(Token::PercentEqual, rest),
-            "%", rest => token(Token::Percent, rest),
-            "+=", rest => token(Token::PlusEqual, rest),
-            "++", rest => token(Token::PlusPlus, rest),
-            "+", rest => token(Token::Plus, rest),
-            "?", rest => token(Token::Question, rest),
-            "}", rest => token(Token::RightBrace, rest),
-            "]", rest => token(Token::RightBracket, rest),
-            ")", rest => token(Token::RightParen, rest),
-            ";", rest => token(Token::Semicolon, rest),
-            "//", rest => {
-                text = rest.split_once('\n').map(|(_, v)| v).unwrap_or("");
-            },
-            "/*", rest => {
-                text = rest.split_once("*/").map(|(_, v)| v).unwrap_or("");
-            },
-            "/=", rest => token(Token::SlashEqual, rest),
-            "/", rest => token(Token::Slash, rest),
-            "*", rest => token(Token::Star, rest),
-            "*=", rest => token(Token::StarEqual, rest),
-            "~", rest => token(Token::Tilde, rest),
-            _ => if let Some(m) = WORD.find(code) {
-                let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
-                    Token::Keyword(k)
-                } else if typenames.contains(m.as_str()) {
-                    Token::Typename(m.as_str().to_owned())
-                } else if type_introduction {
-                    typenames.insert(m.as_str().to_owned());
-                    Token::Identifier(m.as_str().to_owned())
-                } else {
-                    Token::Identifier(m.as_str().to_owned())
-                };
-                token(tok, &code[m.end()..]);
-            } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
-                token(parse_number(m.as_str()), &code[m.end()..]);
-            } else if let Some(m) = STRING.find(code) {
-                token(Token::String(m.as_str().to_owned()), &code[m.end()..]);
-            } else {
-                unreachable!(
-                    "could not parse token starting with `{}`",
-                    &code[..code.len().min(8)]
-                );
-            },
+impl Lexer {
+    pub fn new() -> Lexer {
+        Lexer {
+            typenames: include_str!("extern_types")
+                .lines()
+                .map(|s| s.to_owned())
+                .collect(),
         }
     }
-    string_concat(&mut result);
-    result
+
+    pub fn tokenize(&mut self, mut text: &str) -> Vec<Token> {
+        let mut result = vec![];
+        while !text.is_empty() {
+            let type_introduction = matches!(
+                result.last(),
+                Some(Token::Keyword("struct" | "class" | "union" | "enum"))
+            ) || result
+                .iter()
+                .rev()
+                .take_while(|t| !matches!(t, Token::Semicolon))
+                .any(|t| matches!(t, Token::Keyword("typedef")));
+            let code = text;
+            let mut token = |token, rest| {
+                result.push(token);
+                text = rest;
+            };
+            match_prefix! { code;
+                " " | "\t" | "\n", rest => text = rest,
+                "&&", rest => token(Token::AmpersandAmpersand, rest),
+                "&=", rest => token(Token::AmpersandEqual, rest),
+                "&", rest => token(Token::Ampersand, rest),
+                "!=", rest => token(Token::BangEqual, rest),
+                "!", rest => token(Token::Bang, rest),
+                "||", rest => token(Token::BarBar, rest),
+                "|=", rest => token(Token::BarEqual, rest),
+                "|", rest => token(Token::Bar, rest),
+                "^=", rest => token(Token::CaretEqual, rest),
+                "^", rest => token(Token::Caret, rest),
+                "::", rest => token(Token::ColonColon, rest),
+                ":", rest => token(Token::Colon, rest),
+                ",", rest => token(Token::Comma, rest),
+                "...", rest => token(Token::DotDotDot, rest),
+                ".", rest => token(Token::Dot, rest),
+                "==", rest => token(Token::EqualEqual, rest),
+                "=", rest => token(Token::Equal, rest),
+                ">>=", rest => token(Token::GreaterGreaterEqual, rest),
+                ">=", rest => token(Token::GreaterEqual, rest),
+                ">>", rest => token(Token::GreaterGreater, rest),
+                ">", rest => token(Token::Greater, rest),
+                "{", rest => token(Token::LeftBrace, rest),
+                "[", rest => token(Token::LeftBracket, rest),
+                "(", rest => token(Token::LeftParen, rest),
+                "<<=", rest => token(Token::LessLessEqual, rest),
+                "<=", rest => token(Token::LessEqual, rest),
+                "<<", rest => token(Token::LessLess, rest),
+                "<", rest => token(Token::Less, rest),
+                "-=", rest => token(Token::MinusEqual, rest),
+                "->", rest => token(Token::MinusGreater, rest),
+                "--", rest => token(Token::MinusMinus, rest),
+                "-", rest => token(Token::Minus, rest),
+                "%=", rest => token(Token::PercentEqual, rest),
+                "%", rest => token(Token::Percent, rest),
+                "+=", rest => token(Token::PlusEqual, rest),
+                "++", rest => token(Token::PlusPlus, rest),
+                "+", rest => token(Token::Plus, rest),
+                "?", rest => token(Token::Question, rest),
+                "}", rest => token(Token::RightBrace, rest),
+                "]", rest => token(Token::RightBracket, rest),
+                ")", rest => token(Token::RightParen, rest),
+                ";", rest => token(Token::Semicolon, rest),
+                "//", rest => {
+                    text = rest.split_once('\n').map(|(_, v)| v).unwrap_or("");
+                },
+                "/*", rest => {
+                    text = rest.split_once("*/").map(|(_, v)| v).unwrap_or("");
+                },
+                "/=", rest => token(Token::SlashEqual, rest),
+                "/", rest => token(Token::Slash, rest),
+                "*", rest => token(Token::Star, rest),
+                "*=", rest => token(Token::StarEqual, rest),
+                "~", rest => token(Token::Tilde, rest),
+                _ => if let Some(m) = WORD.find(code) {
+                    let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
+                        Token::Keyword(k)
+                    } else if self.typenames.contains(m.as_str()) {
+                        Token::Typename(m.as_str().to_owned())
+                    } else if type_introduction {
+                        self.typenames.insert(m.as_str().to_owned());
+                        Token::Identifier(m.as_str().to_owned())
+                    } else {
+                        Token::Identifier(m.as_str().to_owned())
+                    };
+                    token(tok, &code[m.end()..]);
+                } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
+                    token(parse_number(m.as_str()), &code[m.end()..]);
+                } else if let Some(m) = STRING.find(code) {
+                    token(Token::String(m.as_str().to_owned()), &code[m.end()..]);
+                } else {
+                    unreachable!(
+                        "could not parse token starting with `{}`",
+                        &code[..code.len().min(8)]
+                    );
+                },
+            }
+        }
+        string_concat(&mut result);
+        result
+    }
 }
 
 const BINARY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A0b([0-1]+)([a-zA-Z]*)\z"#).unwrap());

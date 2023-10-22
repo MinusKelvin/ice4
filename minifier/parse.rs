@@ -4,24 +4,21 @@ mod lexical;
 mod tokenize;
 
 pub use ast::*;
-pub use lexical::{ParsedNumber, Token};
+pub use lexical::{ParsedNumber, Token, Lexer};
 
-pub fn parse(code: &str) -> Vec<TopLevel> {
-    let tokens = lexical::tokenize(code);
-
+pub fn parse(code: &[Token]) -> Vec<TopLevel> {
     let parser = cpp::FileParser::new();
     let parsed = parser.parse(
-        tokens
-            .clone()
-            .into_iter()
+        code
+            .iter()
             .enumerate()
-            .map(|(i, t)| Ok((i, t, i + 1))),
+            .map(|(i, t)| Ok((i, t.clone(), i + 1))),
     );
 
     match parsed {
         Err(lalrpop_util::ParseError::UnrecognizedToken { token, .. }) => {
             let mut packed = String::new();
-            for (i, t) in tokens
+            for (i, t) in code
                 .iter()
                 .enumerate()
                 .skip(token.0.max(10) - 10)
