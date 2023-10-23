@@ -88,23 +88,6 @@ print("}")
 print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
 print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")
 
-data_string += dump_string(sections[0], "unpack_full(1, PAWN")
-data_string += dump_string(sections[eg+0], "unpack_full(0x10000, PAWN")
-data_string += dump_string(sections[10], "unpack_full(1, PASSED_PAWN")
-data_string += dump_string(sections[eg+10], "unpack_full(0x10000, PASSED_PAWN")
-data_string += dump_string(sections[9], "unpack_smol(1, KING")
-data_string += dump_string(sections[eg+9], "unpack_smol(0x10000, KING")
-data_string += dump_string(sections[7], "unpack_half(1, QUEEN", sections[8])
-data_string += dump_string(sections[eg+7], "unpack_half(0x10000, QUEEN", sections[eg+8])
-data_string += dump_string(sections[5], "unpack_half(1, ROOK", sections[6])
-data_string += dump_string(sections[eg+5], "unpack_half(0x10000, ROOK", sections[eg+6])
-data_string += dump_string(sections[3], "unpack_half(1, BISHOP", sections[4])
-data_string += dump_string(sections[eg+3], "unpack_half(0x10000, BISHOP", sections[eg+4])
-data_string += dump_string(sections[1], "unpack_half(1, KNIGHT", sections[2])
-data_string += dump_string(sections[eg+1], "unpack_half(0x10000, KNIGHT", sections[eg+2])
-
-print(f"data string: \"{data_string}\"")
-
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
 print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
     f"S({-round(v1)}, {-round(v2)})" for v1, v2 in zip(sections[12], sections[eg+12])
