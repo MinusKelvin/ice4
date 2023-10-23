@@ -4,6 +4,27 @@ import json, math
 with open("0-20.json", "r") as f:
     data = json.load(f)
 
+class DataStringer:
+    def __init__(self):
+        self.little = ""
+        self.big = ""
+
+    def add(self, data):
+        smallest = min(data)
+        for v in data:
+            v = round(v - smallest)
+            low = v % 95
+            high = v // 95
+            lc = chr(low + 32)
+            hc = chr(high + 32)
+            if lc == "\\" or lc == "\"":
+                self.little += "\\"
+            if hc == "\\" or hc == "\"":
+                self.big += "\\"
+            self.little += lc
+            self.big += hc
+        return smallest
+
 def dump_string(piece_data, stuff, extra=None):
     smallest = float("inf")
     largest = -smallest
@@ -42,6 +63,31 @@ for s in sizes:
 eg = len(sections)//2
 
 data_string = ""
+
+mg_stringer = DataStringer()
+eg_stringer = DataStringer()
+
+mg_off = round(mg_stringer.add(sections[0]))
+eg_off = round(eg_stringer.add(sections[0+eg]))
+print(f"pawn offset S({mg_off}, {eg_off})")
+mg_off = round(mg_stringer.add(sections[10]))
+eg_off = round(eg_stringer.add(sections[10+eg]))
+print(f"passed pawn offset S({mg_off}, {eg_off})")
+
+mg_stringer.add(sections[9])
+eg_stringer.add(sections[9+eg])
+
+print("int material[] = {")
+for i in range(1, 9, 2):
+    mg_off = mg_stringer.add(sections[i])
+    eg_off = eg_stringer.add(sections[i+eg])
+    for mg_q, eg_q in zip([0] + sections[i+1], [0] + sections[i+1+eg]):
+        print(f"S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
+print("}")
+
+print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
+print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")
+
 data_string += dump_string(sections[0], "unpack_full(1, PAWN")
 data_string += dump_string(sections[eg+0], "unpack_full(0x10000, PAWN")
 data_string += dump_string(sections[10], "unpack_full(1, PASSED_PAWN")
