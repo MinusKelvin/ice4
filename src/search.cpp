@@ -98,7 +98,7 @@ struct Searcher {
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
-            in_check = !mkmove.movegen(moves, mvcount);
+            in_check = !mkmove.movegen(moves, mvcount, mkmove.stm, 1);
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
@@ -247,7 +247,7 @@ struct Searcher {
             // 2. hashmv does not exist, moves[0] exists => already did movegen
             // 3. hashmv exists (implies moves[0] exists) => movegen
             if (!i && (!moves[0].from || hashmv.from)) {
-                if (!board.movegen(moves, mvcount, depth > 0)) {
+                if (!board.movegen(moves, mvcount, board.stm, depth > 0)) {
                     return WON;
                 }
                 for (int j = 0; j < mvcount; j++) {
@@ -291,7 +291,7 @@ struct Searcher {
         if (depth > 0 && legals == 0) {
             Board mkmove = board;
             mkmove.null_move();
-            if (mkmove.movegen(moves, mvcount)) {
+            if (mkmove.movegen(moves, mvcount, mkmove.stm, 1)) {
                 return 0;
             }
         }

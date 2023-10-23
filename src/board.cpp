@@ -182,13 +182,14 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
     }
 
-    int movegen(Move list[], int& count, int quiets=1) {
+    int movegen(Move list[], int& count, int side, int quiets) {
         count = 0;
-        uint8_t other = stm ^ INVALID;
+        uint8_t other = side ^ INVALID;
         uint8_t opponent_king = other | KING;
+        uint8_t all_good = 1;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
-            if ((board[sq] & 0x18) != stm) {
+            if ((board[sq] & 0x18) != side) {
                 continue;
             }
 
@@ -198,19 +199,19 @@ struct Board {
             int ends[] = {0,0,16,8,4,8,8};
             int piece = board[sq] & 7;
 
-            if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
-                if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
+            if (piece == KING && sq == (side == WHITE ? E1 : E8) && quiets) {
+                if (castle_rights[side == BLACK] & SHORT_CASTLE &&
                         !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
                 }
-                if (castle_rights[stm == BLACK] & LONG_CASTLE &&
+                if (castle_rights[side == BLACK] & LONG_CASTLE &&
                         !board[sq-1] && !board[sq-2] && !board[sq-3]) {
                     list[count++] = Move(sq, sq - 2, 0);
                 }
             }
 
             if (piece == PAWN) {
-                int dir = stm == WHITE ? 10 : -10;
+                int dir = side == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
                 if (!board[sq + dir] && (quiets || promo || board[sq + dir + dir + dir] == INVALID)) {
                     list[count++] = Move(sq, sq + dir, promo);
@@ -220,15 +221,15 @@ struct Board {
                 }
                 if (
                     board[sq + dir+1] == opponent_king || board[sq + dir-1] == opponent_king ||
-                    sq + dir+1 == castle1 || sq + dir+1 == castle2 ||
-                    sq + dir-1 == castle1 || sq + dir-1 == castle2
+                    side == stm && (sq + dir+1 == castle1 || sq + dir+1 == castle2 ||
+                    sq + dir-1 == castle1 || sq + dir-1 == castle2)
                 ) {
-                    return 0;
+                    all_good = 0;
                 }
-                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
+                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & side) {
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
-                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
+                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & side) {
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
@@ -236,11 +237,11 @@ struct Board {
                     int raysq = sq;
                     for (int j = 0; j < limits[piece]; j++) {
                         raysq += rays[i];
-                        if (board[raysq] & stm) {
+                        if (board[raysq] & side) {
                             break;
                         }
-                        if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
-                            return 0;
+                        if (board[raysq] == opponent_king || side == stm && (raysq == castle1 || raysq == castle2)) {
+                            all_good = 0;
                         }
                         if (board[raysq] & other) {
                             list[count++] = Move(sq, raysq);
@@ -252,7 +253,7 @@ struct Board {
                 }
             }
         }
-        return 1;
+        return all_good;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
