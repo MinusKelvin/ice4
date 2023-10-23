@@ -213,7 +213,7 @@ struct Board {
             if (piece == PAWN) {
                 int dir = stm == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
-                if (!board[sq + dir] && (quiets || promo || board[sq + dir + dir + dir] == INVALID)) {
+                if (!board[sq + dir] && (quiets || promo)) {
                     list[count++] = Move(sq, sq + dir, promo);
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         list[count++] = Move(sq, sq + dir+dir, promo);
