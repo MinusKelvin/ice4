@@ -6,7 +6,7 @@ struct Move {
     Move() = default;
     Move(int8_t f, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
 
-    void put() {
+    void put_with_newline() {
         putchar(from%10+96);
         putchar(from/10+47);
         putchar(to%10+96);
@@ -14,6 +14,7 @@ struct Move {
         if (promo) {
             putchar('q');
         }
+        putchar('\n');
     }
 };
 
@@ -26,10 +27,8 @@ struct TtData {
 };
 
 struct TtEntry {
-    atomic_uint64_t hash_xor_data;
-    atomic_uint64_t data;
-
-    TtEntry() : hash_xor_data(0), data(0) {}
+    atomic_uint64_t hash_xor_data = 0;
+    atomic_uint64_t data = 0;
 };
 
 // 8MB. Replaced for TCEC builds by the minifier.

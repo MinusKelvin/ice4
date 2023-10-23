@@ -127,12 +127,11 @@ void uci() {
                     ABORT = 1;
                 }
 #endif
-                for (auto& t : threads) {
-                    t.join();
+                for (int i = 0; i < THREADS; i++) {
+                    threads[i].join();
                 }
                 printf("bestmove ");
-                BEST_MOVE.put();
-                putchar('\n');
+                BEST_MOVE.put_with_newline();
         }
     }
 }

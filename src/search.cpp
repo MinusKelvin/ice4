@@ -318,7 +318,7 @@ struct Searcher {
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.03;
-        Move mv(0);
+        Move mv;
         int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
@@ -334,8 +334,7 @@ struct Searcher {
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
                     printf("info depth %d score cp %d pv ", depth, v);
-                    mv.put();
-                    putchar('\n');
+                    mv.put_with_newline();
                     FINISHED_DEPTH = depth;
                     if (now() > time_alotment) {
                         depth = max_depth;
