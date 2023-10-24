@@ -60,6 +60,8 @@ struct Searcher {
             depth--;
         }
 
+        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, depth > 0);
+
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
@@ -98,7 +100,7 @@ struct Searcher {
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
-            in_check = !mkmove.movegen(moves, mvcount, mkmove.stm, 1);
+            in_check = real_in_check;
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
