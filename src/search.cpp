@@ -29,10 +29,6 @@ struct Searcher {
         int mvcount;
 
         int pv = beta > alpha+1;
-        // Check Conditions: 24 bytes (46d9d80 vs 0f4a84d)
-        // 8.0+0.08: 14.84 +- 5.12 (3046 - 2619 - 4335) 0.62 elo/byte
-        // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
-        int in_check = 0;
 
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
@@ -60,7 +56,10 @@ struct Searcher {
             depth--;
         }
 
-        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, depth > 0);
+        // Check Conditions: 24 bytes (46d9d80 vs 0f4a84d)
+        // 8.0+0.08: 14.84 +- 5.12 (3046 - 2619 - 4335) 0.62 elo/byte
+        // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
+        int in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, depth > 0);
 
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
@@ -83,7 +82,7 @@ struct Searcher {
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 2) {
+        if (!pv && !in_check && eval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
@@ -94,13 +93,6 @@ struct Searcher {
             if (v >= beta) {
                 return v;
             }
-            in_check = v == LOST;
-        }
-
-        if (pv && depth > 0) {
-            Board mkmove = board;
-            mkmove.null_move();
-            in_check = real_in_check;
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
