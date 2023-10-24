@@ -4,28 +4,28 @@ int PST[25][SQUARE_SPAN];
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
 int QUADRANTS[] = {
-    S(204, 188), S(227, 194), S(211, 188), S(234, 192),
-    S(222, 272), S(233, 280), S(224, 275), S(238, 278),
-    S(278, 483), S(302, 506), S(286, 478), S(321, 495),
-    S(511, 932), S(506, 1007), S(510, 954), S(526, 1012)
+    S(218, 228), S(241, 231), S(225, 226), S(249, 229),
+    S(241, 321), S(250, 326), S(242, 322), S(255, 326),
+    S(293, 575), S(319, 595), S(301, 566), S(339, 582),
+    S(653, 1110),S(654, 1151),S(656, 1109),S(673, 1162),
 };
 
-#define BISHOP_PAIR S(28, 40)
-int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(9, 19), S(13, 14), S(13, 11), S(10, 21), S(-8, 20), S(5, 31)};
-#define TEMPO S(10, 10)
-#define ISOLATED_PAWN S(9, 8)
-int PROTECTED_PAWN[] = {0, S(8, 7), S(9, 7)};
-#define ROOK_OPEN S(32, 15)
-#define ROOK_SEMIOPEN S(15, 17)
-int PAWN_SHIELD[] = {S(8, -20), S(16, -34), S(19, -27), S(27, -20)};
-#define KING_OPEN S(-42, -1)
-#define KING_SEMIOPEN S(-10, 19)
+#define BISHOP_PAIR S(24, 48)
+int32_t DOUBLED_PAWN[] = {S(6, 23), S(-10, 21), S(10, 20), S(14, 15), S(14, 11), S(11, 22), S(-7, 20), S(6, 33)};
+#define TEMPO S(10, 12)
+#define ISOLATED_PAWN S(10, 9)
+int32_t PROTECTED_PAWN[] = {0, S(8, 7), S(9, 8)};
+#define ROOK_OPEN S(34, 12)
+#define ROOK_SEMIOPEN S(16, 17)
+int32_t PAWN_SHIELD[] = {S(1, -13), S(11, -30), S(14, -26), S(23, -24)};
+#define KING_OPEN S(-43, -3)
+#define KING_SEMIOPEN S(-11, 20)
 
 int get_data(int i) {
-    auto DATA_LOW = ";OO4-1) >I@:65'$@DPLI>-)JN_\\SH<5\\c&mhgHC7-f ooX^4B76..4960(%%%,:.8) ();C.:88<CMG%\"6>CFVRUXQP`WdSgONnJ \":I4-.HI8\\ &-/*/?9/BBL::NN\"$ \"/88./<99,0;G.059 ,2-*6/.&',, '(-237496523423%*5@8735 !/23+))$*(((,/,01.)-468?O;EHBLC[_eYTad^.,' &)3,0>3/(0;2NPH@78AEggXICCNZ,#wTL^j{FA-mrny*!2/ /LI0DZ[H7EK3 D\\`Vdkr]p|$g|'+ .'+$12737CD.@DG$&($%%%$ !$#$((%'&,2 *5<%CQR1FVb";
-    auto DATA_HIGH = "                                  !        !                                                                                                                                                                                                                    !!      !!!    !                           !  !!                                                ";
+    auto DATA_LOW = "<OQ4-1( ?IB:65'$AEQMJ>-)LN`]TH<5^c)oigHCB'['}`>i7H=:117;95+)'(.<0:,#+,?F0;=;?FPJ% :AGJXUKZ]NVi$K99)o#q?HF6#bh 9Hu{MFKNkdR];0 @D+_od>,GL=k*c]x9,{j){H%o{0TLin>0NF &./+/@9/CCM;:OO#% \"099./<99,0<H/159 ,2.*70/&',, ().028487531312#+6D;945 \"046-*)$*())-0,03/+.68:BT=IMEPF~{?GMOOR1-& ')5-2?3.(0<3RUJB89DHmm[KFFT_8/!XPes&7>f.)2BHz,97)7,oy-9HF9+x*>Q[ZM>1:L_jk[J?>Yeorf_ECahrigf?2`\\P[`Z'7#}=3)+  Jdj^nu}f|(/r*38 0'-%3496:FG0CGJ#%($%$%$  $#$((%%\"%# %*5&<NK1FS_";
+    auto DATA_HIGH = "                                  !        !                                                  ! !!! ! !!!!!  !!!                         !   !!  ! !!  !!!! !!!\"                                                                                                          !!!!!!                                !!!    !!!       !!!!!!  !!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ! !!!!           !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
-        0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])
+        0x10000 * (DATA_LOW[i+224] + 95 * DATA_HIGH[i+224])
         - S(3072, 3072);
 }
 
@@ -56,7 +56,7 @@ void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             PST[BLACK | KING][70-10*rank+file] = -(
-                PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+96)
+                PST[WHITE | KING][10*rank+file] = get_data(rank*8+file+96)
             );
 
             if (rank > 0 && rank < 7) {
@@ -70,7 +70,7 @@ void init_tables() {
             for (int piece = KNIGHT; piece <= QUEEN; piece++) {
                 PST[BLACK | piece][70-10*rank+file] = -(
                     PST[WHITE | piece][10*rank+file] = get_data(
-                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+80
+                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+128
                     ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
                 );
             }
