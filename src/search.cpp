@@ -62,6 +62,10 @@ struct Searcher {
 
         int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, depth > 0);
 
+        if (!board.movegen(moves, mvcount, board.stm, depth > 0)) {
+            return WON;
+        }
+
         evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
@@ -108,10 +112,6 @@ struct Searcher {
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
         if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
             negamax(board, hashmv, alpha, beta, depth - 4, ply);
-        }
-
-        if (!board.movegen(moves, mvcount, board.stm, depth > 0)) {
-            return WON;
         }
 
         for (int j = 0; j < mvcount; j++) {
