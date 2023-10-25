@@ -4,26 +4,26 @@ int PST[25][SQUARE_SPAN];
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
 int QUADRANTS[] = {
-    S(204, 188), S(227, 194), S(211, 188), S(234, 192),
-    S(222, 272), S(233, 280), S(224, 275), S(238, 278),
-    S(278, 483), S(302, 506), S(286, 478), S(321, 495),
-    S(511, 932), S(506, 1007), S(510, 954), S(526, 1012)
+    S(218, 227), S(242, 231), S(225, 225), S(248, 229),
+    S(240, 319), S(250, 324), S(242, 319), S(255, 323),
+    S(292, 571), S(318, 591), S(300, 562), S(339, 579),
+    S(650, 1108), S(651, 1149), S(653, 1107), S(671, 1158),
 };
 
-#define BISHOP_PAIR S(28, 40)
-int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(9, 19), S(13, 14), S(13, 11), S(10, 21), S(-8, 20), S(5, 31)};
-#define TEMPO S(10, 10)
-#define ISOLATED_PAWN S(9, 8)
-int PROTECTED_PAWN[] = {0, S(8, 7), S(9, 7)};
-#define ROOK_OPEN S(32, 15)
-#define ROOK_SEMIOPEN S(15, 17)
-int PAWN_SHIELD[] = {S(8, -20), S(16, -34), S(19, -27), S(27, -20)};
-#define KING_OPEN S(-42, -1)
-#define KING_SEMIOPEN S(-10, 19)
+#define BISHOP_PAIR S(24, 48)
+int32_t DOUBLED_PAWN[] = {S(6, 23), S(-10, 20), S(10, 20), S(14, 15), S(15, 11), S(11, 23), S(-7, 20), S(7, 32)};
+#define TEMPO S(10, 12)
+#define ISOLATED_PAWN S(10, 9)
+int32_t PROTECTED_PAWN[] = {0, S(8, 7), S(9, 8)};
+#define ROOK_OPEN S(33, 12)
+#define ROOK_SEMIOPEN S(16, 17)
+int32_t PAWN_SHIELD[] = {S(8, -22), S(17, -36), S(19, -29), S(27, -21)};
+#define KING_OPEN S(-44, -1)
+#define KING_SEMIOPEN S(-11, 21)
 
 int get_data(int i) {
-    auto DATA_LOW = ";OO4-1) >I@:65'$@DPLI>-)JN_\\SH<5\\c&mhgHC7-f ooX^4B76..4960(%%%,:.8) ();C.:88<CMG%\"6>CFVRUXQP`WdSgONnJ \":I4-.HI8\\ &-/*/?9/BBL::NN\"$ \"/88./<99,0;G.059 ,2-*6/.&',, '(-237496523423%*5@8735 !/23+))$*(((,/,01.)-468?O;EHBLC[_eYTad^.,' &)3,0>3/(0;2NPH@78AEggXICCNZ,#wTL^j{FA-mrny*!2/ /LI0DZ[H7EK3 D\\`Vdkr]p|$g|'+ .'+$12737CD.@DG$&($%%%$ !$#$((%'&,2 *5<%CQR1FVb";
-    auto DATA_HIGH = "                                  !        !                                                                                                                                                                                                                    !!      !!!    !                           !  !!                                                ";
+    auto DATA_LOW = "=QR5.2) AKC;76($CFRNJ?.*LPa^UI=6_e)pjhIDD*h3(iDs7I=9128<:5+(((.=0;,#+,?G/<;;?FPJ#!9@GKYUH[SCLb~ClSRsL \"<N711]mYm!&./*0@:/CCM;:OO$&!#099/0=::-1<I026;!-3/+810'(-.!)*/149598643322$+7C;:56 \"157.+*%+**+/1.231,/79;DT?KNGQGxw489CE>0,&!')4-1?3/'/;3QTIA89CHmm\\LFFS_8-!YPds&??r??=K]#51!2QN3G__K5AI0 Iej^mu}f{(/q)38 0(.&35:6:FH0DHK#'*&'''&!\"%%&*)'%!%$ %*5%<MK/FS_";
+    auto DATA_HIGH = "                                  !        !!                                                                                                                                                                             !!!!!!                                !!!    !!!                                !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])
         - S(3072, 3072);
@@ -61,10 +61,10 @@ void init_tables() {
 
             if (rank > 0 && rank < 7) {
                 PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file-8) + S(25, 76);
+                    get_data(rank*8+file-8) + S(26, 83);
 
                 PST[WHITE_PASSED_PAWN][10*rank+file] = PST[BLACK_PASSED_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file+40) + S(-17, -9);
+                    get_data(rank*8+file+40) + S(-20, -10);
             }
 
             for (int piece = KNIGHT; piece <= QUEEN; piece++) {
