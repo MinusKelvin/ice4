@@ -60,26 +60,24 @@ struct Searcher {
             depth--;
         }
 
-        evals[ply] = board.eval();
-
         int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID);
-        evals[ply] -= mvcount;
+        int mobility = 0;
+        for (int i = 0; i < mvcount; i++) {
+            mobility -= MOBILITY[(board.board[moves[i].from] & 7) - 1];
+        }
 
         if (!board.movegen(moves, mvcount, board.stm)) {
             return WON;
         }
 
-        evals[ply] += mvcount;
-
-        if (depth <= 0) {
-            for (int i = 0; i < mvcount;) {
-                if (board.board[moves[i].to] || moves[i].promo) {
-                    i++;
-                } else {
-                    swap(moves[i], moves[--mvcount]);
-                }
+        for (int i = 0; i < mvcount; i++) {
+            mobility += MOBILITY[(board.board[moves[i].from] & 7) - 1];
+            if (depth <= 0 && !board.board[moves[i].to] && !moves[i].promo) {
+                swap(moves[i--], moves[--mvcount]);
             }
         }
+
+        evals[ply] = board.eval(mobility);
 
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
