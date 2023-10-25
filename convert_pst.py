@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import json, math
-with open("0-20.json", "r") as f:
+with open("0-15.json", "r") as f:
     data = json.load(f)
 
 class DataStringer:
@@ -77,13 +77,14 @@ print(f"passed pawn offset S({mg_off}, {eg_off})")
 mg_stringer.add(sections[9])
 eg_stringer.add(sections[9+eg])
 
-print("int material[] = {")
+print("int QUADRANTS[] = {", end="")
 for i in range(1, 9, 2):
     mg_off = mg_stringer.add(sections[i])
     eg_off = eg_stringer.add(sections[i+eg])
-    for mg_q, eg_q in zip([0] + sections[i+1], [0] + sections[i+1+eg]):
-        print(f"S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
-print("}")
+    for j, (mg_q, eg_q) in enumerate(zip([0] + sections[i+1], [0] + sections[i+1+eg])):
+        if j % 4 == 0: print("\n   ", end="")
+        print(f" S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
+print("\n};")
 
 print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
 print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")
