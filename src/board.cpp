@@ -182,7 +182,7 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
     }
 
-    int movegen(Move list[], int& count, int side, int quiets) {
+    int movegen(Move list[], int& count, int side) {
         count = 0;
         uint8_t other = side ^ INVALID;
         uint8_t opponent_king = other | KING;
@@ -199,7 +199,7 @@ struct Board {
             int ends[] = {0,0,16,8,4,8,8};
             int piece = board[sq] & 7;
 
-            if (piece == KING && sq == (side == WHITE ? E1 : E8) && quiets) {
+            if (piece == KING && sq == (side == WHITE ? E1 : E8)) {
                 if (castle_rights[side == BLACK] & SHORT_CASTLE &&
                         !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
@@ -213,7 +213,7 @@ struct Board {
             if (piece == PAWN) {
                 int dir = side == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
-                if (!board[sq + dir] && (quiets || promo)) {
+                if (!board[sq + dir]) {
                     list[count++] = Move(sq, sq + dir, promo);
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         list[count++] = Move(sq, sq + dir+dir, promo);
@@ -243,11 +243,9 @@ struct Board {
                         if (board[raysq] == opponent_king || side == stm && (raysq == castle1 || raysq == castle2)) {
                             all_good = 0;
                         }
+                        list[count++] = Move(sq, raysq);
                         if (board[raysq] & other) {
-                            list[count++] = Move(sq, raysq);
                             break;
-                        } else if (quiets) {
-                            list[count++] = Move(sq, raysq);
                         }
                     }
                 }

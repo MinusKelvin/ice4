@@ -9,7 +9,7 @@ int64_t perft(Board& board, int depth) {
     Move moves[256];
     int mvcount;
 
-    if (board.movegen(moves, mvcount, board.stm, 1)) {
+    if (board.movegen(moves, mvcount, board.stm)) {
         if (depth == 0) {
             return 1;
         }

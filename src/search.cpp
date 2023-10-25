@@ -60,13 +60,27 @@ struct Searcher {
             depth--;
         }
 
-        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, depth > 0);
+        evals[ply] = board.eval();
 
-        if (!board.movegen(moves, mvcount, board.stm, depth > 0)) {
+        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID);
+        evals[ply] -= mvcount;
+
+        if (!board.movegen(moves, mvcount, board.stm)) {
             return WON;
         }
 
-        evals[ply] = board.eval();
+        evals[ply] += mvcount;
+
+        if (depth <= 0) {
+            for (int i = 0; i < mvcount;) {
+                if (board.board[moves[i].to] || moves[i].promo) {
+                    i++;
+                } else {
+                    swap(moves[i], moves[--mvcount]);
+                }
+            }
+        }
+
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -280,7 +294,7 @@ struct Searcher {
         if (depth > 0 && legals == 0) {
             Board mkmove = board;
             mkmove.null_move();
-            if (mkmove.movegen(moves, mvcount, mkmove.stm, 1)) {
+            if (mkmove.movegen(moves, mvcount, mkmove.stm)) {
                 return 0;
             }
         }
