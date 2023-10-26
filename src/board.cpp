@@ -292,7 +292,8 @@ struct Board {
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
-                    pawn_eval += PROTECTED_PAWN[protectors];
+                    pawn_eval += PROTECTED_PAWN[protectors]
+                        + (board[sq-1] == own_pawn) * PAWN_NEIGHBOR;
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
