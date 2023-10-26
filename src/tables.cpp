@@ -23,7 +23,7 @@ int PROTECTED_PAWN[] = {0, S(6, 6), S(5, 6)};
 int PAWN_SHIELD[] = {S(5, -10), S(11, -23), S(13, -19), S(20, -14)};
 #define KING_OPEN S(-42, -3)
 #define KING_SEMIOPEN S(-9, 16)
-int MOBILITY[] = {S(4, 7), S(1, 5), S(4, 5), S(2, 4), S(1, 16), S(-4, 5)};
+int MOBILITY[] = {0,S(4, 7), S(1, 5), S(4, 5), S(2, 4), S(1, 16), S(-4, 5)};
 
 int get_data(int i) {
     auto DATA_LOW = "9NO732+ CMHB>;,(AFTPMB/*GN\\\\SF;1V_{gb_C;5*_zhjSV.=54,,051-%%$#*6,6' ((;A,6748AKE%\"7<AFUPPSLI\\Q^P\\GEbI  5SE:0u(kp )/2)1@?6FJR<>PO\"$ #(2/(+84.('+9/17> -42)510$&+* ),./15566720.-. '5?63-0\"%255.,+&-+,-/3/120-1689=N<HKCKAbio_^glf0.& %)5,3?4/)0;3QSJ@7:CGlm^LFHT`8/#[Shv(KF1uvv .\"1. 2JH4CUVH3;B1 @U[Q[Y_R]_d]fhl +**$&(*..01(01-\"$' (''&##&%(*)';10FA)0/<>1(?6, ";

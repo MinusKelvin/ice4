@@ -60,21 +60,12 @@ struct Searcher {
             depth--;
         }
 
-        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID);
         int mobility = 0;
-        for (int i = 0; i < mvcount; i++) {
-            mobility -= MOBILITY[(board.board[moves[i].from] & 7) - 1];
-        }
+        int real_in_check = !board.movegen(moves, mvcount, board.stm ^ INVALID, mobility);
+        mobility = -mobility;
 
-        if (!board.movegen(moves, mvcount, board.stm)) {
+        if (!board.movegen(moves, mvcount, board.stm, mobility)) {
             return WON;
-        }
-
-        for (int i = 0; i < mvcount; i++) {
-            mobility += MOBILITY[(board.board[moves[i].from] & 7) - 1];
-            if (depth <= 0 && !board.board[moves[i].to] && !moves[i].promo) {
-                swap(moves[i--], moves[--mvcount]);
-            }
         }
 
         evals[ply] = board.eval(mobility);
@@ -136,6 +127,8 @@ struct Searcher {
                 score[j] = (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
                     + 20000;
+            } else if (depth <= 0 && !moves[j].promo) {
+                swap(moves[j--], moves[--mvcount]);
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
@@ -289,12 +282,8 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0) {
-            Board mkmove = board;
-            mkmove.null_move();
-            if (mkmove.movegen(moves, mvcount, mkmove.stm)) {
-                return 0;
-            }
+        if (depth > 0 && legals == 0 && !real_in_check) {
+            return 0;
         }
 
         if ((depth > 0 || best != eval) && best > LOST + ply) {

@@ -185,7 +185,7 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
     }
 
-    int movegen(Move list[], int& count, int side) {
+    int movegen(Move list[], int& count, int side, int& mobility) {
         count = 0;
         uint8_t other = side ^ INVALID;
         uint8_t opponent_king = other | KING;
@@ -217,6 +217,7 @@ struct Board {
                     list[count++] = Move(sq, sq + dir, promo);
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         list[count++] = Move(sq, sq + dir+dir, promo);
+                        mobility += MOBILITY[piece];
                     }
                 }
                 if (
@@ -228,9 +229,11 @@ struct Board {
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & side) {
                     list[count++] = Move(sq, sq + dir-1, promo);
+                    mobility += MOBILITY[piece];
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & side) {
                     list[count++] = Move(sq, sq + dir+1, promo);
+                    mobility += MOBILITY[piece];
                 }
             } else {
                 for (int i = starts[piece]; i < ends[piece]; i++) {
@@ -244,6 +247,7 @@ struct Board {
                             all_good = 0;
                         }
                         list[count++] = Move(sq, raysq);
+                        mobility += MOBILITY[piece];
                         if (board[raysq] & other) {
                             break;
                         }
