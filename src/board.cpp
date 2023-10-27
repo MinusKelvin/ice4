@@ -333,9 +333,11 @@ struct Board {
             if (!pawn_counts[0][file]) {
                 e += (pawn_counts[1][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[0][file-1];
             }
+            e += DOUBLED_ROOKS * (rook_counts[0][file-1] >= 2);
             if (!pawn_counts[1][file]) {
                 e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
             }
+            e -= DOUBLED_ROOKS * (rook_counts[1][file-1] >= 2);
         }
         int value = ((int16_t)e * phase + (int16_t)(e + 0x8000 >> 16) * (24 - phase)) / 24;
         return stm == WHITE ? value : -value;
