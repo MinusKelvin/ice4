@@ -182,8 +182,9 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
     }
 
-    int movegen(Move list[], int& count, int quiets=1) {
+    int movegen(Move list[], int& count, int quiets, int& mobility) {
         count = 0;
+        mobility = 0;
         uint8_t other = stm ^ INVALID;
         uint8_t opponent_king = other | KING;
         for (int sq = A1; sq <= H8; sq++) {
@@ -212,10 +213,16 @@ struct Board {
             if (piece == PAWN) {
                 int dir = stm == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
-                if (!board[sq + dir] && (quiets || promo || board[sq + dir + dir + dir] == INVALID)) {
-                    list[count++] = Move(sq, sq + dir, promo);
+                if (!board[sq + dir]) {
+                    mobility += MOBILITY[piece];
+                    if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
+                        list[count++] = Move(sq, sq + dir, promo);
+                    }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
-                        list[count++] = Move(sq, sq + dir+dir, promo);
+                        mobility += MOBILITY[piece];
+                        if (quiets) {
+                            list[count++] = Move(sq, sq + dir+dir, promo);
+                        }
                     }
                 }
                 if (
@@ -226,9 +233,11 @@ struct Board {
                     return 0;
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
+                    mobility += MOBILITY[piece];
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
+                    mobility += MOBILITY[piece];
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
@@ -242,6 +251,7 @@ struct Board {
                         if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
                             return 0;
                         }
+                        mobility += MOBILITY[piece];
                         if (board[raysq] & other) {
                             list[count++] = Move(sq, raysq);
                             break;
@@ -310,7 +320,7 @@ struct Board {
         pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
     }
 
-    int eval() {
+    int eval(int stm_eval) {
         if (pawn_eval_dirty) {
             pawn_eval = 0;
             calculate_pawn_eval(1, BLACK, -10, 90, 30);
@@ -323,9 +333,7 @@ struct Board {
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int e = inc_eval + pawn_eval +
-            BISHOP_PAIR * bishop_pair +
-            (stm == WHITE ? TEMPO : -TEMPO);
+        int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair;
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
@@ -337,8 +345,8 @@ struct Board {
                 e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
             }
         }
-        int value = ((int16_t)e * phase + (int16_t)(e + 0x8000 >> 16) * (24 - phase)) / 24;
-        return stm == WHITE ? value : -value;
+        stm_eval += stm == WHITE ? e : -e;
+        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
     }
 } ROOT;
 

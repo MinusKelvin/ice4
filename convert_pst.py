@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import json, math
-with open("0-20.json", "r") as f:
+with open("0-15.json", "r") as f:
     data = json.load(f)
 
 class DataStringer:
@@ -54,7 +54,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -69,24 +69,22 @@ eg_stringer = DataStringer()
 
 mg_off = round(mg_stringer.add(sections[0]))
 eg_off = round(eg_stringer.add(sections[0+eg]))
-print(f"pawn offset S({mg_off}, {eg_off})")
+print(f"#define PAWN_OFFSET S({mg_off}, {eg_off})")
 mg_off = round(mg_stringer.add(sections[10]))
 eg_off = round(eg_stringer.add(sections[10+eg]))
-print(f"passed pawn offset S({mg_off}, {eg_off})")
+print(f"#define PASSED_PAWN_OFFSET S({mg_off}, {eg_off})")
 
 mg_stringer.add(sections[9])
 eg_stringer.add(sections[9+eg])
 
-print("int material[] = {")
+print("int QUADRANTS[] = {", end="")
 for i in range(1, 9, 2):
     mg_off = mg_stringer.add(sections[i])
     eg_off = eg_stringer.add(sections[i+eg])
-    for mg_q, eg_q in zip([0] + sections[i+1], [0] + sections[i+1+eg]):
-        print(f"S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
-print("}")
-
-print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
-print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")
+    for j, (mg_q, eg_q) in enumerate(zip([0] + sections[i+1], [0] + sections[i+1+eg])):
+        if j % 4 == 0: print("\n   ", end="")
+        print(f" S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
+print("\n};")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
 print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
@@ -94,11 +92,17 @@ print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
 ) + "};")
 print(f"#define TEMPO S({round(sections[13][0])}, {round(sections[eg+13][0])})")
 print(f"#define ISOLATED_PAWN S({-round(sections[14][0])}, {-round(sections[eg+14][0])})")
-print(f"int32_t PROTECTED_PAWN[] = {{0, S({round(sections[15][0])}, {round(sections[eg+15][0])}), S({round(sections[16][0])}, {round(sections[eg+16][0])})}};")
+print(f"int PROTECTED_PAWN[] = {{0, S({round(sections[15][0])}, {round(sections[eg+15][0])}), S({round(sections[16][0])}, {round(sections[eg+16][0])})}};")
 print(f"#define ROOK_OPEN S({round(sections[17][0])}, {round(sections[eg+17][0])})")
 print(f"#define ROOK_SEMIOPEN S({round(sections[18][0])}, {round(sections[eg+18][0])})")
-print("int32_t PAWN_SHIELD[] = {" + ", ".join(
+print("int PAWN_SHIELD[] = {" + ", ".join(
     f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[19], sections[eg+19])
 ) + "};")
 print(f"#define KING_OPEN S({round(sections[20][0])}, {round(sections[eg+20][0])})")
 print(f"#define KING_SEMIOPEN S({round(sections[21][0])}, {round(sections[eg+21][0])})")
+print("int MOBILITY[] = {0, " + ", ".join(
+    f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[22], sections[eg+22])
+) + "};")
+
+print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
+print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")

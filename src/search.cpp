@@ -21,12 +21,13 @@ struct Searcher {
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
+    int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
-        int mvcount;
+        int mvcount, scratch_int;
 
         int pv = beta > alpha+1;
         // Check Conditions: 24 bytes (46d9d80 vs 0f4a84d)
@@ -64,14 +65,14 @@ struct Searcher {
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
-            in_check = !mkmove.movegen(moves, mvcount);
+            in_check = !mkmove.movegen(moves, mvcount, 0, scratch_int);
         }
 
-        if (!board.movegen(moves, mvcount, depth > 0)) {
+        if (!board.movegen(moves, mvcount, depth > 0, mobilities[ply+1])) {
             return WON;
         }
 
-        evals[ply] = board.eval();
+        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -279,7 +280,7 @@ struct Searcher {
         if (depth > 0 && legals == 0) {
             Board mkmove = board;
             mkmove.null_move();
-            if (mkmove.movegen(moves, mvcount)) {
+            if (mkmove.movegen(moves, mvcount, 0, scratch_int)) {
                 return 0;
             }
         }
