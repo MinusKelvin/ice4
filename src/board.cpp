@@ -267,6 +267,7 @@ struct Board {
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
         int shield_pawns = 0;
+        int islands = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
@@ -285,6 +286,7 @@ struct Board {
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
+            islands += !pawn_counts[ci][file-1] && pawn_counts[ci][file];
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
@@ -318,6 +320,7 @@ struct Board {
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
         pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
+        pawn_eval += PAWN_ISLANDS[islands];
     }
 
     int eval(int stm_eval) {
