@@ -82,11 +82,11 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
+        if (!pv && depth > 0 && depth < 7 && eval >= beta + 154 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 188) {
+        if (!pv && depth == 1 && eval <= alpha - 376) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
@@ -98,7 +98,7 @@ struct Searcher {
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 92 + depth / 3 + 3;
+            int reduction = (eval - beta) / 184 + depth / 3 + 3;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -170,7 +170,7 @@ struct Searcher {
             swap(score[i], score[best_so_far]);
 
             int victim = board.board[moves[i].to] & 7;
-            int deltas[] = {713, 105, 377, 412, 695, 940, 0};
+            int deltas[] = {1426, 210, 754, 824, 1390, 1880, 0};
 
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
@@ -311,8 +311,8 @@ struct Searcher {
         int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                v = negamax(ROOT, mv, last_score - 25, last_score + 25, depth, 0);
-                if (v <= last_score - 25 || v >= last_score + 25) {
+                v = negamax(ROOT, mv, last_score - 50, last_score + 50, depth, 0);
+                if (v <= last_score - 50 || v >= last_score + 50) {
                     v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 }
                 last_score = v;

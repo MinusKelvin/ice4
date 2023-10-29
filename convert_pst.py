@@ -51,7 +51,7 @@ def dump_string(piece_data, stuff, extra=None):
 
     return s
 
-scaled = [v * 160 for v in data["params.weight"][0]]
+scaled = [v * 320 for v in data["params.weight"][0]]
 
 sections = []
 sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6] * 2

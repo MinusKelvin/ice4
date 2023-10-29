@@ -3,29 +3,29 @@ int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
-#define PAWN_OFFSET S(24, 81)
-#define PASSED_PAWN_OFFSET S(-19, -9)
+#define PAWN_OFFSET S(49, 161)
+#define PASSED_PAWN_OFFSET S(-37, -19)
 int QUADRANTS[] = {
-    S(215, 233), S(233, 237), S(223, 231), S(239, 236),
-    S(236, 300), S(237, 305), S(236, 301), S(241, 304),
-    S(289, 555), S(305, 572), S(297, 546), S(326, 560),
-    S(606, 1086), S(598, 1122), S(610, 1087), S(619, 1134),
+    S(431, 466), S(465, 475), S(446, 462), S(478, 471),
+    S(471, 600), S(474, 610), S(473, 603), S(482, 608),
+    S(578, 1109), S(610, 1145), S(593, 1093), S(653, 1120),
+    S(1213, 2173), S(1197, 2245), S(1219, 2173), S(1238, 2267),
 };
-#define BISHOP_PAIR S(23, 46)
-int32_t DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 19), S(14, 13), S(14, 10), S(9, 21), S(-7, 19), S(6, 31)};
-#define TEMPO S(10, 12)
-#define ISOLATED_PAWN S(9, 9)
-int PROTECTED_PAWN[] = {0, S(9, 8), S(11, 11)};
-#define ROOK_OPEN S(25, 3)
-#define ROOK_SEMIOPEN S(10, 12)
-int PAWN_SHIELD[] = {S(5, -10), S(12, -24), S(14, -18), S(21, -12)};
-#define KING_OPEN S(-44, -2)
-#define KING_SEMIOPEN S(-10, 19)
-int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
+#define BISHOP_PAIR S(46, 93)
+int32_t DOUBLED_PAWN[] = {S(11, 43), S(-19, 39), S(16, 39), S(27, 26), S(28, 20), S(18, 43), S(-14, 37), S(11, 62)};
+#define TEMPO S(21, 23)
+#define ISOLATED_PAWN S(19, 17)
+int PROTECTED_PAWN[] = {0, S(18, 17), S(21, 23)};
+#define ROOK_OPEN S(51, 7)
+#define ROOK_SEMIOPEN S(21, 24)
+int PAWN_SHIELD[] = {S(9, -21), S(23, -48), S(27, -36), S(42, -23)};
+#define KING_OPEN S(-88, -4)
+#define KING_SEMIOPEN S(-21, 37)
+int MOBILITY[] = {0, S(5, 3), S(3, -1), S(7, 10), S(5, 5), S(3, 8), S(-9, 11)};
 
 int get_data(int i) {
-    auto DATA_LOW = ";ML620( CJE>;7'&ACQLI>+(HLZYPB81X^{f`]A;A\"^&}`;j3E<7./5963((%&-:/9*#++?E-9:8<EOH# :?EJWSDXO@G\\z?cMKiI !6N=5/g ho )/2*1?>4FHQ<=OO\"$ #(30(*84/(',:/27? ,42*612#&+* )+.--21420-+)&%\")7@6503 \"033+))&*)**-0.220+.57;CS?IMFOFyy599BG>0,$ &(3+2>3-'.:2QTJ@79BGno^MGGT`;2#[Rgv)AAuAABL_\"2. 3MJ5GZZK6=D1 Mfk]luycy%,p'27 -**$**,0035*553!#' '&&%\"\"%$'*)'% \"+)$).+;D?6FLR";
-    auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
+    auto DATA_LOW = "U{yKC?0 fuj[UN.,bf#xr\\50qy43\"eOA1=xLA;bWa#=,{AWVGjYO<?IRLF/0*-9T?Q4%56^j;QUPXj~p' T^ju0'h1~an9v]HzwSr !L}YI>N~Q` 1>D3B^\\Hmp#XY ~%) '0E?14QI=//7U?DO^ 9GE4MCC'+65 17<;;DCGDA961+*$2O`MJ?F #?GG723+5245:A;CD@6=KOUf&^szm~msrIQSdm]?8( ,1G7D\\G;/<SC#*t`MRdn]_=zmo)AUC'7&Pm2bblbadw@$C< GztIn45vL[hA yLW;YjsGs)8a-CM :44(448@@GJ4JJF#'. .,-*#$)(.41.+ $51(1;7Wi^Lly%";
+    auto DATA_HIGH = "                  !       !!!   !!!!!!    !\"!! !                                      !! !   !! !  !        !!!!           !  !                                                                                  !      !!\"\"\"\"\"\"                !!      !!!   !!\"\"\"!!!!\"\"\"!    !         !!       !!!!!!!!\"\"!\"\"\"                                               !";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])
         - S(3072, 3072);
