@@ -1,6 +1,8 @@
 #define S(a, b) (a + (b * 0x10000))
 int PST[25][SQUARE_SPAN];
 
+int LMR[250][250];
+
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
 #define PAWN_OFFSET S(24, 81)
@@ -76,6 +78,12 @@ void init_tables() {
                     ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
                 );
             }
+        }
+    }
+
+    for (int i = 0; i < 250; i++) {
+        for (int j = 0; j < 250; j++) {
+            LMR[i][j] = log(i+1) * log(j+1) / 2;
         }
     }
     
