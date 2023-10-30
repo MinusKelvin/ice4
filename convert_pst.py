@@ -54,7 +54,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6, 6] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -102,6 +102,9 @@ print(f"#define KING_OPEN S({round(sections[20][0])}, {round(sections[eg+20][0])
 print(f"#define KING_SEMIOPEN S({round(sections[21][0])}, {round(sections[eg+21][0])})")
 print("int MOBILITY[] = {0, " + ", ".join(
     f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[22], sections[eg+22])
+) + "};")
+print("int TROPISM[] = {0, " + ", ".join(
+    f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[23], sections[eg+23])
 ) + "};")
 
 print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")

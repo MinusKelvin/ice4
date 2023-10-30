@@ -68,6 +68,10 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
+        pawn_eval -= TROPISM[board[square] & 7] * max(
+            abs(square % 10 - king_sq[!(board[square] & BLACK)] % 10),
+            abs(square / 10 - king_sq[!(board[square] & BLACK)] / 10)
+        ) * (board[square] & WHITE ? 1 : -1);
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -82,6 +86,10 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
+        pawn_eval += TROPISM[board[square] & 7] * max(
+            abs(square % 10 - king_sq[!(board[square] & BLACK)] % 10),
+            abs(square / 10 - king_sq[!(board[square] & BLACK)] / 10)
+        ) * (board[square] & WHITE ? 1 : -1);
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -265,7 +273,7 @@ struct Board {
         return 1;
     }
 
-    void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
+    void calculate_pawn_eval(int ci, int color, int pawndir, int zeroth_rank, int eighth_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
@@ -285,7 +293,7 @@ struct Board {
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (int rank = eighth_rank; rank != zeroth_rank; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
                     if (king_sq[ci] % 10 > 4) {
@@ -297,8 +305,14 @@ struct Board {
                     break;
                 }
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (int rank = eighth_rank; rank != zeroth_rank; rank -= pawndir) {
                 int sq = rank+file;
+                if ((board[sq] & INVALID) == color) {
+                    pawn_eval += TROPISM[board[sq] & 7] * max(
+                        abs(file - king_sq[!ci] % 10),
+                        abs(rank / 10 - king_sq[!ci] / 10)
+                    );
+                }
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
@@ -317,15 +331,15 @@ struct Board {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
+        pawn_eval += (king_sq[ci] / 10 == (zeroth_rank + pawndir) / 10) * PAWN_SHIELD[shield_pawns];
     }
 
     int eval(int stm_eval) {
         if (pawn_eval_dirty) {
             pawn_eval = 0;
-            calculate_pawn_eval(1, BLACK, -10, 90, 30);
+            calculate_pawn_eval(1, BLACK, -10, 100, 20);
             pawn_eval = -pawn_eval;
-            calculate_pawn_eval(0, WHITE, 10, 20, 80);
+            calculate_pawn_eval(0, WHITE, 10, 10, 90);
             pawn_eval_dirty = 0;
         }
 
