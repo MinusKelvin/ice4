@@ -272,6 +272,14 @@ struct Board {
         if (!pawn_counts[ci][king_sq[ci] % 10]) {
             pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
         }
+        if (king_sq[ci] % 10 > 1 && !pawn_counts[ci][king_sq[ci] % 10 - 1]) {
+            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 - 1]
+                ? KING_FLANK_SEMIOPEN : KING_FLANK_OPEN;
+        }
+        if (king_sq[ci] % 10 < 9 && !pawn_counts[ci][king_sq[ci] % 10 + 1]) {
+            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 + 1]
+                ? KING_FLANK_SEMIOPEN : KING_FLANK_OPEN;
+        }
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
