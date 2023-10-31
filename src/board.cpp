@@ -269,9 +269,6 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
-        if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
-        }
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
@@ -316,6 +313,13 @@ struct Board {
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
+
+            int f = king_sq[ci] % 10 + dx;
+            if (f > 0 && f < 10 && !pawn_counts[ci][f]) {
+                pawn_eval += pawn_counts[!ci][f]
+                    ? dx ? KING_FLANK_SEMIOPEN : KING_SEMIOPEN
+                    : dx ? KING_FLANK_OPEN : KING_OPEN;
+            }
         }
         pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
     }
