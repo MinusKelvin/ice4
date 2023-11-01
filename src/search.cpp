@@ -247,30 +247,31 @@ struct Searcher {
             if (v >= beta) {
                 if (!victim) {
                     int16_t *hist;
+                    int change = 4 * depth * depth;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
                         hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= change + change * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= change + change * *hist / MAX_HIST;
                         }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= change + change * *hist / MAX_HIST;
                         }
                     }
                     hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += change - change * *hist / MAX_HIST;
                     if (ply) {
                         hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += change - change * *hist / MAX_HIST;
                     }
                     if (ply > 1) {
                         hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += change - change * *hist / MAX_HIST;
                     }
                 }
                 break;
