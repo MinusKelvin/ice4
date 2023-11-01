@@ -82,23 +82,23 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
+        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 188) {
+        if (!pv && depth == 1 && eval <= alpha - 213) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 2) {
+        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 92 + depth / 3 + 3;
+            int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -111,7 +111,7 @@ struct Searcher {
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
         if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 4, ply);
+            negamax(board, hashmv, alpha, beta, depth - 5, ply);
         }
 
         for (int j = 0; j < mvcount; j++) {
@@ -154,7 +154,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check_table[] = { 0, 7, 5, 12, 21 };
+        int quiets_to_check_table[] = { 0, 4, 5, 10, 15 };
         int quiets_to_check = depth > 0 && depth < 5 && !pv ? quiets_to_check_table[depth] / (1 + !improving) : -1;
 
         int raised_alpha = 0;
@@ -170,7 +170,7 @@ struct Searcher {
             swap(score[i], score[best_so_far]);
 
             int victim = board.board[moves[i].to] & 7;
-            int deltas[] = {713, 105, 377, 412, 695, 940, 0};
+            int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
@@ -209,15 +209,15 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.112 + depth * 0.166;
+                int reduction = legals * 0.114 + depth * 0.152;
                 // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                 // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                 // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
-                reduction += legals > 8;
+                reduction += legals > 7;
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 578;
+                reduction -= score[i] / 580;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
@@ -306,13 +306,13 @@ struct Searcher {
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
-        time_alotment = now() + time_alotment * 0.03;
+        time_alotment = now() + time_alotment * 0.04;
         Move mv;
         int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                v = negamax(ROOT, mv, last_score - 25, last_score + 25, depth, 0);
-                if (v <= last_score - 25 || v >= last_score + 25) {
+                v = negamax(ROOT, mv, last_score - 28, last_score + 28, depth, 0);
+                if (v <= last_score - 28 || v >= last_score + 28) {
                     v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 }
                 last_score = v;
