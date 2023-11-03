@@ -82,7 +82,7 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
+        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth / (1 + !improving)) {
             return eval;
         }
 
