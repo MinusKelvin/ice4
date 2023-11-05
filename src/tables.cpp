@@ -9,24 +9,22 @@ int QUADRANTS[] = {
     S(216, 233), S(234, 237), S(224, 231), S(240, 236),
     S(236, 301), S(238, 305), S(237, 302), S(242, 304),
     S(290, 555), S(306, 573), S(298, 547), S(327, 561),
-    S(607, 1087), S(599, 1123), S(610, 1087), S(620, 1135),
+    S(607, 1087), S(599, 1123), S(610, 1088), S(620, 1135),
 };
 #define BISHOP_PAIR S(23, 46)
-int32_t DOUBLED_PAWN[] = {S(5, 24), S(-10, 22), S(6, 24), S(12, 18), S(10, 16), S(4, 28), S(-11, 23), S(3, 34)};
+int32_t DOUBLED_PAWN[] = {S(5, 24), S(-10, 22), S(6, 24), S(12, 17), S(10, 16), S(4, 27), S(-10, 23), S(4, 34)};
 #define TEMPO S(10, 12)
 #define ISOLATED_PAWN S(9, 9)
 int PROTECTED_PAWN[] = {0, S(9, 9), S(11, 11)};
 #define ROOK_OPEN S(25, 3)
 #define ROOK_SEMIOPEN S(10, 13)
-int PAWN_SHIELD[] = {S(11, -12), S(15, -26), S(14, -18), S(19, -9)};
-#define KING_OPEN S(-50, -2)
-#define KING_SEMIOPEN S(-16, 24)
+int PAWN_SHIELD[] = {S(10, -12), S(15, -26), S(14, -18), S(19, -9)};
 int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
-#define KING_FLANK_OPEN S(-15, -3)
-#define KING_FLANK_SEMIOPEN S(-10, 17)
+int KING_OPEN_FILES[] = {S(-15, -3), S(-50, -2), S(-14, -4)};
+int KING_SEMIOPEN_FILES[] = {S(-11, 17), S(-16, 24), S(-8, 17)};
 
 int get_data(int i) {
-    auto DATA_LOW = ":MI621*!BIA=:8)(?AKKH?,*GKTXOD92V\\wd_]B=B \\&}b=n4E<7-.4964))%&,9/9+#+)>D.9;8<DNG$ ;>EJWRBWM?FZz=bMKgG !5N@6-k(ln )02*1@?4FHQ<=PO\"$ $(30)*84/'',:/28? -43*612#&++ ),.-.22420-+(&&\"*;@9603 \"346-)*&,-+-.1.234,278;DTCKPHOFxz68;CG=.+! !$.&0=1,\")4-OSG?15=Bln[MACP[80 ZNcr%@?tB>?G\\#40 5QM5I^]L8AF1 Lek\\ltycy$,p'16 -**$**,0035*553\"$' '&&%\"\"%$'*)'% \"*($).,<E?6FMR";
+    auto DATA_LOW = ":LI611)!BIA=:8('@AKJG?,*GJTXNC92V[vd^]B=B \\&}b=m3E<7-.4854))%&+9/9+#+)>D-9;8<DNG# ;>EIVRBWM>FZz=bMKhG !5NA6-k)ln )/2*1@?4FHQ<=PO\"$ #(30)*84/'',:/28? -43*612#%+* ),.--22420-+(&&\"*;@9603 \"346-)*&+-+..1.234,278;DTCKPHOFxz68;CG=.*! !$.&0=1,!)4,OSG?15=Bln[MACP[8/ ZNcr%@?tB=?G\\#50 5QM5I^]L8AF1 Lek\\ltycy%,p'17 -**$**,0035*553\"#' '&&%\"\"%$'*)'% \"+($).,<E?6GMR";
     auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])

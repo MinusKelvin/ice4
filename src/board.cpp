@@ -269,16 +269,12 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
-        if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
-        }
-        if (king_sq[ci] % 10 > 1 && !pawn_counts[ci][king_sq[ci] % 10 - 1]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 - 1]
-                ? KING_FLANK_SEMIOPEN : KING_FLANK_OPEN;
-        }
-        if (king_sq[ci] % 10 < 9 && !pawn_counts[ci][king_sq[ci] % 10 + 1]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10 + 1]
-                ? KING_FLANK_SEMIOPEN : KING_FLANK_OPEN;
+        for (int d = 0; d < 3; d++) {
+            int f = king_sq[ci] % 10 + d - 1;
+            if (f > 0 && f < 9 && !pawn_counts[ci][f]) {
+                pawn_eval += pawn_counts[!ci][f]
+                    ? KING_SEMIOPEN_FILES[d] : KING_OPEN_FILES[d];
+            }
         }
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
