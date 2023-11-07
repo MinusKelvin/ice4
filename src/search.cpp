@@ -143,6 +143,9 @@ struct Searcher {
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
                     + 3 * (ply > 1 ?
                         (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                    : 0)
+                    + (ply > 3 ?
+                        (*conthist_stack[ply - 4])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     : 0);
             }
         }
@@ -260,6 +263,10 @@ struct Searcher {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                             *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         }
+                        if (ply > 3) {
+                            hist = &(*conthist_stack[ply - 4])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        }
                     }
                     hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
@@ -269,6 +276,10 @@ struct Searcher {
                     }
                     if (ply > 1) {
                         hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    }
+                    if (ply > 3) {
+                        hist = &(*conthist_stack[ply - 4])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                         *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     }
                 }
