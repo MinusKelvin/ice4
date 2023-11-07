@@ -154,7 +154,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) / (1 + !improving);
+        int quiets_to_check = pv ? -1 : (depth*depth - depth + 3) / (1 + !improving);
 
         int raised_alpha = 0;
         int legals = 0;
@@ -174,7 +174,7 @@ struct Searcher {
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
             // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
-            if (!(quiets_to_check -= !victim)) {
+            if (legals && !(quiets_to_check -= !victim)) {
                 break;
             }
 
