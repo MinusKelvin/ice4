@@ -9,10 +9,13 @@ class DataStringer:
         self.little = ""
         self.big = ""
 
-    def add(self, data):
+    def add(self, data, d2=None):
+        data2 = d2 or [0] * len(data)
         smallest = min(data)
-        for v in data:
-            v = round(v - smallest)
+        s2 = min(data2)
+        for v, v2 in zip(data, data2):
+            extra = (v2 - s2) - round(v2 - s2)
+            v = round(v - smallest + extra)
             low = v % 95
             high = v // 95
             lc = chr(low + 32)
@@ -70,8 +73,8 @@ eg_stringer = DataStringer()
 mg_off = round(mg_stringer.add(sections[0]))
 eg_off = round(eg_stringer.add(sections[0+eg]))
 print(f"#define PAWN_OFFSET S({mg_off}, {eg_off})")
-mg_off = round(mg_stringer.add(sections[10]))
-eg_off = round(eg_stringer.add(sections[10+eg]))
+mg_off = round(mg_stringer.add(sections[10], sections[0]))
+eg_off = round(eg_stringer.add(sections[10+eg], sections[0+eg]))
 print(f"#define PASSED_PAWN_OFFSET S({mg_off}, {eg_off})")
 
 mg_stringer.add(sections[9])
