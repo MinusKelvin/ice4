@@ -285,28 +285,24 @@ struct Board {
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
+            int passed = 1;
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
-                if (board[sq] == own_pawn) {
-                    if (king_sq[ci] % 10 > 4) {
-                        sq = 9 + rank - file;
-                    }
-                    pawn_eval += PST[own_pawn+6][sq-A1];
-                }
-                if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
-                    break;
-                }
-            }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
-                int sq = rank+file;
                 if (board[sq] == own_pawn) {
                     int protectors = (board[sq - pawndir + 1] == own_pawn)
                         + (board[sq - pawndir - 1] == own_pawn);
                     pawn_eval += PROTECTED_PAWN[protectors];
+
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
                     pawn_eval += PST[own_pawn][sq-A1];
+                    if (passed) {
+                        pawn_eval += PST[own_pawn+6][sq-A1];
+                    }
+                }
+                if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
+                    passed = 0;
                 }
             }
         }
