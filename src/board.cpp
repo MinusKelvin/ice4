@@ -296,10 +296,7 @@ struct Board {
                     if (king_sq[ci] % 10 > 4) {
                         sq = 9 + rank - file;
                     }
-                    pawn_eval += PST[own_pawn][sq-A1];
-                    if (passed) {
-                        pawn_eval += PST[own_pawn+6][sq-A1];
-                    }
+                    pawn_eval += PST[own_pawn+6*passed][sq-A1];
                 }
                 if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
                     passed = 0;
