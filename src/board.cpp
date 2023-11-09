@@ -317,8 +317,8 @@ struct Board {
             int f = king_sq[ci] % 10 + dx;
             if (f > 0 && f < 10 && !pawn_counts[ci][f]) {
                 pawn_eval += pawn_counts[!ci][f]
-                    ? dx ? KING_FLANK_SEMIOPEN : KING_SEMIOPEN
-                    : dx ? KING_FLANK_OPEN : KING_OPEN;
+                    ? KING_FILES_SEMIOPEN[king_sq[ci] % 10 > 4 ? dx + 1 : 1 - dx]
+                    : KING_FILES_OPEN[king_sq[ci] % 10 > 4 ? dx + 1 : 1 - dx];
             }
         }
         pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];

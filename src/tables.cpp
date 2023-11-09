@@ -3,30 +3,28 @@ int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 
-#define PAWN_OFFSET S(23, 83)
-#define PASSED_PAWN_OFFSET S(-18, -6)
+#define PAWN_OFFSET S(23, 85)
+#define PASSED_PAWN_OFFSET S(-18, -7)
 int QUADRANTS[] = {
     S(216, 233), S(234, 237), S(224, 231), S(240, 236),
     S(236, 301), S(238, 305), S(237, 302), S(242, 304),
-    S(290, 555), S(306, 573), S(298, 547), S(327, 561),
-    S(607, 1087), S(599, 1123), S(610, 1087), S(620, 1135),
+    S(290, 555), S(307, 573), S(298, 547), S(328, 561),
+    S(607, 1087), S(599, 1123), S(610, 1088), S(620, 1135),
 };
 #define BISHOP_PAIR S(23, 46)
-int32_t DOUBLED_PAWN[] = {S(5, 24), S(-10, 22), S(6, 24), S(12, 18), S(10, 16), S(4, 28), S(-11, 23), S(3, 34)};
+int32_t DOUBLED_PAWN[] = {S(5, 25), S(-10, 22), S(6, 24), S(12, 16), S(10, 15), S(4, 28), S(-10, 24), S(4, 35)};
 #define TEMPO S(10, 12)
 #define ISOLATED_PAWN S(9, 9)
 int PROTECTED_PAWN[] = {0, S(9, 9), S(11, 11)};
 #define ROOK_OPEN S(25, 3)
 #define ROOK_SEMIOPEN S(10, 13)
-int PAWN_SHIELD[] = {S(11, -12), S(15, -26), S(14, -18), S(19, -9)};
-#define KING_OPEN S(-50, -2)
-#define KING_SEMIOPEN S(-16, 24)
+int PAWN_SHIELD[] = {S(11, -13), S(15, -26), S(14, -18), S(20, -10)};
 int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
-#define KING_FLANK_OPEN S(-15, -3)
-#define KING_FLANK_SEMIOPEN S(-10, 17)
+int KING_FILES_OPEN[] = {S(-13, -4), S(-50, -2), S(-21, -1)};
+int KING_FILES_SEMIOPEN[] = {S(-10, 13), S(-16, 24), S(-9, 22)};
 
 int get_data(int i) {
-    auto DATA_LOW = ":MI621*!BIA=:8)(?AKKH?,*GKTXOD92V\\wd_]B=B \\&}b=n4E<7-.4964))%&,9/9+#+)>D.9;8<DNG$ ;>EJWRBWM?FZz=bMKgG !5N@6-k(ln )02*1@?4FHQ<=PO\"$ $(30)*84/'',:/28? -43*612#&++ ),.-.22420-+(&&\"*;@9603 \"346-)*&,-+-.1.234,278;DTCKPHOFxz68;CG=.+! !$.&0=1,\")4-OSG?15=Bln[MACP[80 ZNcr%@?tB>?G\\#40 5QM5I^]L8AF1 Lek\\ltycy$,p'16 -**$**,0035*553\"$' '&&%\"\"%$'*)'% \"*($).,<E?6FMR";
+    auto DATA_LOW = ":MI621*\"BIA>:8)(@AKKH?-*GJTXOD92V\\vd_]B>B \\&~b=n3E<7-.4854))%%+9/9+#,)=C-9;8<DMG# :>EIVRBWM?FZy=aLKgF  4NB6,j*mm )02*1@?4FHQ<=PO\"$ $(30)*84/'',:/28? -43*612#%+* ),.--22420-+(&&\")9>65/3 \"224,()&+,)+-0-223*/67:DSBIMGNFwy569BG<.+! !$.&0=1,\"*5,OSH?15=Bln\\MBDP[80!ZNds%A?uB=?G\\\"40 5QM5I^]L7@E1 Lej\\ktycy$,p'16 -**$**,0035*553\"#' '&&%\"\"%$'*)'% \"*($).,<E?6FMR";
     auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])

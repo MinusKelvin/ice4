@@ -54,7 +54,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6, 1, 1] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 6, 3, 3] * 2
 if sum(sizes) != len(scaled):
     print(f"error: expected {sum(sizes)} params, but there are {len(scaled)}")
     sys.exit(1)
@@ -101,13 +101,15 @@ print(f"#define ROOK_SEMIOPEN S({round(sections[18][0])}, {round(sections[eg+18]
 print("int PAWN_SHIELD[] = {" + ", ".join(
     f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[19], sections[eg+19])
 ) + "};")
-print(f"#define KING_OPEN S({round(sections[20][0])}, {round(sections[eg+20][0])})")
-print(f"#define KING_SEMIOPEN S({round(sections[21][0])}, {round(sections[eg+21][0])})")
 print("int MOBILITY[] = {0, " + ", ".join(
+    f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[20], sections[eg+20])
+) + "};")
+print("int KING_FILES_OPEN[] = {" + ", ".join(
+    f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[21], sections[eg+21])
+) + "};")
+print("int KING_FILES_SEMIOPEN[] = {" + ", ".join(
     f"S({round(v1)}, {round(v2)})" for v1, v2 in zip(sections[22], sections[eg+22])
 ) + "};")
-print(f"#define KING_FLANK_OPEN S({round(sections[23][0])}, {round(sections[eg+23][0])})")
-print(f"#define KING_FLANK_SEMIOPEN S({round(sections[24][0])}, {round(sections[eg+24][0])})")
 
 print(f"data string low: \"{mg_stringer.little + eg_stringer.little}\"")
 print(f"data string high: \"{mg_stringer.big + eg_stringer.big}\"")
