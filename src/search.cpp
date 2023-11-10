@@ -102,7 +102,7 @@ struct Searcher {
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
-                return v;
+                return v > 20000 ? beta : v;
             }
             in_check = v == LOST;
         }
