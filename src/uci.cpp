@@ -21,6 +21,19 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aRFP_IMP type spin default 102 min -10000 max 10000\n"
+        "option name bRFP type spin default 102 min -10000 max 10000\n"
+        "option name cRAZOR_IMP type spin default 213 min -10000 max 10000\n"
+        "option name dRAZOR type spin default 213 min -10000 max 10000\n"
+        "option name eNMP type spin default 3 min -10000 max 10000\n"
+        "option name fNMP_IMP type spin default 3 min -10000 max 10000\n"
+        "option name gLMP_IMP_FACTOR type spin default 500 min -10000 max 10000\n"
+        "option name hLMR_IMP type spin default 0 min -10000 max 10000\n"
+        "option name iLMR_PV type spin default 0 min -10000 max 10000\n"
+        "option name jLMR_MOVE type spin default 114 min -10000 max 10000\n"
+        "option name kLMR_DEPTH type spin default 152 min -10000 max 10000\n"
+        "option name lLMR_EXTRA type spin default 7 min -10000 max 10000\n"
+        "option name mLMR_HISTORY type spin default 580 min -10000 max 10000\n"
 #endif
         "uciok\n"
     );
@@ -44,6 +57,45 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'a':
+                        RFP_IMP = value;
+                        break;
+                    case 'b':
+                        RFP = value;
+                        break;
+                    case 'c':
+                        RAZOR_IMP = value;
+                        break;
+                    case 'd':
+                        RAZOR = value;
+                        break;
+                    case 'e':
+                        NMP = value;
+                        break;
+                    case 'f':
+                        NMP_IMP = value;
+                        break;
+                    case 'g':
+                        LMP_IMP_FACTOR = value;
+                        break;
+                    case 'h':
+                        LMR_IMP = value;
+                        break;
+                    case 'i':
+                        LMR_PV = value;
+                        break;
+                    case 'j':
+                        LMR_MOVE = value;
+                        break;
+                    case 'k':
+                        LMR_DEPTH = value;
+                        break;
+                    case 'l':
+                        LMR_EXTRA = value;
+                        break;
+                    case 'm':
+                        LMR_HISTORY = value;
                         break;
                 }
                 break;

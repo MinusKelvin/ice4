@@ -13,6 +13,20 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
+int RFP_IMP = 102;
+int RFP = 102;
+int RAZOR_IMP = 213;
+int RAZOR = 213;
+int NMP = 3;
+int NMP_IMP = 3;
+int LMP_IMP_FACTOR = 500;
+int LMR_IMP = 0;
+int LMR_PV = 0;
+int LMR_MOVE = 114;
+int LMR_DEPTH = 152;
+int LMR_EXTRA = 7;
+int LMR_HISTORY = 580;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -82,11 +96,11 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
+        if (!pv && depth > 0 && depth < 7 && eval >= beta + (improving ? RFP_IMP : RFP) * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 213) {
+        if (!pv && depth == 1 && eval <= alpha - (improving ? RAZOR_IMP : RAZOR)) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
@@ -98,7 +112,7 @@ struct Searcher {
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
+            int reduction = (eval - beta) / 76 + depth * 0.38 + (improving ? NMP_IMP : NMP);
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -154,7 +168,8 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) / (1 + !improving);
+        int quiets_to_check = pv ? -1 :
+            (depth*depth - depth + 4) * (improving ? 1 : LMP_IMP_FACTOR / 1e3);
 
         int raised_alpha = 0;
         int legals = 0;
@@ -208,15 +223,18 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
+                int reduction = legals * LMR_MOVE / 1e3
+                    + depth * LMR_DEPTH / 1e3
+                    + improving * LMR_IMP / 1e3
+                    + pv * LMR_PV / 1e3;
                 // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                 // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                 // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
-                reduction += legals > 7;
+                reduction += legals > LMR_EXTRA;
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 580;
+                reduction -= score[i] / LMR_HISTORY;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
