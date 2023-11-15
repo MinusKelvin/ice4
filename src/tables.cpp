@@ -23,6 +23,8 @@ int PAWN_SHIELD[] = {S(5, -10), S(12, -24), S(14, -18), S(21, -12)};
 #define KING_SEMIOPEN S(-10, 19)
 int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
 
+double LOG[256];
+
 int get_data(int i) {
     auto DATA_LOW = ";ML620( CJE>;7'&ACQLI>+(HLZYPB81X^{f`]A;A\"^&}`;j3E<7./5963((%&-:/9*#++?E-9:8<EOH# :?EJWSDXO@G\\z?cMKiI !6N=5/g ho )/2*1?>4FHQ<=OO\"$ #(30(*84/(',:/27? ,42*612#&+* )+.--21420-+)&%\")7@6503 \"033+))&*)**-0.220+.57;CS?IMFOFyy599BG>0,$ &(3+2>3-'.:2QTJ@79BGno^MGGT`;2#[Rgv)AAuAABL_\"2. 3MJ5GZZK6=D1 Mfk]luycy%,p'27 -**$**,0035*553!#' '&&%\"\"%$'*)'% \"+)$).+;D?6FLR";
     auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
@@ -78,7 +80,11 @@ void init_tables() {
             }
         }
     }
-    
+
+    for (int i = 1; i < 250; i++) {
+        LOG[i] = log(i);
+    }
+
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
