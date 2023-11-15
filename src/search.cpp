@@ -185,6 +185,10 @@ struct Searcher {
                 continue;
             }
 
+            if (depth > 0 && depth < 4 && score[i] < -512 * depth) {
+                continue;
+            }
+
             Board mkmove = board;
             mkmove.make_move(moves[i]);
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
