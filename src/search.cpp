@@ -23,7 +23,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, Move excluded = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -38,7 +38,7 @@ struct Searcher {
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
         TtData tt = slot.load(memory_order_relaxed);
-        int tt_good = upper_key == tt.key;
+        int tt_good = !excluded.from && upper_key == tt.key;
         if (tt_good) {
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
@@ -57,7 +57,6 @@ struct Searcher {
             // 60.0+0.6: 22.30 +- 4.52 (2530 - 1889 - 5581) 2.79 elo/byte
             depth--;
         }
-
 
         if (pv && depth > 0) {
             Board mkmove = board;
@@ -79,18 +78,18 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
+        if (!pv && !excluded.from && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 213) {
+        if (!pv && !excluded.from && depth == 1 && eval <= alpha - 213) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && !excluded.from && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
@@ -155,6 +154,7 @@ struct Searcher {
 
         int raised_alpha = 0;
         int legals = 0;
+        int singular = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
@@ -164,6 +164,9 @@ struct Searcher {
             }
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
+            if (moves[i].from == excluded.from && moves[i].to == excluded.to) {
+                continue;
+            }
 
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
@@ -236,8 +239,23 @@ struct Searcher {
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                 }
             } else {
+                if (
+                    ply &&
+                    depth > 7 &&
+                    tt_good &&
+                    abs(tt.eval) < 20000 &&
+                    tt.bound != BOUND_UPPER &&
+                    tt.depth >= depth - 3
+                ) {
+                    int s_beta = tt.eval - depth;
+                    int score = negamax(board, scratch, s_beta-1, s_beta, (depth - 1) / 2, ply, moves[i]);
+
+                    if (score < s_beta) {
+                        singular = 1;
+                    }
+                }
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check + singular, ply + 1);
             }
             legals += v != LOST;
             if (v > best) {
@@ -289,7 +307,7 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if (!excluded.from && (depth > 0 || best != eval) && best > LOST + ply) {
             tt.key = upper_key;
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
