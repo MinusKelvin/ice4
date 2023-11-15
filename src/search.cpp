@@ -178,13 +178,6 @@ struct Searcher {
                 break;
             }
 
-            // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
-            // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
-            // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
-            if (depth <= 0 && eval + deltas[victim] <= alpha) {
-                continue;
-            }
-
             Board mkmove = board;
             mkmove.make_move(moves[i]);
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
@@ -202,7 +195,12 @@ struct Searcher {
 
             int v;
 
-            if (is_rep) {
+            // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
+            // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
+            // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
+            if (depth <= 0 && eval + deltas[victim] <= alpha) {
+                v = eval + deltas[victim];
+            } else if (is_rep) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
