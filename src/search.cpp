@@ -23,7 +23,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply, Move excluded = Move(0)) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -38,7 +38,7 @@ struct Searcher {
         TtEntry& slot = TT[board.zobrist % TT.size()];
         uint64_t data = slot.data.load(memory_order_relaxed);
         uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
+        int tt_good = !excluded.from && (data ^ board.zobrist) == hash_xor_data;
         TtData tt;
         if (tt_good) {
             memcpy(&tt, &data, sizeof(TtData));
@@ -61,7 +61,6 @@ struct Searcher {
             depth--;
         }
 
-
         if (pv && depth > 0) {
             Board mkmove = board;
             mkmove.null_move();
@@ -82,18 +81,18 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
+        if (!pv && !excluded.from && depth > 0 && depth < 7 && eval >= beta + 102 * depth) {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 213) {
+        if (!pv && !excluded.from && depth == 1 && eval <= alpha - 213) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && eval >= beta && beta > -20000 && depth > 1) {
+        if (!pv && !excluded.from && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
@@ -167,6 +166,9 @@ struct Searcher {
             }
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
+            if (moves[i].from == excluded.from && moves[i].to == excluded.to) {
+                continue;
+            }
 
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
@@ -231,8 +233,24 @@ struct Searcher {
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                 }
             } else {
+                int ext = in_check;
+                if (
+                    !ext &&
+                    depth > 4 &&
+                    tt_good &&
+                    tt.bound != BOUND_UPPER &&
+                    tt.depth > depth - 3 &&
+                    abs(tt.eval) < 20000
+                ) {
+                    int s_beta = tt.eval - 3 * depth;
+                    int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, moves[i]);
+
+                    if (score < s_beta) {
+                        ext = 1;
+                    }
+                }
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + ext, ply + 1);
             }
             legals += v != LOST;
             if (v > best) {
@@ -276,7 +294,7 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0) {
+        if (depth > 0 && legals == 0 && !excluded.from) {
             Board mkmove = board;
             mkmove.null_move();
             if (mkmove.movegen(moves, mvcount, 0, scratch_int)) {
@@ -284,7 +302,7 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if (!excluded.from && (depth > 0 || best != eval) && best > LOST + ply) {
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
