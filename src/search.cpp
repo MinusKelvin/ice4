@@ -251,25 +251,25 @@ struct Searcher {
                             continue;
                         }
                         hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= 8 * depth + 8 * depth * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= 8 * depth + 8 * depth * *hist / MAX_HIST;
                         }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= 8 * depth + 8 * depth * *hist / MAX_HIST;
                         }
                     }
                     hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += 8 * depth - 8 * depth * *hist / MAX_HIST;
                     if (ply) {
                         hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += 8 * depth - 8 * depth * *hist / MAX_HIST;
                     }
                     if (ply > 1) {
                         hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += 8 * depth - 8 * depth * *hist / MAX_HIST;
                     }
                 }
                 break;
