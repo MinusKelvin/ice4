@@ -23,7 +23,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -208,7 +208,7 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
+                int reduction = LOG[legals] * LOG[max(depth, 0)] / 2.36 + 0.08;
                 // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
                 // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
                 // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
