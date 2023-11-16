@@ -204,7 +204,7 @@ struct Searcher {
 
             if (is_rep) {
                 v = 0;
-            } else if (legals) {
+            } else if (legals && depth > 0) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
