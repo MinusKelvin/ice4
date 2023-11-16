@@ -244,7 +244,7 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                if (!victim) {
+                if (depth > 0 && !victim) {
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
