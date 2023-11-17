@@ -23,7 +23,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -173,8 +173,7 @@ struct Searcher {
 
             int opp_pawn = (board.stm ^ INVALID) | PAWN;
             if (
-                depth <= 0 &&
-                (board.board[moves[i].from] & 7) > victim &&
+                (board.board[moves[i].from] & 7) > victim + max(0, depth) &&
                 (board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn
                     || board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn)
             ) {
