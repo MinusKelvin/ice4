@@ -78,6 +78,7 @@ struct Searcher {
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
         int improving = ply > 1 && evals[ply] > evals[ply-2];
+        int opp_pawn = (board.stm ^ INVALID) | PAWN;
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
@@ -123,7 +124,11 @@ struct Searcher {
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 score[j] = (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
-                    + 20000;
+                    + 20006
+                    - 100 * ((board.board[moves[j].from] & 7) > (board.board[moves[j].to] & 7) && (
+                        board.board[moves[j].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
+                        board.board[moves[j].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn
+                    ));
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
@@ -171,13 +176,7 @@ struct Searcher {
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
-            int opp_pawn = (board.stm ^ INVALID) | PAWN;
-            if (
-                depth <= 0 &&
-                (board.board[moves[i].from] & 7) > victim &&
-                (board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn
-                    || board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn)
-            ) {
+            if (depth <= 0 && victim && score[i] < 20000) {
                 continue;
             }
 
