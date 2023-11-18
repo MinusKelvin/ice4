@@ -35,8 +35,8 @@ struct Searcher {
         // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
         int in_check = 0;
 
-        auto& slot = TT[board.zobrist % TT.size()];
-        uint16_t upper_key = board.zobrist / TT.size();
+        auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
+        uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
         TtData tt = slot.load(memory_order_relaxed);
         int tt_good = upper_key == tt.key;
         if (tt_good) {

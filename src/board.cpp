@@ -30,6 +30,12 @@ struct TtData {
 #define HASH_SIZE 1048576
 vector< atomic<TtData> > TT(HASH_SIZE);
 
+#ifdef OPENBENCH
+#define TT_SIZE_EXPR TT.size()
+#else
+#define TT_SIZE_EXPR HASH_SIZE
+#endif
+
 struct Board {
     uint8_t board[120];
     uint8_t castle_rights[2];
