@@ -22,6 +22,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
+    uint8_t capture_square[256];
 
     int negamax(Board &board, Move &bestmv, int16_t alpha, int16_t beta, int16_t depth, int ply) {
         Move scratch, hashmv(0);
@@ -97,6 +98,7 @@ struct Searcher {
             Board mkmove = board;
             mkmove.null_move();
             conthist_stack[ply] = &conthist[0][0];
+            capture_square[ply] = 0;
 
             int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
 
@@ -198,6 +200,7 @@ struct Searcher {
             Board mkmove = board;
             mkmove.make_move(moves[i]);
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+            capture_square[ply] = victim ? moves[i].to : 0;
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
@@ -242,7 +245,7 @@ struct Searcher {
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check + (pv && ply && hashmv.to == capture_square[ply-1]), ply + 1);
             }
             legals += v != LOST;
             if (v > best) {
