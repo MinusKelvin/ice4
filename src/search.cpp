@@ -35,14 +35,11 @@ struct Searcher {
         // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
         int in_check = 0;
 
-        TtEntry& slot = TT[board.zobrist % TT.size()];
-        uint64_t data = slot.data.load(memory_order_relaxed);
-        uint64_t hash_xor_data = slot.hash_xor_data.load(memory_order_relaxed);
-        int tt_good = (data ^ board.zobrist) == hash_xor_data;
-        TtData tt;
+        auto& slot = TT[board.zobrist % TT.size()];
+        uint16_t upper_key = board.zobrist / TT.size();
+        TtData tt = slot.load(memory_order_relaxed);
+        int tt_good = upper_key == tt.key;
         if (tt_good) {
-            memcpy(&tt, &data, sizeof(TtData));
-
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
@@ -293,6 +290,7 @@ struct Searcher {
         }
 
         if ((depth > 0 || best != eval) && best > LOST + ply) {
+            tt.key = upper_key;
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
@@ -301,9 +299,7 @@ struct Searcher {
             if (!tt_good || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
-            memcpy(&data, &tt, sizeof(TtData));
-            slot.data.store(data, memory_order_relaxed);
-            slot.hash_xor_data.store(data ^ board.zobrist, memory_order_relaxed);
+            slot.store(tt, memory_order_relaxed);
         }
 
         return best;

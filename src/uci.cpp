@@ -40,7 +40,7 @@ void uci() {
                 value = atoi(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
-                        TT = vector<TtEntry>(value * 65536);
+                        TT = vector<atomic<TtData>>(value * 131072);
                         break;
                     case 'T':
                         THREADS = value;
@@ -64,19 +64,19 @@ void uci() {
                     Move mv(
                         move[1] * 10 + move[0] - 566,
                         move[3] * 10 + move[2] - 566,
-                        // maps promotion chars to piece enums
-                        //       'q'    'r'    'b'    'n'    '\0' 
-                        // cast  113    114    98     110    0
-                        // % 53  7      8      45     4      0
-                        // * 5   35     40     225    20     0
-                        // % 6   5      4      3      2      0
-                        // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
-                        move[4] % 53 * 5 % 6
+                        !!move[4]
                     );
                     if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
                         PREHISTORY_LENGTH = 0;
                     }
-                    ROOT.make_move(mv);
+                    // maps promotion chars to piece enums
+                    //       'q'    'r'    'b'    'n'    '\0' 
+                    // cast  113    114    98     110    0
+                    // % 53  7      8      45     4      0
+                    // * 5   35     40     225    20     0
+                    // % 6   5      4      3      2      0
+                    // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
+                    ROOT.make_move(mv, move[4] % 53 * 5 % 6);
                 }
                 break;
             case 'g': // go

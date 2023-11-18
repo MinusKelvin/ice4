@@ -1,10 +1,10 @@
 struct Move {
-    int8_t from;
-    int8_t to;
-    int8_t promo;
+    uint8_t from: 7;
+    uint8_t to : 7;
+    uint8_t promo : 1;
 
     Move() = default;
-    Move(int8_t f, int8_t t=0, int8_t p=0) : from(f), to(t), promo(p) {}
+    Move(uint8_t f, uint8_t t=0, uint8_t p=0) : from(f), to(t), promo(p) {}
 
     void put_with_newline() {
         putchar(from%10+96);
@@ -19,21 +19,16 @@ struct Move {
 };
 
 struct TtData {
+    uint16_t key;
     int16_t eval;
     Move mv;
     uint8_t depth;
     uint8_t bound;
-    uint8_t padding;
-};
-
-struct TtEntry {
-    atomic_uint64_t hash_xor_data = 0;
-    atomic_uint64_t data = 0;
 };
 
 // 8MB. Replaced for TCEC builds by the minifier.
-#define HASH_SIZE 524288
-vector<TtEntry> TT(HASH_SIZE);
+#define HASH_SIZE 1048576
+vector< atomic<TtData> > TT(HASH_SIZE);
 
 struct Board {
     uint8_t board[120];
@@ -121,8 +116,8 @@ struct Board {
         }
     }
 
-    void make_move(Move mv) {
-        int piece = mv.promo ? mv.promo | stm : board[mv.from];
+    void make_move(Move mv, int promo = QUEEN) {
+        int piece = mv.promo ? promo | stm : board[mv.from];
         int btm = stm != WHITE;
         castle1 = 0;
         castle2 = 0;

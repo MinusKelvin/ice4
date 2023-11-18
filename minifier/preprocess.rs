@@ -51,7 +51,7 @@ fn process(
             let text = regex::escape(captures.get(1).unwrap().as_str());
             // TCEC builds use 96 GB hash and 101 threads
             let replacement = match &*text {
-                "HASH_SIZE" if tcec => "0x180000000ull",
+                "HASH_SIZE" if tcec => "0x300000000ull",
                 "THREADS" if tcec => "101",
                 _ => captures.get(2).unwrap().as_str(),
             };
