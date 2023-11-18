@@ -115,7 +115,7 @@ struct Searcher {
         }
 
         for (int j = 0; j < mvcount; j++) {
-            if (hashmv.from == moves[j].from && hashmv.to == moves[j].to && hashmv.promo == moves[j].promo) {
+            if (hashmv.from == moves[j].from && hashmv.to == moves[j].to) {
                 score[j] = 1000000;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
@@ -172,12 +172,12 @@ struct Searcher {
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
             int opp_pawn = (board.stm ^ INVALID) | PAWN;
-            if (
-                depth <= 0 &&
-                (board.board[moves[i].from] & 7) > victim &&
-                (board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn
-                    || board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn)
-            ) {
+            int capture_lower_value_attacked_by_pawn =
+                (board.board[moves[i].from] & 7) > victim && (
+                    board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
+                    board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn
+                );
+            if (depth <= 0 && capture_lower_value_attacked_by_pawn) {
                 continue;
             }
 
@@ -227,7 +227,10 @@ struct Searcher {
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                 reduction -= score[i] / 580;
-                if (reduction < 0 || victim || in_check) {
+                if (victim) {
+                    reduction = capture_lower_value_attacked_by_pawn;
+                }
+                if (reduction < 0 || in_check) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
