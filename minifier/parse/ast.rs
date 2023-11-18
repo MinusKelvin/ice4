@@ -78,6 +78,7 @@ pub enum DeclForm {
     LReference(Box<DeclForm>),
     RReference(Box<DeclForm>),
     Array(Box<DeclForm>, Option<Result<ParsedNumber, String>>),
+    BitField(Box<DeclForm>, Result<ParsedNumber, String>),
 }
 
 #[derive(Debug)]

@@ -195,6 +195,11 @@ impl DeclForm {
                 }
                 result.push(RightBracket);
             }
+            DeclForm::BitField(form, bits) => {
+                form.tokenize(result);
+                result.push(Colon);
+                result.push(number(bits));
+            }
         }
     }
 }

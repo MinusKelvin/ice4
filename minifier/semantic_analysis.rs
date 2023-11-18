@@ -110,6 +110,7 @@ impl Symbols {
             DeclForm::Array(f, Some(n)) => {
                 TypeOf::Array(Box::new(self.get_type(base, f)), n.as_ref().unwrap().value)
             }
+            DeclForm::BitField(f, _) => self.get_type(base, f),
         }
     }
 }
@@ -555,6 +556,7 @@ fn get_name_mut(form: &mut DeclForm) -> Option<&mut String> {
         DeclForm::Pointer(v)
         | DeclForm::LReference(v)
         | DeclForm::RReference(v)
-        | DeclForm::Array(v, _) => get_name_mut(v),
+        | DeclForm::Array(v, _)
+        | DeclForm::BitField(v, _) => get_name_mut(v),
     }
 }

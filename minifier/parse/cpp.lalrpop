@@ -214,6 +214,13 @@ DeclareOrFunction: Result<Declaration, Function> = {
             declarations: e,
         })
     },
+    <t:BaseType> <f:DeclForm> ":" <b:Number> ";" => Ok(Declaration {
+        base_type: t,
+        declarations: vec![DeclExpr {
+            form: DeclForm::BitField(Box::new(f), b),
+            init: Initializer::Default,
+        }]
+    }),
     <t:BaseType> <f:DeclForm> "(" ")" "{" <s:Statement*> "}" => Err(Function {
         base_type: t,
         decl_form: f,
