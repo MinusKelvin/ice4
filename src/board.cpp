@@ -1,5 +1,5 @@
 struct Move {
-    uint8_t from: 7;
+    uint8_t from;
     uint8_t to : 7;
     uint8_t promo : 1;
 
