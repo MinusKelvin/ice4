@@ -172,11 +172,10 @@ struct Searcher {
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
             int opp_pawn = (board.stm ^ INVALID) | PAWN;
-            if (
-                (board.board[moves[i].from] & 7) > victim + max(0, depth) &&
-                (board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn
-                    || board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn)
-            ) {
+            int pawn_attacked =
+                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
+                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
+            if (pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
                 continue;
             }
 
