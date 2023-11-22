@@ -228,6 +228,7 @@ struct Searcher {
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
+                reduction += pawn_attacked;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
