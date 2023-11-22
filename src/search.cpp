@@ -225,11 +225,14 @@ struct Searcher {
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                 reduction -= score[i] / 580;
-                if (reduction < 0 || victim || in_check) {
+                if (reduction < 0) {
+                    reduction = -1;
+                }
+                if (victim || in_check) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
-                if (v > alpha && reduction) {
+                if (v > alpha && reduction > 0) {
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                 }
