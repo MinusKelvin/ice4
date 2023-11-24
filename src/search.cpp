@@ -14,13 +14,15 @@ Move BEST_MOVE(0);
 typedef int16_t HTable[16][SQUARE_SPAN];
 
 struct Searcher {
-    uint64_t nodes;
     double abort_time;
+    uint64_t nodes;
+    uint64_t max_root_nodes;
+    uint64_t root_nodes[SQUARE_SPAN][SQUARE_SPAN];
+    uint64_t rep_list[256];
     int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
-    uint64_t rep_list[256];
     int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
@@ -124,7 +126,7 @@ struct Searcher {
                 score[j] = (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
                     + 20000;
-            } else {
+            } else if (ply) {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
@@ -144,6 +146,8 @@ struct Searcher {
                     + 3 * (ply > 1 ?
                         (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     : 0);
+            } else {
+                score[j] = root_nodes[moves[j].from - A1][moves[j].to - A1] * 19000 / max_root_nodes;
             }
         }
 
@@ -196,6 +200,7 @@ struct Searcher {
             Board mkmove = board;
             mkmove.make_move(moves[i]);
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+            uint64_t pre_nodes = nodes;
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
@@ -224,7 +229,7 @@ struct Searcher {
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 580;
+                reduction -= ply ? score[i] / 580 : 0;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
@@ -251,8 +256,14 @@ struct Searcher {
                 alpha = v;
                 raised_alpha = 1;
             }
+            if (!ply) {
+                max_root_nodes = max(
+                    max_root_nodes,
+                    root_nodes[moves[i].from - A1][moves[i].to - A1] += nodes - pre_nodes
+                );
+            }
             if (v >= beta) {
-                if (!victim) {
+                if (ply && !victim) {
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
@@ -312,6 +323,7 @@ struct Searcher {
     void iterative_deepening(double time_alotment, int max_depth=200) {
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
+        max_root_nodes = 1;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.04;
         Move mv;
