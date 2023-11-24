@@ -179,6 +179,22 @@ struct Searcher {
                 continue;
             }
 
+            // All reductions: 41 bytes (cedac94 vs b915a59)
+            // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
+            // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
+            int reduction = legals * 0.114 + depth * 0.152;
+            // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
+            // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
+            // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
+            reduction += legals > 7;
+            // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
+            // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
+            // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
+            reduction -= score[i] / 580;
+            if (reduction < 0 || victim || in_check) {
+                reduction = 0;
+            }
+
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
             // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
@@ -189,7 +205,7 @@ struct Searcher {
             // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
             // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
             // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
-            if (depth <= 0 && eval + deltas[victim] <= alpha) {
+            if (depth - reduction <= 0 && eval + deltas[victim] <= alpha) {
                 continue;
             }
 
@@ -213,21 +229,6 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                // All reductions: 41 bytes (cedac94 vs b915a59)
-                // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
-                // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
-                // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
-                // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
-                // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
-                reduction += legals > 7;
-                // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
-                // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
-                // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 580;
-                if (reduction < 0 || victim || in_check) {
-                    reduction = 0;
-                }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
