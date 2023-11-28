@@ -289,7 +289,7 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if ((depth > 0 || best != eval) && best > LOST + ply && (!tt_good || depth + 2 >= tt.depth)) {
             tt.key = upper_key;
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
