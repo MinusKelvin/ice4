@@ -289,16 +289,20 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
-            tt.key = upper_key;
-            tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
-            tt.bound =
-                best >= beta ? BOUND_LOWER :
-                raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+        tt.bound =
+            best >= beta ? BOUND_LOWER :
+            raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+        if (
+            (depth > 0 || best != eval) &&
+            best > LOST + ply &&
+            (!tt_good || tt.bound == BOUND_EXACT || depth + 2 >= tt.depth)
+        ) {
             if (!tt_good || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
+            tt.key = upper_key;
+            tt.eval = best;
+            tt.depth = depth > 0 ? depth : 0;
             slot.store(tt, memory_order_relaxed);
         }
 
