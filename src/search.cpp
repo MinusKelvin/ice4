@@ -145,6 +145,7 @@ struct Searcher {
         }
 
         rep_list[ply] = board.zobrist;
+        bestmv = Move(0);
 
         int best = depth > 0 ? LOST + ply : eval;
         if (best >= beta) {
@@ -289,7 +290,7 @@ struct Searcher {
             }
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if (best > LOST + ply) {
             tt.key = upper_key;
             tt.eval = best;
             tt.depth = depth > 0 ? depth : 0;
