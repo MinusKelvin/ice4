@@ -190,6 +190,10 @@ struct Searcher {
                 continue;
             }
 
+            if (depth < 4 && legals && !victim && eval + 150 * depth <= alpha) {
+                break;
+            }
+
             Board mkmove = board;
             mkmove.make_move(moves[i]);
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
