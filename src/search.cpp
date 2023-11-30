@@ -23,7 +23,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, int cutnode) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
@@ -84,7 +84,7 @@ struct Searcher {
         }
 
         if (!pv && depth == 1 && eval <= alpha - 213) {
-            return negamax(board, bestmv, alpha, beta, 0, ply);
+            return negamax(board, bestmv, alpha, beta, 0, ply, cutnode);
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
@@ -97,7 +97,7 @@ struct Searcher {
 
             int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1, !cutnode);
             if (v >= beta) {
                 return v;
             }
@@ -108,7 +108,7 @@ struct Searcher {
         // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
         // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
         if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 5, ply);
+            negamax(board, hashmv, alpha, beta, depth - 5, ply, cutnode);
         }
 
         for (int j = 0; j < mvcount; j++) {
@@ -222,22 +222,23 @@ struct Searcher {
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                 reduction -= score[i] / 580;
+                reduction += 2 * cutnode;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1, 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1, !cutnode);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1, !cutnode);
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1, !pv && !cutnode);
             }
             legals += v != LOST;
             if (v > best) {
@@ -314,9 +315,9 @@ struct Searcher {
         int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                v = negamax(ROOT, mv, last_score - 28, last_score + 28, depth, 0);
+                v = negamax(ROOT, mv, last_score - 28, last_score + 28, depth, 0, 0);
                 if (v <= last_score - 28 || v >= last_score + 28) {
-                    v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                    v = negamax(ROOT, mv, LOST, WON, depth, 0, 0);
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
