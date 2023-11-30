@@ -10,6 +10,7 @@ class DataStringer:
         self.big = ""
 
     def add(self, data):
+        data = [v / 2 for v in data]
         smallest = min(data)
         for v in data:
             v = round(v - smallest)
@@ -23,7 +24,7 @@ class DataStringer:
                 self.big += "\\"
             self.little += lc
             self.big += hc
-        return smallest
+        return smallest * 2
 
 def dump_string(piece_data, stuff, extra=None):
     smallest = float("inf")
