@@ -280,6 +280,9 @@ struct Board {
             if (pawn_counts[ci][file]) {
                 pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN[file - 1];
             }
+            if (pawn_counts[!ci][file]) {
+                pawn_eval += pawn_counts[ci][file] * PAWN_SEMIOPEN;
+            }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
             // 60.0+0.6: 16.79 +- 4.82 (2749 - 2266 - 4985) 0.93 elo/byte
