@@ -314,9 +314,19 @@ struct Searcher {
         int last_score = 0, v;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                v = negamax(ROOT, mv, last_score - 28, last_score + 28, depth, 0);
-                if (v <= last_score - 28 || v >= last_score + 28) {
-                    v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                int delta = 25;
+                int alpha = last_score - delta;
+                int beta = last_score + delta;
+                for (;;) {
+                    v = negamax(ROOT, mv, alpha, beta, depth, 0);
+                    delta *= 2;
+                    if (v <= alpha) {
+                        alpha = max(LOST, alpha - delta);
+                    } else if (v >= beta) {
+                        beta = min(WON, beta + delta);
+                    } else {
+                        break;
+                    }
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
