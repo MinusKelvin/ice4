@@ -17,6 +17,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
+    int16_t butterfly_hist[SQUARE_SPAN][SQUARE_SPAN];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
@@ -120,25 +121,26 @@ struct Searcher {
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 score[j] = (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
-                    + 20000;
+                    + 100000;
             } else {
-                // Plain history: 28 bytes (676e7fa vs 4cabdf1)
-                // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
-                // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                score[j] = butterfly_hist[moves[j].from - A1][moves[j].to-A1]
+                    // Plain history: 28 bytes (676e7fa vs 4cabdf1)
+                    // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
+                    // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
+                    + history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 2 * (ply ?
+                    + 4 * (ply ?
                         (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     : 0)
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 3 * (ply > 1 ?
+                    + 6 * (ply > 1 ?
                         (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     : 0);
             }
@@ -221,7 +223,7 @@ struct Searcher {
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 580;
+                reduction -= score[i] / 1160;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }
@@ -255,6 +257,8 @@ struct Searcher {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
+                        hist = &butterfly_hist[moves[j].from - A1][moves[j].to-A1];
+                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         if (ply) {
@@ -266,6 +270,8 @@ struct Searcher {
                             *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         }
                     }
+                    hist = &butterfly_hist[moves[i].from - A1][moves[i].to-A1];
+                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     if (ply) {
