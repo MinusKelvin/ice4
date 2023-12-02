@@ -13,6 +13,14 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
+int LMR_BASE = 0;
+int LMR_MOVE = 114;
+int LMR_DEPTH = 152;
+int LMR_PV = 0;
+int LMR_IMPROVING = 0;
+int LMR_EXTRA = 7;
+int LMR_HIST = 580;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -213,15 +221,21 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
-                // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
-                // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
-                // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
-                reduction += legals > 7;
-                // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
-                // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
-                // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 580;
+                int reduction = (
+                    LMR_BASE
+                    + legals * LMR_MOVE
+                    + depth * LMR_DEPTH
+                    + pv * LMR_PV
+                    + improving * LMR_IMPROVING
+                    // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
+                    // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
+                    // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
+                    + score[i] / LMR_HIST
+                    // Extra reduction condition: 5 bytes (e61a8aa vs 0e2f650)
+                    // 8.0+0.08: 22.65 +- 5.17 (3207 - 2556 - 4237) 4.53 elo/byte
+                    // 60.0+0.6: 14.32 +- 4.67 (2557 - 2145 - 5298) 2.86 elo/byte
+                    + 1000 * (legals > LMR_EXTRA)
+                ) / 1e3;
                 if (reduction < 0 || victim || in_check) {
                     reduction = 0;
                 }

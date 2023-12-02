@@ -21,6 +21,13 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aLMR_BASE type spin default 0 min -10000 max 10000\n"
+        "option name bLMR_MOVE type spin default 114 min -10000 max 10000\n"
+        "option name cLMR_DEPTH type spin default 152 min -10000 max 10000\n"
+        "option name dLMR_PV type spin default 0 min -10000 max 10000\n"
+        "option name eLMR_IMPROVING type spin default 0 min -10000 max 10000\n"
+        "option name fLMR_EXTRA type spin default 7 min -10000 max 10000\n"
+        "option name gLMR_HIST type spin default 580 min -10000 max 10000\n"
 #endif
         "uciok\n"
     );
@@ -44,6 +51,27 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'a':
+                        LMR_BASE = value;
+                        break;
+                    case 'b':
+                        LMR_MOVE = value;
+                        break;
+                    case 'c':
+                        LMR_DEPTH = value;
+                        break;
+                    case 'd':
+                        LMR_PV = value;
+                        break;
+                    case 'e':
+                        LMR_IMPROVING = value;
+                        break;
+                    case 'f':
+                        LMR_EXTRA = value;
+                        break;
+                    case 'g':
+                        LMR_HIST = value;
                         break;
                 }
                 break;
