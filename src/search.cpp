@@ -112,20 +112,26 @@ struct Searcher {
         }
 
         for (int j = 0; j < mvcount; j++) {
+            int piece = board.board[moves[j].from];
+            int victim = board.board[moves[j].to] & 7;
+            int opp_pawn = (board.stm ^ INVALID) | PAWN;
+            int pawn_attacked =
+                board.board[moves[j].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
+                board.board[moves[j].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
             if (hashmv.from == moves[j].from && hashmv.to == moves[j].to && hashmv.promo == moves[j].promo) {
                 score[j] = 1000000;
-            } else if (board.board[moves[j].to]) {
+            } else if (victim) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
-                score[j] = (board.board[moves[j].to] & 7) * 8
-                    - (board.board[moves[j].from] & 7)
+                score[j] = victim * 8
+                    - (piece & 7)
                     + 20000;
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                score[j] = history[piece - WHITE_PAWN][moves[j].to-A1]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
@@ -133,14 +139,18 @@ struct Searcher {
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
                     + 2 * (ply ?
-                        (*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        (*conthist_stack[ply - 1])[piece - WHITE_PAWN][moves[j].to-A1]
                     : 0)
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
                     + 3 * (ply > 1 ?
-                        (*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                        (*conthist_stack[ply - 2])[piece - WHITE_PAWN][moves[j].to-A1]
                     : 0);
+            }
+
+            if (pawn_attacked && (piece & 7) > victim + max(0, depth) / 2) {
+                score[j] -= 5e4;
             }
         }
 
@@ -168,12 +178,8 @@ struct Searcher {
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
-            int opp_pawn = (board.stm ^ INVALID) | PAWN;
-            int pawn_attacked =
-                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
-                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
-            if (pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
-                continue;
+            if (legals && score[i] < -20000) {
+                break;
             }
 
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
