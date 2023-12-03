@@ -54,9 +54,7 @@ struct Searcher {
             depth--;
         }
 
-        if (!board.movegen(moves, mvcount, depth > 0, mobilities[ply+1])) {
-            return WON;
-        }
+        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
@@ -179,7 +177,10 @@ struct Searcher {
             }
 
             Board mkmove = board;
-            mkmove.make_move(moves[i]);
+            if (mkmove.make_move(moves[i])) {
+                continue;
+            }
+
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
@@ -227,7 +228,7 @@ struct Searcher {
                 // first legal move is always searched with full window
                 v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
-            legals += v != LOST;
+            legals++;
             if (v > best) {
                 best = v;
                 bestmv = moves[i];
@@ -269,12 +270,8 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0) {
-            Board mkmove = board;
-            mkmove.null_move();
-            if (mkmove.movegen(moves, mvcount, 0, scratch_int)) {
-                return 0;
-            }
+        if (depth > 0 && legals == 0 && !board.check) {
+            return 0;
         }
 
         if ((depth > 0 || best != eval) && best > LOST + ply) {

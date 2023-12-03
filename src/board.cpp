@@ -44,10 +44,10 @@ struct Board {
     uint8_t pawn_counts[2][10];
     uint8_t rook_counts[2][8];
     uint8_t ep_square;
-    uint8_t castle1, castle2;
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
+    uint8_t check;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -111,8 +111,6 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
         stm ^= INVALID;
         ep_square = 0;
-        castle1 = 0;
-        castle2 = 0;
     }
 
     void remove_castle_rights(int btm, int which) {
@@ -122,11 +120,10 @@ struct Board {
         }
     }
 
-    void make_move(Move mv, int promo = QUEEN) {
+    int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
+        int nstm = stm ^ INVALID;
         int btm = stm != WHITE;
-        castle1 = 0;
-        castle2 = 0;
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
@@ -153,14 +150,16 @@ struct Board {
             if (mv.to == back_rank + 6) {
                 edit(back_rank + 7, EMPTY);
                 edit(back_rank + 5, stm | ROOK);
-                castle1 = back_rank + 4;
-                castle2 = back_rank + 5;
+                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 5, nstm)) {
+                    return 1;
+                }
             }
             if (mv.to == back_rank + 2) {
                 edit(back_rank + 0, EMPTY);
                 edit(back_rank + 3, stm | ROOK);
-                castle1 = back_rank + 4;
-                castle2 = back_rank + 3;
+                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 3, nstm)) {
+                    return 1;
+                }
             }
             remove_castle_rights(btm, SHORT_CASTLE);
             remove_castle_rights(btm, LONG_CASTLE);
@@ -179,15 +178,20 @@ struct Board {
             remove_castle_rights(1, SHORT_CASTLE);
         }
 
+        if (attacked(king_sq[btm], nstm)) {
+            return 1;
+        }
+
+        check = attacked(king_sq[!btm], stm);
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
+        return 0;
     }
 
-    int movegen(Move list[], int& count, int quiets, int& mobility) {
+    void movegen(Move list[], int& count, int quiets, int& mobility) {
         count = 0;
         mobility = 0;
         uint8_t other = stm ^ INVALID;
-        uint8_t opponent_king = other | KING;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
             if ((board[sq] & 0x18) != stm) {
@@ -226,13 +230,6 @@ struct Board {
                         }
                     }
                 }
-                if (
-                    board[sq + dir+1] == opponent_king || board[sq + dir-1] == opponent_king ||
-                    sq + dir+1 == castle1 || sq + dir+1 == castle2 ||
-                    sq + dir-1 == castle1 || sq + dir-1 == castle2
-                ) {
-                    return 0;
-                }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
                     mobility += MOBILITY[piece];
                     list[count++] = Move(sq, sq + dir-1, promo);
@@ -249,9 +246,6 @@ struct Board {
                         if (board[raysq] & stm) {
                             break;
                         }
-                        if (board[raysq] == opponent_king || raysq == castle1 || raysq == castle2) {
-                            return 0;
-                        }
                         mobility += MOBILITY[piece];
                         if (board[raysq] & other) {
                             list[count++] = Move(sq, raysq);
@@ -263,7 +257,28 @@ struct Board {
                 }
             }
         }
-        return 1;
+    }
+
+    int attacked(int ksq, int by) {
+        int pawndir = by & WHITE ? -10 : 10;
+        int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+        int slider[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
+        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
+            return 1;
+        }
+        for (int i = 0; i < 16; i++) {
+            int sq = ksq + rays[i];
+            if (i < 8 && board[sq] == (KING | by)) {
+                return 1;
+            }
+            while (i < 8 && !board[sq]) {
+                sq += rays[i];
+            }
+            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (slider[i] | by)) {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {

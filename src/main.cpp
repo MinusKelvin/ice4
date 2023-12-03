@@ -9,20 +9,18 @@ int64_t perft(Board& board, int depth) {
     Move moves[256];
     int mvcount, scratch;
 
-    if (board.movegen(moves, mvcount, 1, scratch)) {
-        if (depth == 0) {
-            return 1;
-        }
-        int64_t count = 0;
-        for (int i = 0; i < mvcount; i++) {
-            mkmove = board;
-            mkmove.make_move(moves[i]);
+    board.movegen(moves, mvcount, 1, scratch);
+    if (depth == 0) {
+        return 1;
+    }
+    int64_t count = 0;
+    for (int i = 0; i < mvcount; i++) {
+        mkmove = board;
+        if (!mkmove.make_move(moves[i])) {
             count += perft(mkmove, depth - 1);
         }
-        return count;
-    } else {
-        return 0;
     }
+    return count;
 }
 
 // same fens as frozenight
