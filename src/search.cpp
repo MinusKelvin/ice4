@@ -30,6 +30,9 @@ struct Searcher {
         int mvcount, scratch_int;
 
         int pv = beta > alpha+1;
+        if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+            throw 0;
+        }
 
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
@@ -153,6 +156,13 @@ struct Searcher {
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
 
+            Board mkmove = board;
+            mkmove.make_move(moves[i]);
+            if (mkmove.in_check(board.stm)) {
+                continue;
+            }
+            conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
@@ -176,13 +186,6 @@ struct Searcher {
             // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
             if (depth <= 0 && eval + deltas[victim] <= alpha) {
                 continue;
-            }
-
-            Board mkmove = board;
-            mkmove.make_move(moves[i]);
-            conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
-                throw 0;
             }
 
             int is_rep = 0;

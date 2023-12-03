@@ -279,6 +279,9 @@ struct Board {
         }
         for (int i = 0; i < 16; i++) {
             int sq = ksq + rays[i];
+            if (i < 8 && board[sq] == (KING | other)) {
+                return 1;
+            }
             while (i < 8 && !board[sq]) {
                 sq += rays[i];
             }
