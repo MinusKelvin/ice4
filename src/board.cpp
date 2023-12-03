@@ -48,6 +48,7 @@ struct Board {
     uint8_t stm;
     uint8_t phase;
     uint8_t pawn_eval_dirty;
+    uint8_t check;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -181,6 +182,7 @@ struct Board {
 
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
+        check = in_check(stm);
     }
 
     int movegen(Move list[], int& count, int quiets, int& mobility) {
@@ -264,6 +266,27 @@ struct Board {
             }
         }
         return 1;
+    }
+
+    int in_check(int side) {
+        int other = side ^ INVALID;
+        int ksq = king_sq[side != WHITE];
+        int pawndir = side & WHITE ? 10 : -10;
+        int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+        int slider[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
+        if (board[ksq + pawndir + 1] == (PAWN | other) || board[ksq + pawndir - 1] == (PAWN | other)) {
+            return 1;
+        }
+        for (int i = 0; i < 16; i++) {
+            int sq = ksq + rays[i];
+            while (i < 8 && !board[sq]) {
+                sq += rays[i];
+            }
+            if (i < 8 && board[sq] == (QUEEN | other) || board[sq] == (slider[i] | other)) {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
