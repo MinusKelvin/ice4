@@ -30,10 +30,6 @@ struct Searcher {
         int mvcount, scratch_int;
 
         int pv = beta > alpha+1;
-        // Check Conditions: 24 bytes (46d9d80 vs 0f4a84d)
-        // 8.0+0.08: 14.84 +- 5.12 (3046 - 2619 - 4335) 0.62 elo/byte
-        // 60.0+0.6: 11.71 +- 4.55 (2402 - 2065 - 5533) 0.49 elo/byte
-        int in_check = 0;
 
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
@@ -56,13 +52,6 @@ struct Searcher {
             // 8.0+0.08: 0.66 +- 5.07 (2790 - 2771 - 4439) 0.08 elo/byte
             // 60.0+0.6: 22.30 +- 4.52 (2530 - 1889 - 5581) 2.79 elo/byte
             depth--;
-        }
-
-
-        if (pv && depth > 0) {
-            Board mkmove = board;
-            mkmove.null_move();
-            in_check = !mkmove.movegen(moves, mvcount, 0, scratch_int);
         }
 
         if (!board.movegen(moves, mvcount, depth > 0, mobilities[ply+1])) {
@@ -101,7 +90,6 @@ struct Searcher {
             if (v >= beta) {
                 return v;
             }
-            in_check = v == LOST;
         }
 
         // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
@@ -222,7 +210,7 @@ struct Searcher {
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                 reduction -= score[i] / 580;
-                if (reduction < 0 || victim || in_check) {
+                if (reduction < 0 || victim) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
@@ -237,7 +225,7 @@ struct Searcher {
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + in_check, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
             legals += v != LOST;
             if (v > best) {
