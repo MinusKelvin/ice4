@@ -195,6 +195,7 @@ struct Searcher {
             }
 
             int v;
+            int next_depth = depth - 1 + mkmove.check;
 
             if (is_rep) {
                 v = 0;
@@ -214,19 +215,19 @@ struct Searcher {
                 if (reduction < 0 || victim || mkmove.check) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - reduction - 1, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
             }
             legals++;
             if (v > best) {
