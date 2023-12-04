@@ -226,7 +226,7 @@ struct Searcher {
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1 + board.check, ply + 1);
             }
             legals++;
             if (v > best) {
