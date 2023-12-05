@@ -137,7 +137,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) / (1 + !improving);
+        int quiets_to_check = pv || board.check ? -1 : (depth*depth - depth + 4) / (1 + !improving);
 
         int raised_alpha = 0;
         int legals = 0;
