@@ -18,7 +18,7 @@ struct Searcher {
     double abort_time;
     int16_t evals[256];
     HTable history;
-    HTable conthist[14][SQUARE_SPAN];
+    HTable conthist[2][14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
@@ -80,7 +80,7 @@ struct Searcher {
         if (!pv && !board.check && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
             mkmove.null_move();
-            conthist_stack[ply] = &conthist[0][0];
+            conthist_stack[ply] = &conthist[0][0][0];
 
             int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
 
@@ -181,7 +181,7 @@ struct Searcher {
                 continue;
             }
 
-            conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+            conthist_stack[ply] = &conthist[mkmove.check][board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
