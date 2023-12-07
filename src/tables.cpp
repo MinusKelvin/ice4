@@ -2,6 +2,11 @@
 int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
+int STARTS[] = {0,0,8,4,0,0,0};
+int LIMITS[] = {0,0,1,8,8,8,1};
+int ENDS[] = {0,0,16,8,4,8,8};
+int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
+int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 
 #define PAWN_OFFSET S(24, 81)
 #define PASSED_PAWN_OFFSET S(-19, -9)
@@ -12,7 +17,7 @@ int QUADRANTS[] = {
     S(606, 1086), S(598, 1122), S(610, 1087), S(619, 1134),
 };
 #define BISHOP_PAIR S(23, 46)
-int32_t DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 19), S(14, 13), S(14, 10), S(9, 21), S(-7, 19), S(6, 31)};
+int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 19), S(14, 13), S(14, 10), S(9, 21), S(-7, 19), S(6, 31)};
 #define TEMPO S(10, 12)
 #define ISOLATED_PAWN S(9, 9)
 int PROTECTED_PAWN[] = {0, S(9, 8), S(11, 11)};

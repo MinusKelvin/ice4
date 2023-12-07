@@ -87,7 +87,7 @@ for i in range(1, 9, 2):
 print("\n};")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
-print("int32_t DOUBLED_PAWN[] = {" + ", ".join(
+print("int DOUBLED_PAWN[] = {" + ", ".join(
     f"S({-round(v1)}, {-round(v2)})" for v1, v2 in zip(sections[12], sections[eg+12])
 ) + "};")
 print(f"#define TEMPO S({round(sections[13][0])}, {round(sections[eg+13][0])})")

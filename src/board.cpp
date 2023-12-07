@@ -191,17 +191,13 @@ struct Board {
     void movegen(Move list[], int& count, int quiets, int& mobility) {
         count = 0;
         mobility = 0;
-        uint8_t other = stm ^ INVALID;
+        int other = stm ^ INVALID;
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
-            if ((board[sq] & 0x18) != stm) {
+            if ((board[sq] & INVALID) != stm) {
                 continue;
             }
 
-            int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
-            int starts[] = {0,0,8,4,0,0,0};
-            int limits[] = {0,0,1,8,8,8,1};
-            int ends[] = {0,0,16,8,4,8,8};
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
@@ -239,10 +235,10 @@ struct Board {
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
-                for (int i = starts[piece]; i < ends[piece]; i++) {
+                for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
-                    for (int j = 0; j < limits[piece]; j++) {
-                        raysq += rays[i];
+                    for (int j = 0; j < LIMITS[piece]; j++) {
+                        raysq += RAYS[i];
                         if (board[raysq] & stm) {
                             break;
                         }
@@ -261,20 +257,18 @@ struct Board {
 
     int attacked(int ksq, int by) {
         int pawndir = by & WHITE ? -10 : 10;
-        int rays[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
-        int slider[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
         if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
             return 1;
         }
         for (int i = 0; i < 16; i++) {
-            int sq = ksq + rays[i];
+            int sq = ksq + RAYS[i];
             if (i < 8 && board[sq] == (KING | by)) {
                 return 1;
             }
             while (i < 8 && !board[sq]) {
-                sq += rays[i];
+                sq += RAYS[i];
             }
-            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (slider[i] | by)) {
+            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
                 return 1;
             }
         }
