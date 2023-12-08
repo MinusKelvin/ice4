@@ -50,6 +50,7 @@ struct Board {
     uint8_t check;
     int32_t inc_eval;
     int32_t pawn_eval;
+    int32_t vqm_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
@@ -111,6 +112,7 @@ struct Board {
         zobrist ^= ZOBRIST.stm;
         stm ^= INVALID;
         ep_square = 0;
+        vqm_eval = -vqm_eval;
     }
 
     void remove_castle_rights(int btm, int which) {
@@ -124,6 +126,7 @@ struct Board {
         int piece = mv.promo ? promo | stm : board[mv.from];
         int nstm = stm ^ INVALID;
         int btm = stm != WHITE;
+        int vqm;
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
@@ -150,14 +153,14 @@ struct Board {
             if (mv.to == back_rank + 6) {
                 edit(back_rank + 7, EMPTY);
                 edit(back_rank + 5, stm | ROOK);
-                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 5, nstm)) {
+                if (attacked(back_rank + 4, nstm, vqm) || attacked(back_rank + 5, nstm, vqm)) {
                     return 1;
                 }
             }
             if (mv.to == back_rank + 2) {
                 edit(back_rank + 0, EMPTY);
                 edit(back_rank + 3, stm | ROOK);
-                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 3, nstm)) {
+                if (attacked(back_rank + 4, nstm, vqm) || attacked(back_rank + 3, nstm, vqm)) {
                     return 1;
                 }
             }
@@ -178,11 +181,12 @@ struct Board {
             remove_castle_rights(1, SHORT_CASTLE);
         }
 
-        if (attacked(king_sq[btm], nstm)) {
+        if (attacked(king_sq[btm], nstm, vqm)) {
             return 1;
         }
 
-        check = attacked(king_sq[!btm], stm);
+        check = attacked(king_sq[!btm], stm, vqm_eval);
+        vqm_eval -= vqm;
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
         return 0;
@@ -255,24 +259,20 @@ struct Board {
         }
     }
 
-    int attacked(int ksq, int by) {
+    int attacked(int ksq, int by, int& vqm) {
         int pawndir = by & WHITE ? -10 : 10;
-        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
-            return 1;
-        }
+        int atk = vqm = 0;
+        atk |= board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by);
         for (int i = 0; i < 16; i++) {
             int sq = ksq + RAYS[i];
-            if (i < 8 && board[sq] == (KING | by)) {
-                return 1;
-            }
+            atk |= i < 8 && board[sq] == (KING | by);
             while (i < 8 && !board[sq]) {
+                vqm += VQM;
                 sq += RAYS[i];
             }
-            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
-                return 1;
-            }
+            atk |= i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by);
         }
-        return 0;
+        return atk;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
@@ -356,6 +356,7 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
+        stm_eval += vqm_eval;
         return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
     }
 } ROOT;

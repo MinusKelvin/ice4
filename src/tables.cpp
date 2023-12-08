@@ -9,28 +9,29 @@ int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, 
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 
 #define PAWN_OFFSET S(24, 81)
-#define PASSED_PAWN_OFFSET S(-19, -9)
+#define PASSED_PAWN_OFFSET S(-18, -10)
 int QUADRANTS[] = {
-    S(215, 233), S(233, 237), S(223, 231), S(239, 236),
-    S(236, 300), S(237, 305), S(236, 301), S(241, 304),
-    S(289, 555), S(305, 572), S(297, 546), S(326, 560),
-    S(606, 1086), S(598, 1122), S(610, 1087), S(619, 1134),
+    S(215, 233), S(233, 238), S(223, 230), S(239, 237),
+    S(235, 300), S(237, 306), S(236, 301), S(241, 305),
+    S(289, 552), S(306, 571), S(297, 543), S(327, 558),
+    S(607, 1086), S(599, 1123), S(610, 1085), S(619, 1134),
 };
-#define BISHOP_PAIR S(23, 46)
-int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 19), S(14, 13), S(14, 10), S(9, 21), S(-7, 19), S(6, 31)};
+#define BISHOP_PAIR S(23, 47)
+int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 20), S(13, 14), S(14, 11), S(9, 22), S(-7, 19), S(6, 31)};
 #define TEMPO S(10, 12)
 #define ISOLATED_PAWN S(9, 9)
 int PROTECTED_PAWN[] = {0, S(9, 8), S(11, 11)};
-#define ROOK_OPEN S(25, 3)
-#define ROOK_SEMIOPEN S(10, 12)
-int PAWN_SHIELD[] = {S(5, -10), S(12, -24), S(14, -18), S(21, -12)};
-#define KING_OPEN S(-44, -2)
-#define KING_SEMIOPEN S(-10, 19)
-int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
+#define ROOK_OPEN S(26, 3)
+#define ROOK_SEMIOPEN S(11, 12)
+int PAWN_SHIELD[] = {S(6, -3), S(13, -17), S(14, -12), S(21, -6)};
+#define KING_OPEN S(-42, 4)
+#define KING_SEMIOPEN S(-9, 19)
+int MOBILITY[] = {0, S(3, 1), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-2, 8)};
+#define VQM S(-1, -2)
 
 int get_data(int i) {
-    auto DATA_LOW = ";ML620( CJE>;7'&ACQLI>+(HLZYPB81X^{f`]A;A\"^&}`;j3E<7./5963((%&-:/9*#++?E-9:8<EOH# :?EJWSDXO@G\\z?cMKiI !6N=5/g ho )/2*1?>4FHQ<=OO\"$ #(30(*84/(',:/27? ,42*612#&+* )+.--21420-+)&%\")7@6503 \"033+))&*)**-0.220+.57;CS?IMFOFyy599BG>0,$ &(3+2>3-'.:2QTJ@79BGno^MGGT`;2#[Rgv)AAuAABL_\"2. 3MJ5GZZK6=D1 Mfk]luycy%,p'27 -**$**,0035*553!#' '&&%\"\"%$'*)'% \"+)$).+;D?6FLR";
-    auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
+    auto DATA_LOW = ";NL610( CJE=;7'&ACQLI>*(IMZZQC81X_|g`]A<D%a'~a=l3D;7./4953''%'-:/8)\"*+?D-8:8<DNH# :?DIWSBWN?F[z>`KIfH  6N>6.c~fh (/1*1>>4FGP<<ON#% #)30)*94.((,;/16= -32*722#&++ )+...22431-+)&&#(6?6503 !/32+))&*)**-1.231,/68;DTBLPHPHz}7:;CJ?0-$ &(4,2?4-(/:2RUK@7:CHoo^MHHU`:2$\\Shv)A?uCCDJ_#51 6TQ7JaaM8?F2 Ldi]ltycy%,p'27 ,()$))+0034)442$%' )(('$#&&),*)'  ()$(.,;D>6ELQ";
+    auto DATA_HIGH = "                                           !                                                                                                                                                                              !!!!!!                                !!!    !!!                                !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])
         - S(3072, 3072);
