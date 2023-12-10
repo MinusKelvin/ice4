@@ -105,10 +105,10 @@ struct Searcher {
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 Board b = board;
-                volatile int see = b.see(moves[j].from, moves[j].to);
+                int see = b.see(moves[j].from, moves[j].to);
                 score[j] = (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
-                    + 1e5;
+                    + (see < 0 ? -1e5-50 : 1e5);
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
@@ -139,7 +139,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
+        int quiets_to_check = pv ? 1e3 : (depth*depth - depth + 4) >> !improving;
 
         int raised_alpha = 0;
         int legals = 0;
@@ -167,8 +167,8 @@ struct Searcher {
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
             // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
-            if (!(quiets_to_check -= !victim)) {
-                break;
+            if (!victim && --quiets_to_check <= 0) {
+                continue;
             }
 
             // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
