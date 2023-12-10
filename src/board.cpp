@@ -182,7 +182,7 @@ struct Board {
             return 1;
         }
 
-        check = attacked(king_sq[!btm], stm);
+        check = !!attacked(king_sq[!btm], stm);
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
         return 0;
@@ -257,22 +257,53 @@ struct Board {
 
     int attacked(int ksq, int by) {
         int pawndir = by & WHITE ? -10 : 10;
-        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
-            return 1;
+        int lva_sq = 0;
+        int lva_value = 7;
+        if (board[ksq + pawndir + 1] == (PAWN | by)) {
+            return ksq + pawndir + 1;
+        }
+        if (board[ksq + pawndir - 1] == (PAWN | by)) {
+            return ksq + pawndir - 1;
         }
         for (int i = 0; i < 16; i++) {
             int sq = ksq + RAYS[i];
-            if (i < 8 && board[sq] == (KING | by)) {
-                return 1;
+            if (i < 8 && board[sq] == (KING | by) && lva_value > KING) {
+                lva_sq = sq;
+                lva_value = KING;
             }
             while (i < 8 && !board[sq]) {
                 sq += RAYS[i];
             }
-            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
-                return 1;
+            if (i < 8 && board[sq] == (QUEEN | by) && lva_value > QUEEN) {
+                lva_sq = sq;
+                lva_value = QUEEN;
+            }
+            if (board[sq] == (SLIDER[i] | by) && lva_value > SLIDER[i]) {
+                lva_sq = sq;
+                lva_value = SLIDER[i];
             }
         }
-        return 0;
+        return lva_sq;
+    }
+
+    int see(int from, int to) {
+        int value[] = {0, 100, 300, 300, 500, 900, 9999};
+        int gain[32];
+        int d = 0;
+        gain[0] = value[board[to] & 7];
+        while (from) {
+            d++;
+            gain[d] = value[board[from] & 7] - gain[d-1];
+            if (max(-gain[d-1], gain[d]) < 0) {
+                break;
+            }
+            board[from] = 0;
+            from = attacked(to, stm ^= INVALID);
+        }
+        while (--d) {
+            gain[d-1] = -max(-gain[d-1], gain[d]);
+        }
+        return gain[0];
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
