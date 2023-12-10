@@ -177,6 +177,11 @@ struct Searcher {
             }
 
             Board mkmove = board;
+            if (victim) {
+                volatile int see = mkmove.see(moves[i].from, moves[i].to);
+                mkmove = board;
+            }
+
             if (mkmove.make_move(moves[i])) {
                 continue;
             }
