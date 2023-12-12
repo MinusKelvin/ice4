@@ -70,7 +70,7 @@ struct Searcher {
             return eval;
         }
 
-        if (!pv && depth == 1 && eval <= alpha - 213) {
+        if (depth == 1 && eval <= alpha - 213) {
             return negamax(board, bestmv, alpha, beta, 0, ply);
         }
 
