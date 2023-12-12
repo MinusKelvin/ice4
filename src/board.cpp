@@ -43,6 +43,7 @@ struct Board {
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
     uint8_t rook_counts[2][8];
+    uint8_t num_sliders[2];
     uint8_t ep_square;
     uint8_t stm;
     uint8_t phase;
@@ -66,6 +67,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
+        num_sliders[!(board[square] & WHITE)] -= (board[square] & 7) >= BISHOP;
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
@@ -80,6 +82,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
+        num_sliders[!(board[square] & WHITE)] += (board[square] & 7) >= BISHOP;
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
