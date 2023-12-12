@@ -133,14 +133,18 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
 
         int best = depth > 0 ? LOST + ply : eval;
+        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
+        int raised_alpha = 0;
+        int legals = 0;
+
         if (best >= beta) {
             return best;
         }
+        if (best > alpha) {
+            alpha = best;
+            raised_alpha = 1;
+        }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
-
-        int raised_alpha = 0;
-        int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
