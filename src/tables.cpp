@@ -1,4 +1,6 @@
+#include <cmath>
 #define S(a, b) (a + (b * 0x10000))
+double LOG[256];
 int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
@@ -82,6 +84,10 @@ void init_tables() {
                 );
             }
         }
+    }
+
+    for (int i = 1; i < 256; i++) {
+        LOG[i] = log(i);
     }
     
     // Zobrist keys
