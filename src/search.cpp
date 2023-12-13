@@ -158,7 +158,7 @@ struct Searcher {
             int pawn_attacked =
                 board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
                 board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
-            if (pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
+            if (ply && pawn_attacked && PHASE[board.board[moves[i].from] & 7] > PHASE[victim] + max(0, depth) / 4) {
                 continue;
             }
 
