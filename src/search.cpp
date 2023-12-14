@@ -106,7 +106,8 @@ struct Searcher {
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 Board b = board;
                 int see = b.see(moves[j].from, moves[j].to);
-                score[j] = (board.board[moves[j].to] & 7) * 8
+                score[j] = see
+                    + (board.board[moves[j].to] & 7) * 8
                     - (board.board[moves[j].from] & 7)
                     + (see < 0 ? -1e5-50 : 1e5);
             } else {
