@@ -13,6 +13,10 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
+double HIST_LR_0 = 0;
+double HIST_LR_1 = 0;
+double HIST_LR_2 = 1;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -240,31 +244,32 @@ struct Searcher {
             }
             if (v >= beta) {
                 if (!victim) {
+                    int change = HIST_LR_2 * depth * depth + HIST_LR_1 * depth + HIST_LR_0;
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
                         hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= change + change * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= change + change * *hist / MAX_HIST;
                         }
                         if (ply > 1) {
                             hist = &(*conthist_stack[ply - 2])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
-                            *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                            *hist -= change + change * *hist / MAX_HIST;
                         }
                     }
                     hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += change - change * *hist / MAX_HIST;
                     if (ply) {
                         hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += change - change * *hist / MAX_HIST;
                     }
                     if (ply > 1) {
                         hist = &(*conthist_stack[ply - 2])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        *hist += change - change * *hist / MAX_HIST;
                     }
                 }
                 break;
