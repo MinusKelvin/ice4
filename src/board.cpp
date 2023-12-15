@@ -287,7 +287,7 @@ struct Board {
     }
 
     int see_at_least(int from, int to, int threshold) {
-        int value[] = {0, 100, 300, 300, 500, 900, 9999};
+        int value[] = {0, 100, 300, 325, 500, 900, 9999};
         int balance = value[board[to] & 7] - threshold;
         int orig_stm = stm;
         if (balance < 0) {
