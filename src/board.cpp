@@ -286,24 +286,24 @@ struct Board {
         return lva_sq;
     }
 
-    int see(int from, int to) {
+    int see_at_least(int from, int to, int threshold) {
         int value[] = {0, 100, 300, 300, 500, 900, 9999};
-        int gain[32];
-        int d = 0;
-        gain[0] = value[board[to] & 7];
+        int balance = value[board[to] & 7] - threshold;
+        int orig_stm = stm;
+        if (balance < 0) {
+            return 0;
+        }
         while (from) {
-            d++;
-            gain[d] = value[board[from] & 7] - gain[d-1];
-            if (max(-gain[d-1], gain[d]) < 0) {
+            balance -= value[board[from] & 7];
+            stm ^= INVALID;
+            if (balance >= 0) {
                 break;
             }
             board[from] = 0;
-            from = attacked(to, stm ^= INVALID);
+            from = attacked(to, stm);
+            balance = -balance - 1;
         }
-        while (--d) {
-            gain[d-1] = -max(-gain[d-1], gain[d]);
-        }
-        return gain[0];
+        return stm != orig_stm;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
@@ -389,6 +389,44 @@ struct Board {
         stm_eval += stm == WHITE ? e : -e;
         return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
     }
+
+#ifdef OPENBENCH
+    void print_fen() {
+        char chars[256];
+        chars[WHITE | PAWN] = 'P';
+        chars[BLACK | PAWN] = 'p';
+        chars[WHITE | KNIGHT] = 'N';
+        chars[BLACK | KNIGHT] = 'n';
+        chars[WHITE | BISHOP] = 'B';
+        chars[BLACK | BISHOP] = 'b';
+        chars[WHITE | ROOK] = 'R';
+        chars[BLACK | ROOK] = 'r';
+        chars[WHITE | QUEEN] = 'Q';
+        chars[BLACK | QUEEN] = 'q';
+        chars[WHITE | KING] = 'K';
+        chars[BLACK | KING] = 'k';
+        for (int rank = 90; rank >= 20; rank -= 10) {
+            int run = 0;
+            for (int file = 1; file < 9; file++) {
+                if (!board[rank+file]) {
+                    run++;
+                    continue;
+                }
+                if (run) {
+                    printf("%d", run);
+                }
+                run = 0;
+                printf("%c", chars[board[rank+file]]);
+            }
+            if (run) {
+                printf("%d", run);
+            }
+            if (rank > 20) {
+                printf("/");
+            }
+        }
+    }
+#endif
 } ROOT;
 
 uint64_t PREHISTORY[256];
