@@ -154,14 +154,6 @@ struct Searcher {
             int victim = board.board[moves[i].to] & 7;
             int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
-            int opp_pawn = (board.stm ^ INVALID) | PAWN;
-            int pawn_attacked =
-                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
-                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
-            if (pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
-                continue;
-            }
-
             // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
             // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
             // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
