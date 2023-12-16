@@ -170,7 +170,7 @@ struct Searcher {
             }
 
             Board mkmove = board;
-            if (!mkmove.see_at_least(moves[i].from, moves[i].to, -100 * max(0, depth))) {
+            if (!mkmove.see_at_least(moves[i].from, moves[i].to, (victim ? 100 : 75) * -max(0, depth))) {
                 continue;
             }
             mkmove = board;
