@@ -8,28 +8,28 @@ int ENDS[] = {0,0,16,8,4,8,8};
 int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 
-#define PAWN_OFFSET S(24, 81)
-#define PASSED_PAWN_OFFSET S(-19, -9)
+#define PAWN_OFFSET S(24, 79)
+#define PASSED_PAWN_OFFSET S(-18, -10)
 int QUADRANTS[] = {
     S(215, 233), S(233, 237), S(223, 231), S(239, 236),
-    S(236, 300), S(237, 305), S(236, 301), S(241, 304),
-    S(289, 555), S(305, 572), S(297, 546), S(326, 560),
-    S(606, 1086), S(598, 1122), S(610, 1087), S(619, 1134),
+    S(235, 300), S(237, 305), S(236, 301), S(241, 304),
+    S(289, 555), S(305, 572), S(296, 546), S(326, 560),
+    S(606, 1086), S(598, 1122), S(609, 1086), S(619, 1133),
 };
 #define BISHOP_PAIR S(23, 46)
-int DOUBLED_PAWN[] = {S(5, 22), S(-10, 20), S(8, 19), S(14, 13), S(14, 10), S(9, 21), S(-7, 19), S(6, 31)};
+#define DOUBLED_PAWN S(6, 19)
 #define TEMPO S(10, 12)
-#define ISOLATED_PAWN S(9, 9)
+#define ISOLATED_PAWN S(8, 9)
 int PROTECTED_PAWN[] = {0, S(9, 8), S(11, 11)};
 #define ROOK_OPEN S(25, 3)
 #define ROOK_SEMIOPEN S(10, 12)
-int PAWN_SHIELD[] = {S(5, -10), S(12, -24), S(14, -18), S(21, -12)};
+int PAWN_SHIELD[] = {S(5, -10), S(12, -24), S(14, -18), S(21, -11)};
 #define KING_OPEN S(-44, -2)
 #define KING_SEMIOPEN S(-10, 19)
 int MOBILITY[] = {0, S(3, 2), S(1, 0), S(4, 5), S(2, 3), S(2, 4), S(-4, 5)};
 
 int get_data(int i) {
-    auto DATA_LOW = ";ML620( CJE>;7'&ACQLI>+(HLZYPB81X^{f`]A;A\"^&}`;j3E<7./5963((%&-:/9*#++?E-9:8<EOH# :?EJWSDXO@G\\z?cMKiI !6N=5/g ho )/2*1?>4FHQ<=OO\"$ #(30(*84/(',:/27? ,42*612#&+* )+.--21420-+)&%\")7@6503 \"033+))&*)**-0.220+.57;CS?IMFOFyy599BG>0,$ &(3+2>3-'.:2QTJ@79BGno^MGGT`;2#[Rgv)AAuAABL_\"2. 3MJ5GZZK6=D1 Mfk]luycy%,p'27 -**$**,0035*553!#' '&&%\"\"%$'*)'% \"+)$).+;D?6FLR";
+    auto DATA_LOW = ";RL510+ CNE=:7+&AGQLI>.(IRYXOB<1Xd{d^\\F<A)^$|`Bk1C;7..3742'(%%+8.7)\"**=C-8:8<DNG\" 9?EJVRCWNBG\\w=cMKiI  6N=4/f hn )/2*1?>4FHQ<=OO\"% $(20(*84/''+:/27? -32*611\"&+* )+.-.22420-+)&%\"*8B8603 #155-**&+*,,.1.131.178;CS?LPGPGyy5;;CF?1,$ &)4-3?4-'/:3RUK@79CHoo^LFHUa<1$[Rhv*BAvAABM`\"2. 3MJ5GZZK6=D1 Mek]luycy%,p'17 -**$**,0035*553!#' '&&%\"\"%$'*)'& \"+)$).,<D?6FLR";
     auto DATA_HIGH = "                                           !                                                                 !                                                                                                            !!!!!!                                !!!    !!!                                !! !!!                                                ";
     return DATA_LOW[i] + 95 * DATA_HIGH[i] +
         0x10000 * (DATA_LOW[i+176] + 95 * DATA_HIGH[i+176])

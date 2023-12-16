@@ -318,7 +318,7 @@ struct Board {
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
             // 60.0+0.6: 6.46 +- 4.69 (2473 - 2287 - 5240) 0.15 elo/byte
             if (pawn_counts[ci][file]) {
-                pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN[file - 1];
+                pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN;
             }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
