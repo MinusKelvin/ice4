@@ -54,7 +54,7 @@ def dump_string(piece_data, stuff, extra=None):
 scaled = [v * 160 for v in data["params.weight"][0]]
 
 sections = []
-sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 8, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6] * 2
+sizes = [48, 16, 3, 16, 3, 16, 3, 16, 3, 16, 48, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 6] * 2
 acc = 0
 for s in sizes:
     sections.append(scaled[acc:acc+s])
@@ -87,9 +87,7 @@ for i in range(1, 9, 2):
 print("\n};")
 
 print(f"#define BISHOP_PAIR S({round(sections[11][0])}, {round(sections[eg+11][0])})")
-print("int DOUBLED_PAWN[] = {" + ", ".join(
-    f"S({-round(v1)}, {-round(v2)})" for v1, v2 in zip(sections[12], sections[eg+12])
-) + "};")
+print(f"#define DOUBLED_PAWN S({-round(sections[12][0])}, {-round(sections[eg+12][0])})")
 print(f"#define TEMPO S({round(sections[13][0])}, {round(sections[eg+13][0])})")
 print(f"#define ISOLATED_PAWN S({-round(sections[14][0])}, {-round(sections[eg+14][0])})")
 print(f"int PROTECTED_PAWN[] = {{0, S({round(sections[15][0])}, {round(sections[eg+15][0])}), S({round(sections[16][0])}, {round(sections[eg+16][0])})}};")
