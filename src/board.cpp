@@ -240,7 +240,7 @@ struct Board {
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
                 if (!board[sq + dir]) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir];
-                    if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
+                    if (quiets || promo) {
                         list[count++] = Move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
