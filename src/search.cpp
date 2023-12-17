@@ -137,11 +137,11 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
+        int quiets_to_check = pv ? -1 : (depth*depth - depth + 2) >> !improving;
 
         int raised_alpha = 0;
         int legals = 0;
-        for (int i = 0; i < mvcount; i++) {
+        for (int i = 0; i < mvcount && quiets_to_check; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
                 if (score[j] > score[best_so_far]) {
@@ -162,13 +162,6 @@ struct Searcher {
                 continue;
             }
 
-            // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
-            // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
-            // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
-            if (!(quiets_to_check -= !victim)) {
-                break;
-            }
-
             // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
             // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
             // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
@@ -180,6 +173,11 @@ struct Searcher {
             if (mkmove.make_move(moves[i])) {
                 continue;
             }
+
+            // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
+            // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
+            // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
+            quiets_to_check -= !victim;
 
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
