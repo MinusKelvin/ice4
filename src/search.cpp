@@ -198,7 +198,7 @@ struct Searcher {
             int next_depth = depth - 1 + mkmove.check;
 
             if (is_rep) {
-                v = 0;
+                v = 2 - nodes % 5;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
@@ -272,7 +272,7 @@ struct Searcher {
         }
 
         if (depth > 0 && legals == 0 && !board.check) {
-            return 0;
+            return 2 - nodes % 5;
         }
 
         if ((depth > 0 || best != eval) && best > LOST + ply) {
