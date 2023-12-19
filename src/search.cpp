@@ -300,7 +300,7 @@ struct Searcher {
         int last_score = 0;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int window = 14;
+                int window = 10;
                 int v = last_score + window;
                 while (v <= last_score - window || v >= last_score + window) {
                     window *= 2;
