@@ -283,8 +283,8 @@ impl Lexer {
                 },
                 "/=", rest => token(Token::SlashEqual, rest),
                 "/", rest => token(Token::Slash, rest),
-                "*", rest => token(Token::Star, rest),
                 "*=", rest => token(Token::StarEqual, rest),
+                "*", rest => token(Token::Star, rest),
                 "~", rest => token(Token::Tilde, rest),
                 _ => if let Some(m) = WORD.find(code) {
                     let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
