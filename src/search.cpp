@@ -212,7 +212,7 @@ struct Searcher {
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
                 reduction -= score[i] / 580;
-                if (reduction < 0 || victim) {
+                if (reduction < 0 || victim || pv && legals < 2) {
                     reduction = 0;
                 }
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
