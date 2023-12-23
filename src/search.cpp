@@ -303,6 +303,9 @@ struct Searcher {
                 int window = 7;
                 int v = last_score + window;
                 while (v <= last_score - window || v >= last_score + window) {
+                    if (v <= last_score - window) {
+                        last_score -= window;
+                    }
                     window *= 2;
                     v = negamax(ROOT, mv, last_score - window, last_score + window, depth, 0);
                 }
