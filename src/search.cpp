@@ -136,6 +136,7 @@ struct Searcher {
         if (best >= beta) {
             return best;
         }
+        alpha = max(alpha, best);
 
         int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
 
