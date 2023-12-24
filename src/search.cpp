@@ -132,7 +132,7 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
-        int best = depth > 0 ? LOST + ply : eval;
+        int best = depth > 0 || board.check ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
