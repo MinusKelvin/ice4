@@ -54,7 +54,7 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth > 0 || board.check, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
@@ -137,7 +137,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
+        int quiets_to_check = pv && depth > 0 ? -1 : (depth*depth - depth + 4) >> !improving;
 
         int raised_alpha = 0;
         int legals = 0;
