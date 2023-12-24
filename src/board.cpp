@@ -120,6 +120,26 @@ struct Board {
         }
     }
 
+    int attacked(int ksq, int by) {
+        int pawndir = by & WHITE ? -10 : 10;
+        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
+            return 1;
+        }
+        for (int i = 0; i < 16; i++) {
+            int sq = ksq + RAYS[i];
+            if (i < 8 && board[sq] == (KING | by)) {
+                return 1;
+            }
+            while (i < 8 && !board[sq]) {
+                sq += RAYS[i];
+            }
+            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
     int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
         int nstm = stm ^ INVALID;
@@ -253,26 +273,6 @@ struct Board {
                 }
             }
         }
-    }
-
-    int attacked(int ksq, int by) {
-        int pawndir = by & WHITE ? -10 : 10;
-        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
-            return 1;
-        }
-        for (int i = 0; i < 16; i++) {
-            int sq = ksq + RAYS[i];
-            if (i < 8 && board[sq] == (KING | by)) {
-                return 1;
-            }
-            while (i < 8 && !board[sq]) {
-                sq += RAYS[i];
-            }
-            if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
-                return 1;
-            }
-        }
-        return 0;
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
