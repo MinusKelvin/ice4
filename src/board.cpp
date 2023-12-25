@@ -39,6 +39,7 @@ struct Board {
     uint8_t castle_rights;
     uint8_t bishops[2];
     uint8_t king_sq[2];
+    uint8_t sufficient_material[2];
     uint8_t piece_file_counts[23][10];
     uint8_t ep_square;
     uint8_t stm;
@@ -62,6 +63,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
+        sufficient_material[!(board[square] & WHITE)] -= SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
@@ -74,6 +76,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
+        sufficient_material[!(board[square] & WHITE)] += SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
@@ -338,7 +341,8 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        stm_eval = ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return stm_eval > 0 && sufficient_material[stm != WHITE] < 2 ? 0 : stm_eval;
     }
 } ROOT;
 
