@@ -31,6 +31,10 @@ struct Searcher {
 
         int pv = beta > alpha+1;
 
+        if (ply && board.sufficient_material < 2) {
+            return 0;
+        }
+
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
         TtData tt = slot.load(memory_order_relaxed);
