@@ -19,7 +19,7 @@ ice4-tcec: launcher.sh $(DEPS)
 	@echo Compressed size: `du -b ice4-tcec`
 
 ice4.exe: $(DEPS)
-	x86_64-w64-mingw32-g++-posix -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
+	x86_64-w64-mingw32-g++ -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
 
 $(EXE): $(DEPS)
 	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread src/main.cpp -o "$@"
