@@ -45,6 +45,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    uint8_t sufficient_material;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -62,6 +63,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
+        sufficient_material -= SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
@@ -74,6 +76,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
+        sufficient_material += SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
