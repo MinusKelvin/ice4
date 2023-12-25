@@ -197,7 +197,7 @@ struct Searcher {
             int v;
             int next_depth = depth - 1 + mkmove.check;
 
-            if (is_rep || mkmove.sufficient_material < 2) {
+            if (is_rep || mkmove.sufficient_material < 3) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
