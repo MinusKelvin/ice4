@@ -38,6 +38,7 @@ vector< atomic<TtData> > TT(HASH_SIZE);
 
 struct Board {
     uint8_t board[120];
+    uint8_t king_rays[120];
     uint8_t castle_rights[2];
     uint8_t bishops[2];
     uint8_t king_sq[2];
@@ -122,22 +123,22 @@ struct Board {
 
     int attacked(int ksq, int by) {
         int pawndir = by & WHITE ? -10 : 10;
-        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
-            return 1;
-        }
+        int atk = board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by);
         for (int i = 0; i < 16; i++) {
             int sq = ksq + RAYS[i];
+            king_rays[sq] |= by;
             if (i < 8 && board[sq] == (KING | by)) {
-                return 1;
+                atk |= 1;
             }
             while (i < 8 && !board[sq]) {
                 sq += RAYS[i];
+                king_rays[sq] |= by;
             }
             if (i < 8 && board[sq] == (QUEEN | by) || board[sq] == (SLIDER[i] | by)) {
-                return 1;
+                atk |= 1;
             }
         }
-        return 0;
+        return atk;
     }
 
     int make_move(Move mv, int promo = QUEEN) {
@@ -198,6 +199,8 @@ struct Board {
             remove_castle_rights(1, SHORT_CASTLE);
         }
 
+        memset(king_rays, 0, sizeof(king_rays));
+
         if (attacked(king_sq[btm], nstm)) {
             return 1;
         }
@@ -222,11 +225,13 @@ struct Board {
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
                 if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
-                        !board[sq+1] && !board[sq+2]) {
+                        !board[sq+1] && !board[sq+2] &&
+                        !check) {
                     list[count++] = Move(sq, sq + 2, 0);
                 }
                 if (castle_rights[stm == BLACK] & LONG_CASTLE &&
-                        !board[sq-1] && !board[sq-2] && !board[sq-3]) {
+                        !board[sq-1] && !board[sq-2] && !board[sq-3] &&
+                        !check) {
                     list[count++] = Move(sq, sq - 2, 0);
                 }
             }
@@ -264,10 +269,14 @@ struct Board {
                         }
                         mobility += MOBILITY[piece];
                         if (board[raysq] & other) {
-                            list[count++] = Move(sq, raysq);
+                            if (!check || king_rays[raysq] & other) {
+                                list[count++] = Move(sq, raysq);
+                            }
                             break;
                         } else if (quiets) {
-                            list[count++] = Move(sq, raysq);
+                            if (!check || king_rays[raysq] & other) {
+                                list[count++] = Move(sq, raysq);
+                            }
                         }
                     }
                 }
