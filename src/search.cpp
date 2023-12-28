@@ -54,6 +54,8 @@ struct Searcher {
             depth--;
         }
 
+        bestmv = Move(0);
+
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
@@ -275,10 +277,11 @@ struct Searcher {
             return 0;
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        depth = depth > 0 ? depth : 0;
+        if (legals && (!tt_good || depth + 3 >= tt.depth)) {
             tt.key = upper_key;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
