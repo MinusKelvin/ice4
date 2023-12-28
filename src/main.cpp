@@ -4,20 +4,31 @@
 
 #include <ctime>
 
-int64_t perft(Board& board, int depth) {
+int64_t perft(Board& board, int depth, int root=0) {
     Board mkmove;
     Move moves[256];
     int mvcount, scratch;
 
-    board.movegen(moves, mvcount, 1, scratch);
     if (depth == 0) {
         return 1;
     }
+
+    board.movegen(moves, mvcount, 1, scratch);
     int64_t count = 0;
     for (int i = 0; i < mvcount; i++) {
-        mkmove = board;
-        if (!mkmove.make_move(moves[i])) {
-            count += perft(mkmove, depth - 1);
+        for (int promo = KNIGHT; promo <= QUEEN; promo++) {
+            mkmove = board;
+            if (!mkmove.make_move(moves[i], promo)) {
+                uint64_t n = perft(mkmove, depth - 1);
+                count += n;
+                if (root) {
+                    printf("%ld - ", n);
+                    moves[i].put_with_newline();
+                }
+            }
+            if (!moves[i].promo) {
+                break;
+            }
         }
     }
     return count;
@@ -117,7 +128,10 @@ int main(int argc, char *argv[]) {
         fgets(buf+2, 4094, stdin);
         strtok(buf, " \n");
         parse_fen();
-        printf("%ld\n", perft(ROOT, 5));
+        double start = now();
+        uint64_t nodes = perft(ROOT, 5, 1);
+        double end = now();
+        printf("%ld nodes %ld nps\n", nodes, (uint64_t) ((double) nodes / (end - start)));
         return 0;
     }
     uci();
