@@ -7,7 +7,8 @@ mod semantic_analysis;
 
 fn main() {
     let tcec = std::env::args().any(|s| s == "tcec");
-    let preprocessed = preprocess::preprocess("src/main.cpp".as_ref(), tcec);
+    let openbench = std::env::args().any(|s| s == "openbench");
+    let preprocessed = preprocess::preprocess("src/main.cpp".as_ref(), tcec, openbench);
     eprintln!("Raw size: {}", preprocessed.code.len());
 
     let mut ast = parse::parse(&preprocessed.code);

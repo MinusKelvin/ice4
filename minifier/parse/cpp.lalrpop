@@ -136,7 +136,7 @@ PostfixExpr = {
 Atom: Expression = {
     Identifier => Box::new(Expr::Ident(<>)),
     Number => Box::new(Expr::Number(<>)),
-    String => Box::new(Expr::String(<>)),
+    String+ => Box::new(Expr::String(<>.join(""))),
     "this" => Box::new(Expr::Ident("this".to_owned())),
     "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
     "(" <CommaExpression> ")",

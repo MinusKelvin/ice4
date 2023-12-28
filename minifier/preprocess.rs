@@ -16,7 +16,7 @@ pub struct Preprocessed {
     pub code: Vec<Token>,
 }
 
-pub fn preprocess(path: &Path, tcec: bool) -> Preprocessed {
+pub fn preprocess(path: &Path, tcec: bool, openbench: bool) -> Preprocessed {
     let mut result = Preprocessed::default();
     process(
         &mut result,
@@ -24,6 +24,7 @@ pub fn preprocess(path: &Path, tcec: bool) -> Preprocessed {
         &mut HashMap::new(),
         path,
         tcec,
+        openbench,
     );
     result
 }
@@ -34,16 +35,18 @@ fn process(
     defines: &mut HashMap<String, String>,
     path: &Path,
     tcec: bool,
+    openbench: bool,
 ) {
     let content =
         std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}: {}", path.display()));
 
     let mut lines = content.lines();
+    let mut skip_else = false;
     while let Some(line) = lines.next() {
         if let Some(captures) = LOCAL_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             let path = path.parent().unwrap().join(file);
-            process(into, lexer, defines, &path, tcec);
+            process(into, lexer, defines, &path, tcec, openbench);
         } else if let Some(captures) = LIB_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             into.lib_includes.push(file.to_owned());
@@ -56,9 +59,15 @@ fn process(
                 _ => captures.get(2).unwrap().as_str(),
             };
             defines.insert(text, replacement.to_owned());
-        } else if line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
+        } else if !openbench && line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
             // munch until end of block
             while !matches!(lines.next(), Some("#endif" | "#else")) {}
+        } else if openbench && line == "#ifdef OPENBENCH" {
+            skip_else = true;
+        } else if skip_else && line == "#else" {
+            // munch until end of block
+            while !matches!(lines.next(), Some("#endif")) {}
+            skip_else = false;
         } else if line == "#endif" {
             // ignore, probably just the end of the #else of above case
         } else if line.starts_with("#define S") {

@@ -38,8 +38,8 @@ int get_data(int i) {
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
+uint64_t RNG_STATE = 0xcafef00dd15ea5e5;
 uint32_t rng_32() {
-    static uint64_t RNG_STATE = 0xcafef00dd15ea5e5;
     // Pcg32
     uint64_t old = RNG_STATE;
     RNG_STATE = old * 6364136223846793005ull + 0xa02bdbf7bb3c0a7ull;

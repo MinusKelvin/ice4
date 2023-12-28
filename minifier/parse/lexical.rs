@@ -90,7 +90,7 @@ impl Token {
             Token::Keyword(k) => *k,
             Token::Integer(n) => return Cow::Owned(n.to_string()),
             Token::OtherNumber(n) => n,
-            Token::String(s) => s,
+            Token::String(s) => return Cow::Owned(format!("\"{s}\"")),
             Token::Ampersand => "&",
             Token::AmpersandAmpersand => "&&",
             Token::AmpersandEqual => "&=",
@@ -301,7 +301,17 @@ impl Lexer {
                 } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
                     token(parse_number(m.as_str()), &code[m.end()..]);
                 } else if let Some(m) = STRING.find(code) {
-                    token(Token::String(m.as_str().to_owned()), &code[m.end()..]);
+                    token(
+                        Token::String(
+                            m.as_str()
+                                .strip_prefix('"')
+                                .unwrap()
+                                .strip_suffix('"')
+                                .unwrap()
+                                .to_owned(),
+                        ),
+                        &code[m.end()..],
+                    );
                 } else {
                     unreachable!(
                         "could not parse token starting with `{}`",

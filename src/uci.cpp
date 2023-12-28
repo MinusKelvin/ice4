@@ -1,6 +1,5 @@
 
 #ifdef OPENBENCH
-void parse_fen();
 int THREADS = 1;
 #else
 // Replaced for TCEC builds by the minifier.
@@ -40,7 +39,7 @@ void uci() {
                 value = atoi(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
-                        TT = vector<atomic<TtData>>(value * 131072);
+                        TT = vector< atomic<TtData> >(value * 131072);
                         break;
                     case 'T':
                         THREADS = value;
@@ -135,103 +134,3 @@ void uci() {
         }
     }
 }
-
-#ifdef OPENBENCH
-void parse_fen() {
-    int rank = 7;
-    int file = 0;
-    char *word = strtok(0, " \n");
-    for (char c = *word++; c; c = *word++) {
-        int sq = (rank * 10) + file + A1;
-        file++;
-        switch (c) {
-            case 'P':
-                ROOT.edit(sq, WHITE | PAWN);
-                break;
-            case 'N':
-                ROOT.edit(sq, WHITE | KNIGHT);
-                break;
-            case 'B':
-                ROOT.edit(sq, WHITE | BISHOP);
-                break;
-            case 'R':
-                ROOT.edit(sq, WHITE | ROOK);
-                break;
-            case 'Q':
-                ROOT.edit(sq, WHITE | QUEEN);
-                break;
-            case 'K':
-                ROOT.edit(sq, WHITE | KING);
-                break;
-            case 'p':
-                ROOT.edit(sq, BLACK | PAWN);
-                break;
-            case 'n':
-                ROOT.edit(sq, BLACK | KNIGHT);
-                break;
-            case 'b':
-                ROOT.edit(sq, BLACK | BISHOP);
-                break;
-            case 'r':
-                ROOT.edit(sq, BLACK | ROOK);
-                break;
-            case 'q':
-                ROOT.edit(sq, BLACK | QUEEN);
-                break;
-            case 'k':
-                ROOT.edit(sq, BLACK | KING);
-                break;
-            case '/':
-                file = 0;
-                rank--;
-                break;
-            default:
-                file += c - '1';
-                for (int i = 0; i < c - '0'; i++) {
-                    ROOT.edit(sq+i, 0);
-                }
-                break;
-        }
-    }
-
-    if (*strtok(0, " \n") == 'b') {
-        ROOT.stm = BLACK;
-        ROOT.zobrist ^= ZOBRIST.stm;
-    }
-
-    word = strtok(0, " \n");
-    int remove_white_short = 1;
-    int remove_white_long = 1;
-    int remove_black_short = 1;
-    int remove_black_long = 1;
-    for (char c = *word++; c; c = *word++) {
-        switch (c) {
-            case 'K':
-                remove_white_short = 0;
-                break;
-            case 'Q':
-                remove_white_long = 0;
-                break;
-            case 'k':
-                remove_black_short = 0;
-                break;
-            case 'q':
-                remove_black_long = 0;
-                break;
-        }
-    }
-    if (remove_white_short) ROOT.remove_castle_rights(0, SHORT_CASTLE);
-    if (remove_white_long) ROOT.remove_castle_rights(0, LONG_CASTLE);
-    if (remove_black_short) ROOT.remove_castle_rights(1, SHORT_CASTLE);
-    if (remove_black_long) ROOT.remove_castle_rights(1, LONG_CASTLE);
-
-    word = strtok(0, " \n");
-    if (*word != '-') {
-        ROOT.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
-    }
-
-    strtok(0, " \n"); // halfmove clock
-
-    strtok(0, " \n"); // fullmove counter
-}
-#endif
