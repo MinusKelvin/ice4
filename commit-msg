@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# git commit message hook. install with:
+# ln -s ../../commit-msg .git/hooks/commit-msg
+
+if ! git diff --exit-code --quiet
+then
+    echo "Working directory is not clean; cannot generate bench" >&2
+    exit 1
+fi
+
+make ice4-tcec ice4-ob ice4-min-ob || exit 1
+
+NODES=$(./ice4-ob bench | awk '{v=$1}END{print v}')
+MIN_NODES=$(./ice4-min-ob bench | awk '{v=$1}END{print v}')
+
+if [ "$NODES" != "$MIN_NODES" ]
+then
+    echo "Minified bench $MIN_NODES does not match unminified bench $NODES"
+    exit 1
+fi
+
+SIZE=$(du -b ice4-tcec | awk '{print $1}')
+echo >>"$1"
+echo "size: $SIZE" >> "$1"
+echo "bench: $NODES" >>"$1"
+
