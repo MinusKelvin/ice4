@@ -53,6 +53,7 @@ void uci() {
                 if (!strcmp(strtok(0, " \n"), "fen")) {
                     parse_fen();
                 }
+                ROOT.zobrist = rng();
 #else
                 strtok(0, " \n"); // startpos
 #endif
