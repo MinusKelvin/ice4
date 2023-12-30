@@ -45,9 +45,9 @@ struct Board {
     uint8_t rook_counts[2][8];
     uint8_t ep_square;
     uint8_t stm;
-    uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    int32_t phase;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -94,6 +94,7 @@ struct Board {
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
+        phase = PHASE_BASE;
         int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
             edit(A1 + i, layout[i] | WHITE);
@@ -356,7 +357,10 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return (
+            (phase + 0x8000 >> 16) * (stm_eval + 0x8000 >> 16)
+            + (int16_t)phase * (int16_t)stm_eval
+        ) / 100;
     }
 } ROOT;
 

@@ -1,6 +1,5 @@
 int PST[25][SQUARE_SPAN];
 
-int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 int STARTS[] = {0,0,8,4,0,0,0};
 int LIMITS[] = {0,0,1,8,8,8,1};
 int ENDS[] = {0,0,16,8,4,8,8};
