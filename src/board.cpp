@@ -356,7 +356,10 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        e = ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return e > 1000 ? e + DIST[king_sq[0]][king_sq[1]]
+            : e < -1000 ? e - DIST[king_sq[0]][king_sq[1]]
+            : e;
     }
 } ROOT;
 

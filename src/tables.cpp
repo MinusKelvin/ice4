@@ -1,4 +1,5 @@
 int PST[25][SQUARE_SPAN];
+int DIST[120][120];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 int STARTS[] = {0,0,8,4,0,0,0};
@@ -59,6 +60,12 @@ void init_tables() {
                         (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+80
                     ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
                 );
+            }
+
+            for (int rank2 = 0; rank2 < 8; rank2++) {
+                for (int file2 = 0; file2 < 8; file2++) {
+                    DIST[rank*10+file+A1][rank2*10+file2+A1] = 70 - 20 * max(abs(rank - rank2), abs(file - file2));
+                }
             }
         }
     }
