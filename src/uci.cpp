@@ -20,6 +20,8 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aLMR_CONSTANT type spin default 100 min -10000 max 10000\n"
+        "option name bLMR_DIVISOR type spin default 200 min 1 max 10000\n"
 #endif
         "uciok\n"
     );
@@ -43,6 +45,12 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'a':
+                        LMR_CONSTANT = value / 100.0;
+                        break;
+                    case 'b':
+                        LMR_DIVISOR = value / 100.0;
                         break;
                 }
                 break;
