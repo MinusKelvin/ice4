@@ -292,7 +292,6 @@ struct Searcher {
     }
 
     void iterative_deepening(double time_alotment, int max_depth=200) {
-        memset(this, 0, sizeof(Searcher));
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.04;

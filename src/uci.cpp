@@ -1,9 +1,11 @@
 
 #ifdef OPENBENCH
 int THREADS = 1;
+Searcher SEARCHERS[256];
 #else
 // Replaced for TCEC builds by the minifier.
 #define THREADS 1
+Searcher SEARCHERS[THREADS];
 #endif
 
 void uci() {
@@ -19,7 +21,7 @@ void uci() {
         "id name ice4 v4\r\n"
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
-        "option name Threads type spin default 1 min 1 max 999\n"
+        "option name Threads type spin default 1 min 1 max 256\n"
 #endif
         "uciok\n"
     );
@@ -32,6 +34,9 @@ void uci() {
             case 'q': // quit
                 exit(0);
 #ifdef OPENBENCH
+            case 'u': // ucinewgame
+                memset(SEARCHERS, 0, sizeof(SEARCHERS));
+                break;
             case 's': // setoption
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");
@@ -101,9 +106,8 @@ void uci() {
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
-                        Searcher s;
-                        s.iterative_deepening(time_alotment);
+                    threads.emplace_back([time_alotment, i]() {
+                        SEARCHERS[i].iterative_deepening(time_alotment);
                         ABORT = 1;
                     });
                 }
