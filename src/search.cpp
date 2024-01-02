@@ -16,12 +16,12 @@ typedef int16_t HTable[16][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double abort_time;
-    int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
+    int evals[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv(0);

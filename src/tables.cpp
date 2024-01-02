@@ -6,13 +6,13 @@ int LIMITS[] = {0,0,1,8,8,8,1};
 int ENDS[] = {0,0,16,8,4,8,8};
 int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+int STARTPOS_LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 
 int get_data(int i) {
     auto data_low = DATA_LOW;
     auto data_high = DATA_HIGH;
-    return data_low[i] + 95 * data_high[i] +
-        0x10000 * (data_low[i+176] + 95 * data_high[i+176])
-        - S(3072, 3072);
+    return data_low[i] - 32 + 95 * (data_high[i] - 32) +
+        0x10000 * (data_low[i+176] - 32 + 95 * (data_high[i+176] - 32));
 }
 
 #ifdef OPENBENCH

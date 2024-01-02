@@ -35,7 +35,7 @@ void uci() {
                 exit(0);
 #ifdef OPENBENCH
             case 'u': // ucinewgame
-                memset(SEARCHERS, 0, sizeof(SEARCHERS));
+                memset(SEARCHERS, 0, sizeof(Searcher) * THREADS);
                 break;
             case 's': // setoption
                 strtok(0, " \n"); // name

@@ -4,7 +4,7 @@ struct Move {
     uint8_t promo : 1;
 
     Move() = default;
-    Move(uint8_t f, uint8_t t=0, uint8_t p=0) : from(f), to(t), promo(p) {}
+    Move(int f, int t=0, int p=0) : from(f), to(t), promo(p) {}
 
     void put_with_newline() {
         putchar(from%10+96);
@@ -48,8 +48,8 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
-    int32_t inc_eval;
-    int32_t pawn_eval;
+    int inc_eval;
+    int pawn_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
@@ -94,10 +94,9 @@ struct Board {
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
-        int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
-            edit(A1 + i, layout[i] | WHITE);
-            edit(A8 + i, layout[i] | BLACK);
+            edit(A1 + i, STARTPOS_LAYOUT[i] | WHITE);
+            edit(A8 + i, STARTPOS_LAYOUT[i] | BLACK);
             edit(A2 + i, PAWN | WHITE);
             edit(A7 + i, PAWN | BLACK);
             edit(A3 + i, EMPTY);
