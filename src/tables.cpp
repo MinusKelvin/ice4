@@ -10,11 +10,8 @@ int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 double LOG[256];
 
 int get_data(int i) {
-    auto data_low = DATA_LOW;
-    auto data_high = DATA_HIGH;
-    return data_low[i] + 95 * data_high[i] +
-        0x10000 * (data_low[i+176] + 95 * data_high[i+176])
-        - S(3072, 3072);
+    auto data = DATA_STRING;
+    return data[i] + 0x10000 * data[i+176] - S(32, 32);
 }
 
 #ifdef OPENBENCH

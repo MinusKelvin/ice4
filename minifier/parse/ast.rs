@@ -94,7 +94,7 @@ pub type Expression = Box<Expr>;
 #[derive(Debug)]
 pub enum Expr {
     Number(Result<ParsedNumber, String>),
-    String(String),
+    String(PrefixString),
     Ident(String),
     Lambda(Vec<String>, Vec<(BaseType, DeclExpr)>, Vec<Statement>),
 

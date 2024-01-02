@@ -4,7 +4,7 @@ mod lexical;
 mod tokenize;
 
 pub use ast::*;
-pub use lexical::{ParsedNumber, Token, Lexer};
+pub use lexical::{ParsedNumber, PrefixString, Token, Lexer, string_concat};
 
 pub fn parse(code: &[Token]) -> Vec<TopLevel> {
     let parser = cpp::FileParser::new();
