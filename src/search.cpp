@@ -293,7 +293,7 @@ struct Searcher {
 
     void iterative_deepening(double time_alotment, int max_depth=200) {
         for (int16_t *p = (int16_t *)history; p < (int16_t *)conthist_stack; p++) {
-            *p >>= 1;
+            *p *= 0.8;
         }
         nodes = 0;
         abort_time = now() + time_alotment * 0.5;
