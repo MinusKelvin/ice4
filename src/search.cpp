@@ -10,12 +10,13 @@ atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
 Move BEST_MOVE(0);
+double HARD_TIMEOUT;
+double SOFT_TIMEOUT;
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
 struct Searcher {
     uint64_t nodes;
-    double abort_time;
     int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
@@ -182,7 +183,7 @@ struct Searcher {
             }
 
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
-            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+            if (!(++nodes & 0xFFF) && (ABORT || now() > HARD_TIMEOUT)) {
                 throw 0;
             }
 
@@ -291,11 +292,9 @@ struct Searcher {
         return best;
     }
 
-    void iterative_deepening(double time_alotment, int max_depth=200) {
+    void iterative_deepening(int max_depth=200) {
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
-        abort_time = now() + time_alotment * 0.5;
-        time_alotment = now() + time_alotment * 0.04;
         Move mv;
         int last_score = 0;
         try {
@@ -316,7 +315,7 @@ struct Searcher {
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put_with_newline();
                     FINISHED_DEPTH = depth;
-                    if (now() > time_alotment) {
+                    if (now() > SOFT_TIMEOUT) {
                         depth = max_depth;
                     }
                 }

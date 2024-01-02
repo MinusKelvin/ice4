@@ -104,6 +104,8 @@ char BENCH_FENS[] = "skipped\n"
 int main(int argc, char *argv[]) {
     init_tables();
     if (argc == 2 && !strcmp(argv[1], "bench")) {
+        SOFT_TIMEOUT = 1.0 / 0.0;
+        HARD_TIMEOUT = SOFT_TIMEOUT;
         strtok(BENCH_FENS, " \n");
         uint64_t nodes = 0;
         timespec start, end;
@@ -112,7 +114,7 @@ int main(int argc, char *argv[]) {
             ROOT = Board();
             parse_fen();
             Searcher s;
-            s.iterative_deepening(1.0/0.0, 12);
+            s.iterative_deepening(12);
             nodes += s.nodes;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);

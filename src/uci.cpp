@@ -96,14 +96,16 @@ void uci() {
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
 #endif
-                double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
+                SOFT_TIMEOUT = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
+                HARD_TIMEOUT = now() + SOFT_TIMEOUT * 0.5;
+                SOFT_TIMEOUT = now() + SOFT_TIMEOUT * 0.04;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
+                    threads.emplace_back([]() {
                         Searcher s;
-                        s.iterative_deepening(time_alotment);
+                        s.iterative_deepening();
                         ABORT = 1;
                     });
                 }
