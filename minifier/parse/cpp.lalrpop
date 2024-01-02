@@ -136,7 +136,7 @@ PostfixExpr = {
 Atom: Expression = {
     Identifier => Box::new(Expr::Ident(<>)),
     Number => Box::new(Expr::Number(<>)),
-    String+ => Box::new(Expr::String(<>.join(""))),
+    String+ => Box::new(Expr::String(string_concat(<>))),
     "this" => Box::new(Expr::Ident("this".to_owned())),
     "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
     "(" <CommaExpression> ")",
@@ -339,7 +339,7 @@ Comma<T>: Vec<T> = {
 
 Identifier: String = RawIdentifier => match <> { Token::Identifier(s) => s, _ => unreachable!() };
 Typename: String = RawTypename => match <> { Token::Typename(s) => s, _ => unreachable!() };
-String: String = RawString => match <> { Token::String(s) => s, _ => unreachable!() };
+String: PrefixString = RawString => match <> { Token::String(s) => s, _ => unreachable!() };
 Number: Result<ParsedNumber, String> = {
     RawInteger => match <> { Token::Integer(n) => Ok(n), _ => unreachable!() },
     RawOtherNumber => match <> { Token::OtherNumber(s) => Err(s), _ => unreachable!() },

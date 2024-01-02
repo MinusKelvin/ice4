@@ -14,7 +14,7 @@ pub enum Token<S = String> {
     Keyword(&'static str),
     Integer(ParsedNumber),
     OtherNumber(S),
-    String(S),
+    String(PrefixString),
     Ampersand,
     AmpersandAmpersand,
     AmpersandEqual,
@@ -70,6 +70,12 @@ pub struct ParsedNumber {
     suffix: String,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PrefixString {
+    pub prefix: &'static str,
+    pub content: String,
+}
+
 impl ParsedNumber {
     pub fn to_string(&self) -> String {
         let decimal = format!("{}{}", self.value, self.suffix);
@@ -90,7 +96,7 @@ impl Token {
             Token::Keyword(k) => *k,
             Token::Integer(n) => return Cow::Owned(n.to_string()),
             Token::OtherNumber(n) => n,
-            Token::String(s) => return Cow::Owned(format!("\"{s}\"")),
+            Token::String(s) => return Cow::Owned(format!("{}\"{}\"", s.prefix, s.content)),
             Token::Ampersand => "&",
             Token::AmpersandAmpersand => "&&",
             Token::AmpersandEqual => "&=",
@@ -198,7 +204,7 @@ macro_rules! match_prefix {
 static WORD: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A[a-zA-Z_][a-zA-Z0-9_]*"#).unwrap());
 static NUMBER: Lazy<Regex> =
     Lazy::new(|| Regex::new(r#"\A[0-9][a-zA-Z0-9']*(\.[a-zA-Z0-9']+)?"#).unwrap());
-static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A"([^\\"]|\\.)*""#).unwrap());
+static STRING: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\AL?"([^\\"]|\\.)*""#).unwrap());
 static CHARACTER: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'([^\\']|\\.)*'"#).unwrap());
 
 pub struct Lexer {
@@ -286,7 +292,22 @@ impl Lexer {
                 "*=", rest => token(Token::StarEqual, rest),
                 "*", rest => token(Token::Star, rest),
                 "~", rest => token(Token::Tilde, rest),
-                _ => if let Some(m) = WORD.find(code) {
+                _ => if let Some(m) = STRING.find(code) {
+                    let (prefix, prefix_stripped) = match m.as_str().strip_prefix('"') {
+                        Some(s) => ("", s),
+                        None => ("L", m.as_str().strip_prefix("L\"").unwrap())
+                    };
+                    token(
+                        Token::String(PrefixString {
+                            prefix,
+                            content: prefix_stripped
+                                .strip_suffix('"')
+                                .unwrap()
+                                .to_owned()
+                        }),
+                        &code[m.end()..],
+                    );
+                } else if let Some(m) = WORD.find(code) {
                     let tok = if let Some(k) = KEYWORDS.get(m.as_str()) {
                         Token::Keyword(k)
                     } else if self.typenames.contains(m.as_str()) {
@@ -300,18 +321,6 @@ impl Lexer {
                     token(tok, &code[m.end()..]);
                 } else if let Some(m) = NUMBER.find(code).or_else(|| CHARACTER.find(code)) {
                     token(parse_number(m.as_str()), &code[m.end()..]);
-                } else if let Some(m) = STRING.find(code) {
-                    token(
-                        Token::String(
-                            m.as_str()
-                                .strip_prefix('"')
-                                .unwrap()
-                                .strip_suffix('"')
-                                .unwrap()
-                                .to_owned(),
-                        ),
-                        &code[m.end()..],
-                    );
                 } else {
                     unreachable!(
                         "could not parse token starting with `{}`",
@@ -320,7 +329,6 @@ impl Lexer {
                 },
             }
         }
-        string_concat(&mut result);
         result
     }
 }
@@ -387,13 +395,13 @@ fn parse_number(text: &str) -> Token {
     })
 }
 
-fn string_concat(tokens: &mut Vec<Token>) {
-    tokens.dedup_by(|r, l| match (l, r) {
-        (Token::String(l), Token::String(r)) => {
-            l.pop(); // remove closing "
-            l.push_str(&r[1..]); // remove opening "
-            true
-        }
-        _ => false,
-    })
+pub fn string_concat(tokens: Vec<PrefixString>) -> PrefixString {
+    tokens
+        .into_iter()
+        .reduce(|mut l, r| {
+            assert_eq!(l.prefix, r.prefix);
+            l.content.push_str(&r.content);
+            l
+        })
+        .unwrap()
 }

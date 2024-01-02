@@ -13,8 +13,7 @@ int PROTECTED_PAWN[] = {0, S(7, 7), S(6, 8)};
 int PAWN_SHIELD[] = {S(-3, -7), S(3, -21), S(5, -16), S(13, -10)};
 int MOBILITY[] = {0, S(5, 8), S(1, 0), S(3, 5), S(2, 3), S(1, 4), S(-3, 5)};
 
-#define DATA_LOW "7MO632* ALG?=;+(?ESOMB0*EM\\\\TG;2T\\|eb`E=@#b)$e@l2C95+-2631%'#$*7-5' ((<C,5759BLF\"!7BEIVREWN@G]z@V?>\\D #4H71+_wbj )/2+2@>6FHO=;NM\"$ $'30))75-()*7/28? +32)4/1$%*, (,/-.33121,,*$$ )8A75//#&5980-+(/./0240353039:;AS@NQGNC} :??GLC0-$ %(4,3?4-'.:2RVKA79BGpraNGIVb@6)\\Tl{/@@uAABL^\"2/ 2JG3EWWH5<B/ Lfk\\luye{(.p&28 -*)$)*+1134*353!#' '''%\"#&$'*)'% \",)$(/-<EA6FNT"
-#define DATA_HIGH "                                           !!                                                                                                                                                                            !!!!!!!                                !!!    !!!                                !! !!!                                                "
+#define DATA_STRING L"7MO632* ALG?=;+(?ESOMB0*EM\\\\TG;2T\\|eb`E=@#be@l2C95+-2631%'#$*7-5' ((<C,5759BLF\"!7BEIVREWN@G]z@V?>\\D #4H71+_wbj )/2+2@>6FHO=;NM\"$ $'30))75-()*7/28? +32)4/1$%*, (,/-.33121,,*$$ )8A75//#&5980-+(/./0240353039:;AS@NQGNC}\177¦«¢0-$ %(4,3?4-'.:2RVKA79BGpraNGIVb\\Tl{uAABL^\"2/ 2JG3EWWH5<B/ Lfk\\luye{p -*)$)*+1134*353!#' '''%\"#&$'*)'% \",)$(/-<EA6FNT"
 
 #define PAWN_OFFSET S(25, 74)
 #define PASSED_PAWN_OFFSET S(-16, -10)
