@@ -197,7 +197,7 @@ struct Searcher {
             int v;
             int next_depth = depth - 1 + mkmove.check;
 
-            if (is_rep) {
+            if (is_rep || mkmove.halfmove_clock == 101) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)

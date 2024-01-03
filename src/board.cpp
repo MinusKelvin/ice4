@@ -48,6 +48,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    uint8_t halfmove_clock;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -144,6 +145,8 @@ struct Board {
         int piece = mv.promo ? promo | stm : board[mv.from];
         int nstm = stm ^ INVALID;
         int btm = stm != WHITE;
+        halfmove_clock++;
+        halfmove_clock *= !board[mv.to] && (piece & 7) != PAWN;
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
@@ -469,7 +472,7 @@ void parse_fen() {
         ROOT.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
     }
 
-    strtok(0, " \n"); // halfmove clock
+    ROOT.halfmove_clock = atoi(strtok(0, " \n")); // halfmove clock
 
     strtok(0, " \n"); // fullmove counter
 }
