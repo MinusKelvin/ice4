@@ -16,6 +16,7 @@ typedef int16_t HTable[16][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double abort_time;
+    int search_depth;
     int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
@@ -286,6 +287,9 @@ struct Searcher {
                 tt.mv = bestmv;
             }
             slot.store(tt, memory_order_relaxed);
+            if (!ply && legals == 1 && tt.bound == BOUND_EXACT) {
+                search_depth = 200;
+            }
         }
 
         return best;
@@ -294,30 +298,31 @@ struct Searcher {
     void iterative_deepening(double time_alotment, int max_depth=200) {
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
+        search_depth = 1;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.04;
         Move mv;
         int last_score = 0;
         try {
-            for (int depth = 1; depth <= max_depth; depth++) {
+            for (; search_depth <= max_depth; search_depth++) {
                 int window = 7;
                 int v = last_score + window;
                 while (v <= last_score - window || v >= last_score + window) {
                     window *= 2;
-                    v = negamax(ROOT, mv, last_score - window, last_score + window, depth, 0);
+                    v = negamax(ROOT, mv, last_score - window, last_score + window, search_depth, 0);
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
                 v = 100;
 #endif
                 MUTEX.lock();
-                if (FINISHED_DEPTH < depth) {
+                if (FINISHED_DEPTH < search_depth) {
                     BEST_MOVE = mv;
-                    printf("info depth %d score cp %d pv ", depth, v);
+                    printf("info depth %d score cp %d pv ", search_depth, v);
                     mv.put_with_newline();
-                    FINISHED_DEPTH = depth;
+                    FINISHED_DEPTH = search_depth;
                     if (now() > time_alotment) {
-                        depth = max_depth;
+                        search_depth = max_depth;
                     }
                 }
                 MUTEX.unlock();
