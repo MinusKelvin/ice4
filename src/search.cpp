@@ -16,26 +16,25 @@ typedef int16_t HTable[16][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double abort_time;
-    int16_t evals[256];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
+    int evals[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
-        int mvcount, scratch_int;
+        int mvcount, scratch_int, tt_good;
 
         int pv = beta > alpha+1;
 
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
         TtData tt = slot.load(memory_order_relaxed);
-        int tt_good = upper_key == tt.key;
-        if (tt_good) {
+        if (tt_good = upper_key == tt.key) {
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
@@ -267,7 +266,7 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0 && !board.check) {
+        if (depth > 0 && !legals && !board.check) {
             return 0;
         }
 
@@ -289,7 +288,6 @@ struct Searcher {
 
     void iterative_deepening(double time_alotment, int max_depth=200) {
         memset(this, 0, sizeof(Searcher));
-        nodes = 0;
         abort_time = now() + time_alotment * 0.5;
         time_alotment = now() + time_alotment * 0.04;
         Move mv;
