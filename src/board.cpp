@@ -240,11 +240,13 @@ struct Board {
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
                 if (!board[sq + dir]) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir];
+                    king_ring[sq + dir] *= 2;
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
                         list[count++] = Move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         mobility += MOBILITY[piece] + king_ring[sq + dir+dir];
+                        king_ring[sq + dir+dir] *= 2;
                         if (quiets) {
                             list[count++] = Move(sq, sq + dir+dir, promo);
                         }
@@ -252,10 +254,12 @@ struct Board {
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir-1];
+                    king_ring[sq + dir-1] *= 2;
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir+1];
+                    king_ring[sq + dir+1] *= 2;
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
@@ -267,6 +271,7 @@ struct Board {
                             break;
                         }
                         mobility += MOBILITY[piece] + king_ring[raysq];
+                        king_ring[raysq] *= 2;
                         if (board[raysq] & other) {
                             list[count++] = Move(sq, raysq);
                             break;
