@@ -215,19 +215,19 @@ struct Searcher {
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1) - moves[i].promo * ply;
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1) - moves[i].promo * ply;
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1) - moves[i].promo * ply;
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1) - moves[i].promo * ply;
             }
             legals++;
             if (v > best) {
