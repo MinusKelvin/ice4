@@ -21,7 +21,6 @@ struct Searcher {
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
-    int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv(0);
@@ -54,9 +53,9 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth > 0);
 
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        evals[ply] = board.eval();
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte

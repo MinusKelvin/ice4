@@ -7,14 +7,6 @@ int ENDS[] = {0,0,16,8,4,8,8};
 int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 
-int get_data(int i) {
-    auto data_low = DATA_LOW;
-    auto data_high = DATA_HIGH;
-    return data_low[i] + 95 * data_high[i] +
-        0x10000 * (data_low[i+176] + 95 * data_high[i+176])
-        - S(3072, 3072);
-}
-
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
 uint64_t RNG_STATE = 0xcafef00dd15ea5e5;
@@ -39,30 +31,6 @@ struct Zobrist {
 } ZOBRIST;
 
 void init_tables() {
-    for (int rank = 0; rank < 8; rank++) {
-        for (int file = 0; file < 8; file++) {
-            PST[BLACK | KING][70-10*rank+file] = -(
-                PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+96)
-            );
-
-            if (rank > 0 && rank < 7) {
-                PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file-8) + PAWN_OFFSET;
-
-                PST[WHITE_PASSED_PAWN][10*rank+file] = PST[BLACK_PASSED_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file+40) + PASSED_PAWN_OFFSET;
-            }
-
-            for (int piece = KNIGHT; piece <= QUEEN; piece++) {
-                PST[BLACK | piece][70-10*rank+file] = -(
-                    PST[WHITE | piece][10*rank+file] = get_data(
-                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+80
-                    ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
-                );
-            }
-        }
-    }
-    
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
