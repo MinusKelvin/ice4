@@ -251,11 +251,11 @@ struct Board {
                     }
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir-1];
+                    mobility += MOBILITY[piece] + king_ring[sq + dir-1] + THREATS[board[sq + dir-1] & 7];
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir+1];
+                    mobility += MOBILITY[piece] + king_ring[sq + dir+1] + THREATS[board[sq + dir+1] & 7];
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
@@ -268,6 +268,7 @@ struct Board {
                         }
                         mobility += MOBILITY[piece] + king_ring[raysq];
                         if (board[raysq] & other) {
+                            mobility += THREATS[board[raysq] & 7];
                             list[count++] = Move(sq, raysq);
                             break;
                         } else if (quiets) {
