@@ -20,6 +20,24 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aLMR_CONSTANT type spin default 100 min -10000 max 10000\n"
+        "option name bLMR_DIVISOR type spin default 200 min -10000 max 10000\n"
+        "option name cLMR_HISTORY type spin default 580 min -10000 max 10000\n"
+        "option name dRFP_MARGIN type spin default 77 min -10000 max 10000\n"
+        "option name eRAZOR_MARGIN type spin default 213 min -10000 max 10000\n"
+        "option name fNMP_EVAL_DIVISOR type spin default 76 min -10000 max 10000\n"
+        "option name gNMP_FACTOR type spin default 38 min -10000 max 10000\n"
+        "option name hNMP_BASE type spin default 3 min -10000 max 10000\n"
+        "option name iCOUNTER_HIST_FACTOR type spin default 20 min -10000 max 10000\n"
+        "option name jFOLLOWUP_HIST_FACTOR type spin default 30 min -10000 max 10000\n"
+        "option name kDELTA_QUIET type spin default 814 min -10000 max 10000\n"
+        "option name lDELTA_PAWN type spin default 139 min -10000 max 10000\n"
+        "option name mDELTA_KNIGHT type spin default 344 min -10000 max 10000\n"
+        "option name nDELTA_BISHOP type spin default 403 min -10000 max 10000\n"
+        "option name oDELTA_ROOK type spin default 649 min -10000 max 10000\n"
+        "option name pDELTA_QUEEN type spin default 867 min -10000 max 10000\n"
+        "option name qPPP_DIVISOR type spin default 2 min -10000 max 10000\n"
+        "option name rIID_REDUCTION type spin default 5 min -10000 max 10000\n"
 #endif
         "uciok\n"
     );
@@ -43,6 +61,60 @@ void uci() {
                         break;
                     case 'T':
                         THREADS = value;
+                        break;
+                    case 'a':
+                        LMR_CONSTANT = value;
+                        break;
+                    case 'b':
+                        LMR_DIVISOR = value;
+                        break;
+                    case 'c':
+                        LMR_HISTORY = value;
+                        break;
+                    case 'd':
+                        RFP_MARGIN = value;
+                        break;
+                    case 'e':
+                        RAZOR_MARGIN = value;
+                        break;
+                    case 'f':
+                        NMP_EVAL_DIVISOR = value;
+                        break;
+                    case 'g':
+                        NMP_FACTOR = value;
+                        break;
+                    case 'h':
+                        NMP_BASE = value;
+                        break;
+                    case 'i':
+                        COUNTER_HIST_FACTOR = value;
+                        break;
+                    case 'j':
+                        FOLLOWUP_HIST_FACTOR = value;
+                        break;
+                    case 'k':
+                        DELTA_QUIET = value;
+                        break;
+                    case 'l':
+                        DELTA_PAWN = value;
+                        break;
+                    case 'm':
+                        DELTA_KNIGHT = value;
+                        break;
+                    case 'n':
+                        DELTA_BISHOP = value;
+                        break;
+                    case 'o':
+                        DELTA_ROOK = value;
+                        break;
+                    case 'p':
+                        DELTA_QUEEN = value;
+                        break;
+                    case 'q':
+                        PPP_DIVISOR = value;
+                        break;
+                    case 'r':
+                        IID_REDUCTION = value;
                         break;
                 }
                 break;
