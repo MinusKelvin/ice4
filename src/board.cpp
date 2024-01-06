@@ -244,7 +244,12 @@ struct Board {
                     continue;
                 }
 
-                eval += MATERIAL[board[sq] & 7];
+                int rank = sq / 10 - 2;
+                int file = sq % 10 - 1;
+                rank = c == BLACK ? 7 - rank : rank;
+
+                eval += PIECE_RANK[board[sq] & 7][rank];
+                eval += PIECE_FILE[board[sq] & 7][file];
                 phase += PHASE[board[sq] & 7];
             }
             eval *= -1;
