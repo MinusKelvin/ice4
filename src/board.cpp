@@ -239,6 +239,7 @@ struct Board {
         int phase = 0;
         int eval = 0;
         for (int c : {+stm, stm ^ INVALID}) {
+            int pawndir = c == WHITE ? 10 : -10;
             for (int sq = A1; sq <= H8; sq++) {
                 if ((board[sq] & INVALID) != c) {
                     continue;
@@ -251,6 +252,13 @@ struct Board {
                 eval += PIECE_RANK[board[sq] & 7][rank];
                 eval += PIECE_FILE[board[sq] & 7][file];
                 phase += PHASE[board[sq] & 7];
+
+                for (int forward_sq = sq; (board[forward_sq += pawndir] & INVALID) != INVALID;) {
+                    if (board[forward_sq] == c | PAWN) {
+                        eval += OWN_PAWN_AHEAD[board[sq] & 7];
+                        break;
+                    }
+                }
             }
             eval *= -1;
         }
