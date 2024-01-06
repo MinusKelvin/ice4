@@ -162,7 +162,25 @@ impl DeclExpr {
                     if i != 0 {
                         result.push(Comma);
                     }
-                    arg.tokenize(result, Precedence::Assignment);
+                    arg.tokenize(result);
+                }
+                result.push(RightBrace);
+            }
+        }
+    }
+}
+
+impl ExprOrArray {
+    fn tokenize(self, result: &mut Vec<Token>) {
+        match self {
+            ExprOrArray::Expr(e) => e.tokenize(result, Precedence::Assignment),
+            ExprOrArray::Array(a) => {
+                result.push(LeftBrace);
+                for (i, arg) in a.into_iter().enumerate() {
+                    if i != 0 {
+                        result.push(Comma);
+                    }
+                    arg.tokenize(result);
                 }
                 result.push(RightBrace);
             }

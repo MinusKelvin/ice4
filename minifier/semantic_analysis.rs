@@ -251,13 +251,31 @@ fn process_declexpr(
 fn process_init(symbols: &mut Symbols, scope: &mut Scope, init: &mut Initializer) {
     match init {
         Initializer::Default => {}
-        Initializer::Call(exprs) | Initializer::Brace(exprs) | Initializer::Array(exprs) => {
+        Initializer::Call(exprs) | Initializer::Brace(exprs) => {
             for e in exprs {
                 process_expr(symbols, scope, e);
             }
         }
+        Initializer::Array(exprs) => {
+            for e in exprs {
+                process_expr_or_array(symbols, scope, e);
+            }
+        }
         Initializer::Equal(e) => {
             process_expr(symbols, scope, e);
+        }
+    }
+}
+
+fn process_expr_or_array(symbols: &mut Symbols, scope: &mut Scope, expr_or_arr: &mut ExprOrArray) {
+    match expr_or_arr {
+        ExprOrArray::Expr(e) => {
+            process_expr(symbols, scope, e);
+        }
+        ExprOrArray::Array(a) => {
+            for eoa in a {
+                process_expr_or_array(symbols, scope, eoa);
+            }
         }
     }
 }
