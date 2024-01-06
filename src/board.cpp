@@ -39,7 +39,6 @@ vector< atomic<TtData> > TT(HASH_SIZE);
 struct Board {
     uint8_t board[120];
     uint8_t castle_rights[2];
-    uint8_t bishops[2];
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
     uint8_t rook_counts[2][8];
@@ -48,6 +47,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    int32_t material[2];
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -66,9 +66,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]--;
-        }
+        material[!(board[square] & WHITE)] -= MATERIAL_KEYS[board[square] & 7];
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -80,9 +78,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]++;
-        }
+        material[!(board[square] & WHITE)] += MATERIAL_KEYS[board[square] & 7];
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -346,8 +342,10 @@ struct Board {
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
-        int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
+        int bishop_pair = (material[0] % 3 >= 2) - (material[1] % 3 >= 2);
         int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair;
+        int low_mat = min(material[0], material[1]);
+        int high_mat = max(material[0], material[1]);
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
@@ -360,7 +358,11 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        stm_eval = ((int16_t)stm_eval * phase + (stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        if (high_mat < 54) {
+            stm_eval -= stm_eval * MATERIAL_ADJUST[low_mat][high_mat] / 2;
+        }
+        return stm_eval;
     }
 } ROOT;
 

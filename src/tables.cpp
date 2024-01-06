@@ -6,6 +6,8 @@ int LIMITS[] = {0,0,1,8,8,8,1};
 int ENDS[] = {0,0,16,8,4,8,8};
 int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+int MATERIAL_KEYS[] = {0, 0, 3, 1, 9, 27, 0};
+int MATERIAL_ADJUST[54][54];
 
 int get_data(int i) {
     auto data = DATA_STRING;
@@ -59,7 +61,12 @@ void init_tables() {
             }
         }
     }
-    
+
+    MATERIAL_ADJUST[0][1] = 1;
+    MATERIAL_ADJUST[0][3] = 1;
+    MATERIAL_ADJUST[9][10] = 1;
+    MATERIAL_ADJUST[9][12] = 1;
+
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
