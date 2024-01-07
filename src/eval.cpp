@@ -1,27 +1,42 @@
-// loss: 0.07906    train id: 2024-01-05-17-55-41-frzn-big3
+// loss: 0.07847    train id: 2024-01-07-13-46-55-frzn-big3
 
 #define S(a, b) (a + (b * 0x10000))
 
 int QUADRANTS[] = {
-    S(217, 234), S(229, 239), S(224, 233), S(224, 241),
-    S(236, 301), S(233, 307), S(238, 303), S(234, 306),
-    S(292, 557), S(304, 576), S(299, 550), S(322, 564),
-    S(608, 1094), S(594, 1132), S(611, 1094), S(606, 1144),
+    S(203, 223), S(215, 227), S(211, 222), S(211, 228),
+    S(222, 277), S(220, 282), S(224, 279), S(220, 281),
+    S(268, 509), S(278, 527), S(275, 503), S(295, 518),
+    S(534, 1022), S(519, 1055), S(537, 1022), S(530, 1067),
 };
-int PAWN_SHIELD[] = {S(-3, -8), S(3, -21), S(5, -16), S(13, -10)};
-int MOBILITY[] = {0, S(5, 8), S(1, 0), S(3, 5), S(2, 3), S(1, 4), S(-3, 5)};
+int PAWN_SHIELD[] = {S(-1, -11), S(4, -18), S(6, -13), S(13, -7)};
+int MOBILITY[] = {0, S(4, 6), S(1, 0), S(3, 5), S(2, 3), S(1, 4), S(-3, 4)};
 
-#define DATA_STRING L"7QN621- APG><;.(?IROLB3*FR[ZRF@2Ub{c`_I=A+adGm0B85+,1410$'$#)5,4& ((:A+5759BKE!!6BEIUQCVNBG]w>V?>\\D #3H71+^wai )02+2@>6FHO=;NM\"$ $'30))75-')*7/28? +32)4/1#&*, ),/..33131,,*$$ *9C9600#(6;;1.,)0/1235036426:;<AU@QTHOC~  §ª£1-% %)5.4?4-'/:4SVLA79CIqraNGIVc¡[Tl{ vAACM_\"2/ 2JG3EWWH5<B/ Lfk]luye{p -*)$(*+1134*353!#' '''%\"#&$'))'% \",*#(/.<EA7FNT"
+#define DATA_STRING L"7RO621- APG><:.(?IRNLA3*ER[ZRF?2Tazc_^H<<)[~{_Be/A96--15/1()$%)5*8)!((:@*6758@IC #8BDGQMI[XPS`x@YAA_F !6@43+G@3M (/2*1?=5EGN<;ML#$ $(30))74-()*6/27? +22)4/1$'+- )-0.044242..,&% )5=52--#(487/-+)//0013/25313789>P?JLDJAyu-*\" #'3+1:0)%+70NRE;25?CjlZF@FQ\\|SMdtn65?HT\"2. 1HE2H[[KCPUB G\\`Tagk[mu{dt\177 ++*%)*+0133)143!#& '&'%##&$&'(%(#\",& %+)6<6-;AG"
 
-#define PAWN_OFFSET S(25, 73)
-#define PASSED_PAWN_OFFSET S(-16, -10)
-#define BISHOP_PAIR S(24, 46)
-#define DOUBLED_PAWN S(5, 14)
-#define TEMPO S(11, 12)
-#define ISOLATED_PAWN S(8, 9)
-#define PROTECTED_PAWN S(7, 7)
-#define ROOK_OPEN S(24, 3)
+#define PAWN_OFFSET S(23, 66)
+#define PASSED_PAWN_OFFSET S(-16, -7)
+#define BISHOP_PAIR S(22, 41)
+#define DOUBLED_PAWN S(4, 14)
+#define TEMPO S(10, 11)
+#define ISOLATED_PAWN S(8, 7)
+#define PROTECTED_PAWN S(7, 6)
+#define ROOK_OPEN S(23, 5)
 #define ROOK_SEMIOPEN S(10, 10)
 #define KING_OPEN S(-44, -3)
-#define KING_SEMIOPEN S(-9, 16)
-#define KING_RING_ATTACKS S(14, -6)
+#define KING_SEMIOPEN S(-8, 12)
+#define KING_RING_ATTACKS S(14, -5)
+
+#define MATNET_SIZE 8
+#define MATNET_SIZE_X2 16
+int MATERIAL_FT[][MATNET_SIZE] = {
+    {},
+    {-34, 53, -23, 33, -48, -1, 60, -26},
+    {-19, 17, 4, -36, -67, 36, -1, -6},
+    {-7, 9, 9, -180, -67, 24, -11, 0},
+    {-11, -11, -13, -82, 45, -13, -2, 11},
+    {-8, -18, -17, -221, -22, 45, -12, 87},
+    {}
+};
+int MATERIAL_FT_BIAS[] = {-4, -108, -64, -43, 28, -29, 16, 90};
+int MATERIAL_OUT[] = {-4, -27, -4, 31, 25, 9, 29, -20, 29, -17, -7, 31, 18, 3, 24, -18};
+#define MATERIAL_BIAS 5260
