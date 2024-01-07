@@ -48,6 +48,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    int32_t material_acc[2][4];
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -69,6 +70,9 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
+        for (int i = 0; i < 4; i++) {
+            material_acc[!(board[square] & WHITE)][i] -= MATERIAL_FT[board[square] & 7][i];
+        }
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -83,6 +87,9 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
+        for (int i = 0; i < 4; i++) {
+            material_acc[!(board[square] & WHITE)][i] += MATERIAL_FT[board[square] & 7][i];
+        }
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -91,6 +98,8 @@ struct Board {
     Board() {
         memset(this, 0, sizeof(Board));
         memset(board, INVALID, 120);
+        memcpy(material_acc[0], MATERIAL_FT_BIAS, sizeof(MATERIAL_FT_BIAS));
+        memcpy(material_acc[1], MATERIAL_FT_BIAS, sizeof(MATERIAL_FT_BIAS));
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
@@ -343,6 +352,11 @@ struct Board {
             pawn_eval_dirty = 0;
         }
 
+        int material_factor = MATERIAL_BIAS;
+        for (int i = 0; i < 8; i++) {
+            material_factor += MATERIAL_OUT[i] * max(material_acc[i / 4][i % 4], 0);
+        }
+
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
@@ -360,7 +374,10 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return (
+            (int16_t)stm_eval * phase +
+            (stm_eval + 0x8000 >> 16) * (24 - phase) * clamp(material_factor, 0, 16384) / 16384
+        ) / 24;
     }
 } ROOT;
 
