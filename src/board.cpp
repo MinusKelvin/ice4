@@ -46,16 +46,12 @@ struct Board {
     uint8_t ep_square;
     uint8_t stm;
     uint8_t phase;
-    uint8_t pawn_eval_dirty;
     uint8_t check;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
 
     void edit(int square, int piece) {
-        if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
-            pawn_eval_dirty = 1;
-        }
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
@@ -335,13 +331,10 @@ struct Board {
     }
 
     int eval(int stm_eval) {
-        if (pawn_eval_dirty) {
-            pawn_eval = 0;
-            calculate_pawn_eval(1, BLACK, -10, 90, 30);
-            pawn_eval = -pawn_eval;
-            calculate_pawn_eval(0, WHITE, 10, 20, 80);
-            pawn_eval_dirty = 0;
-        }
+        pawn_eval = 0;
+        calculate_pawn_eval(1, BLACK, -10, 90, 30);
+        pawn_eval = -pawn_eval;
+        calculate_pawn_eval(0, WHITE, 10, 20, 80);
 
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
