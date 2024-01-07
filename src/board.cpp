@@ -295,16 +295,30 @@ struct Board {
             if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (
+                int rank = seventh_rank, passed = 1, behind_passer = 0;
+                rank != first_rank && (passed || behind_passer);
+                rank -= pawndir
+            ) {
                 int sq = file+rank;
-                if (board[sq] == own_pawn) {
-                    if (king_sq[ci] % 10 > 4) {
-                        sq = 9 + rank - file;
-                    }
-                    pawn_eval += PST[own_pawn+6][sq-A1];
+                if ((board[sq] & 7) == ROOK && behind_passer) {
+                    pawn_eval +=
+                        board[file+rank] & color ? ROOK_BEHIND_PASSER : -ROOK_BEHIND_PASSER;
                 }
-                if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
-                    break;
+                if (board[sq]) {
+                    behind_passer = 0;
+                }
+                if (passed) {
+                    if (board[sq] == own_pawn) {
+                        if (king_sq[ci] % 10 > 4) {
+                            sq = 9 + rank - file;
+                        }
+                        pawn_eval += PST[own_pawn+6][sq-A1];
+                        behind_passer = 1;
+                    }
+                    if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
+                        passed = 0;
+                    }
                 }
             }
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
