@@ -302,6 +302,9 @@ struct Board {
                         sq = 9 + rank - file;
                     }
                     pawn_eval += PST[own_pawn+6][sq-A1];
+                    if (board[sq+pawndir]) {
+                        pawn_eval += BLOCKED_PASSER;
+                    }
                 }
                 if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
                     break;
