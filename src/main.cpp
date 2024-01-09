@@ -13,7 +13,7 @@ int64_t perft(Board& board, int depth, int root=0) {
         return 1;
     }
 
-    board.movegen(moves, mvcount, 1, scratch);
+    board.movegen_and_eval(moves, mvcount, 1);
     int64_t count = 0;
     for (int i = 0; i < mvcount; i++) {
         for (int promo = KNIGHT; promo <= QUEEN; promo++) {

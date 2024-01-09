@@ -208,23 +208,33 @@ struct Board {
         return 0;
     }
 
-    void movegen(Move list[], int& count, int quiets, int& mobility) {
-        int king_ring[120] = {};
-        int other = stm ^ INVALID;
+    int movegen_and_eval(Move list[], int& count, int quiets) {
+        int square_flags[120] = {};
+        int stm_eval = 0;
         count = 0;
-        mobility = 0;
-        for (int i = 0; i < 8; i++) {
-            king_ring[king_sq[stm == WHITE] + RAYS[i]] = KING_RING_ATTACKS;
-        }
         for (int sq = A1; sq <= H8; sq++) {
-            // skip empty squares & opponent squares (& border squares)
-            if ((board[sq] & INVALID) != stm) {
+            int piece = board[sq] & 7;
+            int color = board[sq] & INVALID;
+            int other = color ^ INVALID;
+            int moving = color == stm;
+            int mob_sign = moving ? 1 : -1;
+            int attacker_bit = 1 << board[sq] * 2 - 16;
+
+            // pull down pawn behindness and aheadness
+            int flip_sq = (A1+H8) - sq;
+            square_flags[sq] |= square_flags[sq-10] & (WHITE_PAWN_AHEAD | BLACK_PAWN_BEHIND)
+                | square_flags[flip_sq+10] & (WHITE_PAWN_BEHIND | BLACK_PAWN_AHEAD);
+            square_flags[sq+10] |= WHITE_PAWN_AHEAD * (board[sq] == WHITE_PAWN);
+            square_flags[sq] |= BLACK_PAWN_BEHIND * (board[sq] == BLACK_PAWN);
+            square_flags[flip_sq] |= WHITE_PAWN_BEHIND * (board[sq] == WHITE_PAWN);
+            square_flags[flip_sq-10] |= BLACK_PAWN_AHEAD * (board[sq] == BLACK_PAWN);
+
+            // no movegen for empty squares (& border squares)
+            if (!(board[sq] & 7)) {
                 continue;
             }
 
-            int piece = board[sq] & 7;
-
-            if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
+            if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets && moving) {
                 if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
                         !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
@@ -236,131 +246,58 @@ struct Board {
             }
 
             if (piece == PAWN) {
-                int dir = stm == WHITE ? 10 : -10;
-                int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
+                int dir = color == WHITE ? 10 : -10;
+                int promo = board[sq + dir + dir] == INVALID;
                 if (!board[sq + dir]) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir];
-                    if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
+                    // stm_eval += mob_sign * MOBILITY[piece];
+                    if ((quiets || promo || board[sq + dir + dir + dir] == INVALID) && moving) {
                         list[count++] = Move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
-                        mobility += MOBILITY[piece] + king_ring[sq + dir+dir];
-                        if (quiets) {
+                        // stm_eval += mob_sign * MOBILITY[piece];
+                        if (quiets && moving) {
                             list[count++] = Move(sq, sq + dir+dir, promo);
                         }
                     }
                 }
-                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir-1];
-                    list[count++] = Move(sq, sq + dir-1, promo);
+                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & color) {
+                    // stm_eval += mob_sign * MOBILITY[piece];
+                    square_flags[sq + dir-1] |= square_flags[sq + dir-1] + attacker_bit;
+                    if (moving) {
+                        list[count++] = Move(sq, sq + dir-1, promo);
+                    }
                 }
-                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir+1];
-                    list[count++] = Move(sq, sq + dir+1, promo);
+                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & color) {
+                    // stm_eval += mob_sign * MOBILITY[piece];
+                    square_flags[sq + dir+1] |= square_flags[sq + dir+1] + attacker_bit;
+                    if (moving) {
+                        list[count++] = Move(sq, sq + dir+1, promo);
+                    }
                 }
             } else {
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
                     for (int j = 0; j < LIMITS[piece]; j++) {
                         raysq += RAYS[i];
-                        if (board[raysq] & stm) {
+                        square_flags[raysq] |= square_flags[raysq] + attacker_bit;
+                        if (board[raysq] & color) {
                             break;
                         }
-                        mobility += MOBILITY[piece] + king_ring[raysq];
+                        // stm_eval += mob_sign * MOBILITY[piece];
                         if (board[raysq] & other) {
-                            list[count++] = Move(sq, raysq);
+                            if (moving) {
+                                list[count++] = Move(sq, raysq);
+                            }
                             break;
-                        } else if (quiets) {
+                        } else if (quiets && moving) {
                             list[count++] = Move(sq, raysq);
                         }
                     }
                 }
             }
         }
-    }
 
-    void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
-        int shield_pawns = 0;
-        int own_pawn = PAWN | color;
-        int opp_pawn = own_pawn ^ INVALID;
-        if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
-        }
-        for (int file = 1; file < 9; file++) {
-            // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
-            // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
-            // 60.0+0.6: 6.46 +- 4.69 (2473 - 2287 - 5240) 0.15 elo/byte
-            if (pawn_counts[ci][file]) {
-                pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN;
-            }
-            // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
-            // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
-            // 60.0+0.6: 16.79 +- 4.82 (2749 - 2266 - 4985) 0.93 elo/byte
-            if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
-                pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
-            }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
-                int sq = file+rank;
-                if (board[sq] == own_pawn) {
-                    if (king_sq[ci] % 10 > 4) {
-                        sq = 9 + rank - file;
-                    }
-                    pawn_eval += PST[own_pawn+6][sq-A1];
-                }
-                if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
-                    break;
-                }
-            }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
-                int sq = rank+file;
-                if (board[sq] == own_pawn) {
-                    if (board[sq - pawndir+1] == own_pawn || board[sq - pawndir-1] == own_pawn) {
-                        pawn_eval += PROTECTED_PAWN;
-                    }
-                    if (king_sq[ci] % 10 > 4) {
-                        sq = 9 + rank - file;
-                    }
-                    pawn_eval += PST[own_pawn][sq-A1];
-                }
-            }
-        }
-        // Pawn shield: 65 bytes (f3241b8 vs 7f7c2b5)
-        // 8.0+0.08: 19.58 +- 5.17 (3159 - 2596 - 4245) 0.30 elo/byte
-        // 60.0+0.6: 14.88 +- 4.63 (2526 - 2098 - 5376) 0.23 elo/byte
-        for (int dx = -1; dx < 2; dx++) {
-            shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
-                || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
-        }
-        pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
-    }
-
-    int eval(int stm_eval) {
-        if (pawn_eval_dirty) {
-            pawn_eval = 0;
-            calculate_pawn_eval(1, BLACK, -10, 90, 30);
-            pawn_eval = -pawn_eval;
-            calculate_pawn_eval(0, WHITE, 10, 20, 80);
-            pawn_eval_dirty = 0;
-        }
-
-        // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
-        // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
-        // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
-        int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair;
-        // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
-        // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
-        // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
-        for (int file = 1; file < 9; file++) {
-            if (!pawn_counts[0][file]) {
-                e += (pawn_counts[1][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[0][file-1];
-            }
-            if (!pawn_counts[1][file]) {
-                e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
-            }
-        }
-        stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return ((int16_t)stm_eval * phase + (stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
     }
 } ROOT;
 

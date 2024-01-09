@@ -54,9 +54,7 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
-
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        evals[ply] = board.movegen_and_eval(moves, mvcount, depth > 0);
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
