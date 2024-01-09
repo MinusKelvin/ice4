@@ -100,6 +100,8 @@ struct Searcher {
         for (int j = 0; j < mvcount; j++) {
             if (hashmv.from == moves[j].from && hashmv.to == moves[j].to) {
                 score[j] = 1e6;
+            } else if (moves[j].promo) {
+                score[j] = 2e5;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
