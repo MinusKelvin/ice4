@@ -308,6 +308,14 @@ struct Board {
                 int flipped_rank = board[sq] & WHITE ? rank : 7 - rank;
                 int own_flags = board[sq] & WHITE ? 0 : 16;
                 int opp_flags = 16 - own_flags;
+
+                if (square_flags[sq] & 0x3000) {
+                    eval -= KING_ATTACKS * __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
+                }
+                if (square_flags[sq] >> 16 & 0x3000) {
+                    eval += KING_ATTACKS * __builtin_popcount(square_flags[sq] & 0xFFFC);
+                }
+
                 if (!piece) {
                     continue;
                 }

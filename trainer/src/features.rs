@@ -13,6 +13,7 @@ pub struct Features {
     passed_pawn: [f32; 8],
     isolated_pawn: f32,
     doubled_pawn: f32,
+    king_attacks: f32,
 }
 
 impl Features {
@@ -73,6 +74,15 @@ impl Features {
                 if let Some(sq) = pawn.try_offset(0, -dir * i) {
                     pawn_behind[color as usize] |= sq.bitboard();
                 }
+            }
+        }
+
+        for sq in Square::ALL {
+            if piece_attack_map[Color::White as usize][Piece::King as usize][sq as usize] > 0 {
+                self.king_attacks -= count_attack_map[Color::Black as usize][sq as usize] as f32;
+            }
+            if piece_attack_map[Color::Black as usize][Piece::King as usize][sq as usize] > 0 {
+                self.king_attacks += count_attack_map[Color::White as usize][sq as usize] as f32;
             }
         }
 
