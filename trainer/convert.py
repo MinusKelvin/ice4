@@ -32,7 +32,7 @@ def to_evalcpp(last_loss, train_id, param_map):
         ), end="")
         print("};")
 
-    array_param("MATERIAL", 6, leading_zero=True)
+    array_param("PIECE_RANK", 6*8)
 
     print()
     for name, mg, eg in defines:

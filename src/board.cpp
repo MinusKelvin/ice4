@@ -300,9 +300,14 @@ struct Board {
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
                 int sq = rank*10 + file + A1;
+                int piece = board[sq] & 7;
                 int sign = board[sq] & WHITE ? 1 : -1;
+                int flipped_rank = board[sq] & WHITE ? rank : 7 - rank;
+                if (!piece) {
+                    continue;
+                }
 
-                eval += sign * MATERIAL[board[sq] & 7];
+                eval += sign * PIECE_RANK[(piece-1 & 7) * 8 + flipped_rank];
             }
         }
 
