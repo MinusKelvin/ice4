@@ -6,3 +6,7 @@
 /ice4-usan
 /ice4-asan
 minifier/parse/cpp.rs
+.venv/
+trainer/models/
+trainer/data/
+__pycache__

@@ -210,14 +210,14 @@ struct Board {
 
     int movegen_and_eval(Move list[], int& count, int quiets) {
         int square_flags[120] = {};
-        int stm_eval = 0;
+        int eval = 0;
         count = 0;
         for (int sq = A1; sq <= H8; sq++) {
             int piece = board[sq] & 7;
             int color = board[sq] & INVALID;
             int other = color ^ INVALID;
             int moving = color == stm;
-            int mob_sign = moving ? 1 : -1;
+            int mob_sign = color == WHITE ? 1 : -1;
             int attacker_bit = 1 << board[sq] * 2 - 16;
 
             // pull down pawn behindness and aheadness
@@ -249,26 +249,26 @@ struct Board {
                 int dir = color == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID;
                 if (!board[sq + dir]) {
-                    // stm_eval += mob_sign * MOBILITY[piece];
+                    // eval += mob_sign * MOBILITY[piece];
                     if ((quiets || promo || board[sq + dir + dir + dir] == INVALID) && moving) {
                         list[count++] = Move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
-                        // stm_eval += mob_sign * MOBILITY[piece];
+                        // eval += mob_sign * MOBILITY[piece];
                         if (quiets && moving) {
                             list[count++] = Move(sq, sq + dir+dir, promo);
                         }
                     }
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & color) {
-                    // stm_eval += mob_sign * MOBILITY[piece];
+                    // eval += mob_sign * MOBILITY[piece];
                     square_flags[sq + dir-1] |= square_flags[sq + dir-1] + attacker_bit;
                     if (moving) {
                         list[count++] = Move(sq, sq + dir-1, promo);
                     }
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & color) {
-                    // stm_eval += mob_sign * MOBILITY[piece];
+                    // eval += mob_sign * MOBILITY[piece];
                     square_flags[sq + dir+1] |= square_flags[sq + dir+1] + attacker_bit;
                     if (moving) {
                         list[count++] = Move(sq, sq + dir+1, promo);
@@ -283,7 +283,7 @@ struct Board {
                         if (board[raysq] & color) {
                             break;
                         }
-                        // stm_eval += mob_sign * MOBILITY[piece];
+                        // eval += mob_sign * MOBILITY[piece];
                         if (board[raysq] & other) {
                             if (moving) {
                                 list[count++] = Move(sq, raysq);
@@ -297,7 +297,18 @@ struct Board {
             }
         }
 
-        return ((int16_t)stm_eval * phase + (stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                int sq = rank*10 + file + A1;
+                int sign = board[sq] & WHITE ? 1 : -1;
+
+                eval += sign * MATERIAL[board[sq] & 7];
+            }
+        }
+
+        eval *= stm & WHITE ? 1 : -1;
+
+        return ((int16_t)eval * phase + (eval + 0x8000 >> 16) * (24 - phase)) / 24;
     }
 } ROOT;
 
