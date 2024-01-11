@@ -320,7 +320,14 @@ struct Board {
                     eval += sign * PASSED_PAWN[flipped_rank];
                 }
 
-                eval += sign * PIECE_RANK[(piece-1 & 7) * 8 + flipped_rank];
+                if (piece == PAWN && !(
+                    square_flags[sq-1] >> own_flags & 3 ||
+                    square_flags[sq+1] >> own_flags & 3
+                )) {
+                    eval += sign * ISOLATED_PAWN;
+                }
+
+                eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
                 eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }
         }

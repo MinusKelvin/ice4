@@ -11,6 +11,7 @@ pub struct Features {
     piece_file: [[f32; 8]; 6],
     mobility: [f32; 6],
     passed_pawn: [f32; 8],
+    isolated_pawn: f32,
 }
 
 impl Features {
@@ -96,6 +97,16 @@ impl Features {
                         .map_or(false, |sq| pawn_ahead[!color as usize].has(sq)))
             {
                 self.passed_pawn[sq.rank() as usize] += inc;
+            }
+
+            if piece == Piece::Pawn
+                && !(unflipped_sq.try_offset(-1, 0).map_or(false, |sq| {
+                    pawn_ahead[color as usize].has(sq) || pawn_behind[color as usize].has(sq)
+                }) || unflipped_sq.try_offset(1, 0).map_or(false, |sq| {
+                    pawn_ahead[color as usize].has(sq) || pawn_behind[color as usize].has(sq)
+                }))
+            {
+                self.isolated_pawn += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
