@@ -19,9 +19,6 @@
 
 #define WHITE_PAWN 9
 #define BLACK_PAWN 17
-#define PASSED_PAWN 7
-#define WHITE_PASSED_PAWN 15
-#define BLACK_PASSED_PAWN 23
 
 #define WHITE_PAWN_AHEAD 1
 #define WHITE_PAWN_BEHIND 2
