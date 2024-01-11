@@ -310,7 +310,8 @@ struct Board {
                     continue;
                 }
 
-                eval += sign * PIECE_RANK[(piece-1 & 7) * 8 + flipped_rank];
+                eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
+                eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }
         }
 

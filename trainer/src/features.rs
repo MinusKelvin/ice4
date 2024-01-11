@@ -8,6 +8,7 @@ use cozy_chess::{
 #[repr(C)]
 pub struct Features {
     piece_rank: [[f32; 8]; 6],
+    piece_file: [[f32; 8]; 6],
     mobility: [f32; 6],
 }
 
@@ -65,6 +66,7 @@ impl Features {
             };
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
+            self.piece_file[piece as usize][sq.file() as usize] += inc;
         }
     }
 }

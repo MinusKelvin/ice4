@@ -1,11 +1,11 @@
 use std::ffi::c_ulong;
 
 use cozy_chess::Piece;
-use itertools::izip;
 use marlinformat::PackedBoard;
 
 mod features;
 use features::Features;
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 #[no_mangle]
 pub unsafe extern "C" fn feature_count() -> c_ulong {
@@ -26,21 +26,26 @@ pub unsafe extern "C" fn decode_data(
         let phases = std::slice::from_raw_parts_mut(phases, count);
         let targets = std::slice::from_raw_parts_mut(targets, count);
 
-        for (board, features, phase, target) in izip!(boards, features, phases, targets) {
-            let (board, _, outcome, _) = board.unpack().unwrap();
+        boards
+            .par_iter()
+            .zip(features)
+            .zip(phases)
+            .zip(targets)
+            .for_each(|(((board, features), phase), target)| {
+                let (board, _, outcome, _) = board.unpack().unwrap();
 
-            features.extract(&board);
+                features.extract(&board);
 
-            *phase = (board.pieces(Piece::Pawn).len() * 0
-                + board.pieces(Piece::Knight).len() * 1
-                + board.pieces(Piece::Bishop).len() * 1
-                + board.pieces(Piece::Rook).len() * 2
-                + board.pieces(Piece::Queen).len() * 4
-                + board.pieces(Piece::King).len() * 0) as f32
-                / 24.0;
+                *phase = (board.pieces(Piece::Pawn).len() * 0
+                    + board.pieces(Piece::Knight).len() * 1
+                    + board.pieces(Piece::Bishop).len() * 1
+                    + board.pieces(Piece::Rook).len() * 2
+                    + board.pieces(Piece::Queen).len() * 4
+                    + board.pieces(Piece::King).len() * 0) as f32
+                    / 24.0;
 
-            *target = outcome as f32 / 2.0;
-        }
+                *target = outcome as f32 / 2.0;
+            });
     })
     .is_ok()
 }
