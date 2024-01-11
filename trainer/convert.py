@@ -34,6 +34,7 @@ def to_evalcpp(last_loss, train_id, param_map):
 
     array_param("PIECE_RANK", 6*8)
     array_param("MOBILITY", 6, leading_zero=True)
+    define_param("PASSED_PAWN")
 
     print()
     for name, mg, eg in defines:
