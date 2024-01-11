@@ -1,7 +1,7 @@
 use bytemuck::{Pod, Zeroable};
 use cozy_chess::{
     get_bishop_moves, get_king_moves, get_knight_moves, get_pawn_attacks, get_pawn_quiets,
-    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank,
+    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank, Square,
 };
 
 #[derive(Debug, Clone, Copy, Zeroable, Pod)]
@@ -9,6 +9,7 @@ use cozy_chess::{
 pub struct Features {
     piece_rank: [[f32; 8]; 6],
     mobility: [f32; 6],
+    passed_pawn: [f32; 8],
 }
 
 impl Features {
@@ -52,6 +53,26 @@ impl Features {
             self.mobility[piece as usize] += inc * mob.len() as f32;
         }
 
+        let mut pawn_ahead = [BitBoard::EMPTY; 2];
+        let mut pawn_behind = [BitBoard::EMPTY; 2];
+
+        for pawn in board.pieces(Piece::Pawn) {
+            let color = board.color_on(pawn).unwrap();
+            let dir = match color {
+                Color::White => 1,
+                Color::Black => -1,
+            };
+            pawn_behind[color as usize] |= pawn.bitboard();
+            for i in 1..8 {
+                if let Some(sq) = pawn.try_offset(0, dir * i) {
+                    pawn_ahead[color as usize] |= sq.bitboard();
+                }
+                if let Some(sq) = pawn.try_offset(0, -dir * i) {
+                    pawn_behind[color as usize] |= sq.bitboard();
+                }
+            }
+        }
+
         for unflipped_sq in board.occupied() {
             let color = board.color_on(unflipped_sq).unwrap();
             let piece = board.piece_on(unflipped_sq).unwrap();
@@ -63,6 +84,18 @@ impl Features {
                 Color::White => unflipped_sq,
                 Color::Black => unflipped_sq.flip_rank(),
             };
+
+            if piece == Piece::Pawn
+                && !(unflipped_sq
+                    .try_offset(-1, 0)
+                    .map_or(false, |sq| pawn_ahead[!color as usize].has(sq))
+                    || pawn_ahead[!color as usize].has(unflipped_sq)
+                    || unflipped_sq
+                        .try_offset(1, 0)
+                        .map_or(false, |sq| pawn_ahead[!color as usize].has(sq)))
+            {
+                self.passed_pawn[sq.rank() as usize] += inc;
+            }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
         }
