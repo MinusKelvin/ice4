@@ -314,6 +314,8 @@ struct Board {
             }
         }
 
+        volatile int foo = square_flags[E4];
+
         eval *= stm & WHITE ? 1 : -1;
 
         return ((int16_t)eval * phase + (eval + 0x8000 >> 16) * (24 - phase)) / 24;
