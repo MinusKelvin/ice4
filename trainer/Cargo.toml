@@ -1,0 +1,14 @@
+[package]
+name = "trainer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cozy-chess = "0.3"
+marlinformat = { git = "https://github.com/MinusKelvin/marlinflow", rev = "559f74c" }
+rayon = "1.8.0"

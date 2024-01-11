@@ -16,3 +16,6 @@ regex = "1.7.0"
 
 [build-dependencies]
 lalrpop = "0.19.8"
+
+[workspace]
+members = ["trainer"]
