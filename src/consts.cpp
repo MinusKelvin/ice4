@@ -20,6 +20,8 @@
 #define WHITE_PAWN 9
 #define BLACK_PAWN 17
 
+#define PAWN_AHEAD 1
+#define PAWN_BEHIND 2
 #define WHITE_PAWN_AHEAD 1
 #define WHITE_PAWN_BEHIND 2
 #define BLACK_PAWN_AHEAD 0x10000

@@ -12,6 +12,7 @@ pub struct Features {
     mobility: [f32; 6],
     passed_pawn: [f32; 8],
     isolated_pawn: f32,
+    doubled_pawn: f32,
 }
 
 impl Features {
@@ -107,6 +108,10 @@ impl Features {
                 }))
             {
                 self.isolated_pawn += inc;
+            }
+            
+            if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
+                self.doubled_pawn += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;

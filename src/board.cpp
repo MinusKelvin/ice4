@@ -313,9 +313,9 @@ struct Board {
                 }
 
                 if (piece == PAWN && !(
-                    square_flags[sq-1] >> opp_flags & WHITE_PAWN_AHEAD ||
-                    square_flags[sq] >> opp_flags & WHITE_PAWN_AHEAD ||
-                    square_flags[sq+1] >> opp_flags & WHITE_PAWN_AHEAD
+                    square_flags[sq-1] >> opp_flags & PAWN_AHEAD ||
+                    square_flags[sq] >> opp_flags & PAWN_AHEAD ||
+                    square_flags[sq+1] >> opp_flags & PAWN_AHEAD
                 )) {
                     eval += sign * PASSED_PAWN[flipped_rank];
                 }
@@ -325,6 +325,10 @@ struct Board {
                     square_flags[sq+1] >> own_flags & 3
                 )) {
                     eval += sign * ISOLATED_PAWN;
+                }
+
+                if (piece == PAWN && square_flags[sq] >> own_flags & PAWN_AHEAD) {
+                    eval += sign * DOUBLED_PAWN;
                 }
 
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
