@@ -348,6 +348,12 @@ struct Board {
                     eval += sign * DOUBLED_PAWN;
                 }
 
+                if (piece == PAWN && (
+                    board[sq-pawndir-1] == board[sq] || board[sq-pawndir+1] == board[sq]
+                )) {
+                    eval += sign * CONNECTED_PAWN;
+                }
+
                 if (square_flags[sq] >> opp_flags & (1 << piece*2) - 4) {
                     eval += sign * THREATENED[piece];
                 }

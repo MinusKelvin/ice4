@@ -17,6 +17,7 @@ pub struct Features {
     double_king_attacks: f32,
     under_threat: [f32; 6],
     passer_next_sq_attacked: f32,
+    connected_pawn: f32,
 }
 
 impl Features {
@@ -120,7 +121,9 @@ impl Features {
                     Color::White => unflipped_sq.try_offset(0, 1).unwrap(),
                     Color::Black => unflipped_sq.try_offset(0, -1).unwrap(),
                 };
-                if count_attack_map[!color as usize][next_sq as usize] > count_attack_map[color as usize][next_sq as usize] {
+                if count_attack_map[!color as usize][next_sq as usize]
+                    > count_attack_map[color as usize][next_sq as usize]
+                {
                     self.passer_next_sq_attacked += inc;
                 }
             }
@@ -134,7 +137,7 @@ impl Features {
             {
                 self.isolated_pawn += inc;
             }
-            
+
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
             }
@@ -144,6 +147,17 @@ impl Features {
                     && piece_attack_map[!color as usize][p as usize][unflipped_sq as usize] > 0
             }) {
                 self.under_threat[piece as usize] += inc;
+            }
+
+            if piece == Piece::Pawn
+                && (unflipped_sq
+                    .try_offset(-1, -inc as i8)
+                    .map_or(false, |sq| board.colored_pieces(color, Piece::Pawn).has(sq))
+                    || unflipped_sq
+                        .try_offset(1, -inc as i8)
+                        .map_or(false, |sq| board.colored_pieces(color, Piece::Pawn).has(sq)))
+            {
+                self.connected_pawn += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
