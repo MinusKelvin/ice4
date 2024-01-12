@@ -277,22 +277,23 @@ struct Board {
             } else {
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
+                    int not_xray = 1;
                     for (int j = 0; j < LIMITS[piece]; j++) {
                         raysq += RAYS[i];
-                        if (board[raysq] == INVALID) {
-                            break;
-                        }
                         square_flags[raysq] |= square_flags[raysq] + attacker_bit;
                         if (board[raysq] & color) {
-                            break;
+                            if (board[raysq] != board[sq]) {
+                                break;
+                            }
+                            not_xray = 0;
                         }
                         eval += mob_sign * MOBILITY[piece];
                         if (board[raysq] & other) {
-                            if (moving) {
+                            if (moving && not_xray) {
                                 list[count++] = Move(sq, raysq);
                             }
                             break;
-                        } else if (quiets && moving) {
+                        } else if (quiets && moving && not_xray) {
                             list[count++] = Move(sq, raysq);
                         }
                     }

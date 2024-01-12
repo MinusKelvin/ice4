@@ -27,16 +27,17 @@ impl Features {
             let color = board.color_on(sq).unwrap();
             let piece = board.piece_on(sq).unwrap();
 
+            let xray_occupancy = board.occupied() & !board.colored_pieces(color, piece);
             let mob = match piece {
                 Piece::Pawn => {
                     get_pawn_quiets(sq, color, board.occupied())
                         | get_pawn_attacks(sq, color) & board.colors(!color)
                 }
                 Piece::Knight => get_knight_moves(sq),
-                Piece::Bishop => get_bishop_moves(sq, board.occupied()),
-                Piece::Rook => get_rook_moves(sq, board.occupied()),
+                Piece::Bishop => get_bishop_moves(sq, xray_occupancy),
+                Piece::Rook => get_rook_moves(sq, xray_occupancy),
                 Piece::Queen => {
-                    get_bishop_moves(sq, board.occupied()) | get_rook_moves(sq, board.occupied())
+                    get_bishop_moves(sq, xray_occupancy) | get_rook_moves(sq, xray_occupancy)
                 }
                 Piece::King => get_king_moves(sq),
             };
