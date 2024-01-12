@@ -15,6 +15,7 @@ pub struct Features {
     doubled_pawn: f32,
     king_attacks: f32,
     double_king_attacks: f32,
+    outpost_knight: f32,
 }
 
 impl Features {
@@ -127,6 +128,18 @@ impl Features {
             
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
+            }
+
+            if piece == Piece::Knight
+                && piece_attack_map[color as usize][Piece::Pawn as usize][unflipped_sq as usize] > 0
+                && !(unflipped_sq
+                    .try_offset(-1, 0)
+                    .map_or(false, |sq| pawn_ahead[!color as usize].has(sq))
+                    || unflipped_sq
+                        .try_offset(1, 0)
+                        .map_or(false, |sq| pawn_ahead[!color as usize].has(sq)))
+            {
+                self.outpost_knight += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;

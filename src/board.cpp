@@ -343,6 +343,13 @@ struct Board {
                     eval += sign * DOUBLED_PAWN;
                 }
 
+                if (piece == KNIGHT && square_flags[sq] >> own_flags & 0xC && !(
+                    square_flags[sq-1] >> opp_flags & PAWN_AHEAD ||
+                    square_flags[sq+1] >> opp_flags & PAWN_AHEAD
+                )) {
+                    eval += sign * OUTPOST_KNIGHT;
+                }
+
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
                 eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }
