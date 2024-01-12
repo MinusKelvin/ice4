@@ -16,6 +16,7 @@ pub struct Features {
     king_attacks: f32,
     double_king_attacks: f32,
     under_threat: [f32; 6],
+    passer_next_sq_attacked: f32,
 }
 
 impl Features {
@@ -114,6 +115,14 @@ impl Features {
                         .map_or(false, |sq| pawn_ahead[!color as usize].has(sq)))
             {
                 self.passed_pawn[sq.rank() as usize] += inc;
+
+                let next_sq = match color {
+                    Color::White => unflipped_sq.try_offset(0, 1).unwrap(),
+                    Color::Black => unflipped_sq.try_offset(0, -1).unwrap(),
+                };
+                if count_attack_map[!color as usize][next_sq as usize] > count_attack_map[color as usize][next_sq as usize] {
+                    self.passer_next_sq_attacked += inc;
+                }
             }
 
             if piece == Piece::Pawn

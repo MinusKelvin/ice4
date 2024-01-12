@@ -308,6 +308,7 @@ struct Board {
                 int flipped_rank = board[sq] & WHITE ? rank : 7 - rank;
                 int own_flags = board[sq] & WHITE ? 0 : 16;
                 int opp_flags = 16 - own_flags;
+                int pawndir = board[sq] & WHITE ? 10 : -10;
 
                 if (square_flags[sq] & 0x3000) {
                     int attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
@@ -330,6 +331,10 @@ struct Board {
                     square_flags[sq+1] >> opp_flags & PAWN_AHEAD
                 )) {
                     eval += sign * PASSED_PAWN[flipped_rank];
+
+                    if (__builtin_popcount(square_flags[sq+pawndir] >> opp_flags & 0xFFFC) > __builtin_popcount(square_flags[sq+pawndir] >> own_flags & 0xFFFC)) {
+                        eval += sign * PASSER_NEXT_SQ_ATTACKED;
+                    }
                 }
 
                 if (piece == PAWN && !(
