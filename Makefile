@@ -19,13 +19,13 @@ ice4-tcec: launcher.sh $(DEPS)
 	@echo Compressed size: `du -b ice4-tcec`
 
 ice4.exe: $(DEPS)
-	x86_64-w64-mingw32-g++ -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
+	x86_64-w64-mingw32-g++ -Wl,--stack,16777216 -DOPENBENCH -march=x86-64-v2 -O3 -pthread -static src/main.cpp -o "$@"
 
 $(EXE): $(DEPS)
-	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH $(NOADJ) -march=native -g -O3 -pthread src/main.cpp -o "$@"
 
 ice4-min-ob: $(DEPS)
-	cargo run --release openbench | g++ -O3 -pthread -xc++ -o "$@" -
+	cargo run --release openbench | g++ -O3 -march=native -pthread -xc++ -o "$@" -
 
 ice4-asan: $(DEPS)
 	g++ -DOPENBENCH -g -fsanitize=address -pthread src/main.cpp -o "$@"
