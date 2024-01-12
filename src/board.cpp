@@ -310,10 +310,14 @@ struct Board {
                 int opp_flags = 16 - own_flags;
 
                 if (square_flags[sq] & 0x3000) {
-                    eval -= KING_ATTACKS * __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
+                    int attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
+                    eval -= KING_ATTACKS * attacks;
+                    eval -= DOUBLE_KING_ATTACKS * (attacks >= 2);
                 }
                 if (square_flags[sq] >> 16 & 0x3000) {
-                    eval += KING_ATTACKS * __builtin_popcount(square_flags[sq] & 0xFFFC);
+                    int attacks = __builtin_popcount(square_flags[sq] & 0xFFFC);
+                    eval += KING_ATTACKS * attacks;
+                    eval += DOUBLE_KING_ATTACKS * (attacks >= 2);
                 }
 
                 if (!piece) {

@@ -14,6 +14,7 @@ pub struct Features {
     isolated_pawn: f32,
     doubled_pawn: f32,
     king_attacks: f32,
+    double_king_attacks: f32,
 }
 
 impl Features {
@@ -79,10 +80,14 @@ impl Features {
 
         for sq in Square::ALL {
             if piece_attack_map[Color::White as usize][Piece::King as usize][sq as usize] > 0 {
-                self.king_attacks -= count_attack_map[Color::Black as usize][sq as usize] as f32;
+                let attacks = count_attack_map[Color::Black as usize][sq as usize];
+                self.king_attacks -= attacks as f32;
+                self.double_king_attacks -= (attacks >= 2) as i32 as f32;
             }
             if piece_attack_map[Color::Black as usize][Piece::King as usize][sq as usize] > 0 {
-                self.king_attacks += count_attack_map[Color::White as usize][sq as usize] as f32;
+                let attacks = count_attack_map[Color::White as usize][sq as usize];
+                self.king_attacks += attacks as f32;
+                self.double_king_attacks += (attacks >= 2) as i32 as f32;
             }
         }
 
