@@ -309,15 +309,23 @@ struct Board {
                 int own_flags = board[sq] & WHITE ? 0 : 16;
                 int opp_flags = 16 - own_flags;
 
+                int white_attacks = __builtin_popcount(square_flags[sq] & 0xFFFC);
+                int black_attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
+
                 if (square_flags[sq] & 0x3000) {
-                    int attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
-                    eval -= KING_ATTACKS * attacks;
-                    eval -= DOUBLE_KING_ATTACKS * (attacks >= 2);
+                    eval -= KING_ATTACKS * black_attacks;
+                    eval -= DOUBLE_KING_ATTACKS * (black_attacks >= 2);
                 }
                 if (square_flags[sq] >> 16 & 0x3000) {
-                    int attacks = __builtin_popcount(square_flags[sq] & 0xFFFC);
-                    eval += KING_ATTACKS * attacks;
-                    eval += DOUBLE_KING_ATTACKS * (attacks >= 2);
+                    eval += KING_ATTACKS * white_attacks;
+                    eval += DOUBLE_KING_ATTACKS * (white_attacks >= 2);
+                }
+
+                if (white_attacks > black_attacks) {
+                    eval += SQUARE_CONTROL;
+                }
+                if (black_attacks > white_attacks) {
+                    eval -= SQUARE_CONTROL;
                 }
 
                 if (!piece) {

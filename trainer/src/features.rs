@@ -15,6 +15,7 @@ pub struct Features {
     doubled_pawn: f32,
     king_attacks: f32,
     double_king_attacks: f32,
+    square_control: f32,
 }
 
 impl Features {
@@ -89,6 +90,13 @@ impl Features {
                 self.king_attacks += attacks as f32;
                 self.double_king_attacks += (attacks >= 2) as i32 as f32;
             }
+            match count_attack_map[Color::White as usize][sq as usize]
+                .cmp(&count_attack_map[Color::Black as usize][sq as usize])
+            {
+                std::cmp::Ordering::Less => self.square_control -= 1.0,
+                std::cmp::Ordering::Equal => {}
+                std::cmp::Ordering::Greater => self.square_control += 1.0,
+            }
         }
 
         for unflipped_sq in board.occupied() {
@@ -124,7 +132,7 @@ impl Features {
             {
                 self.isolated_pawn += inc;
             }
-            
+
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
             }

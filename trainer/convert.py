@@ -40,6 +40,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("DOUBLED_PAWN")
     define_param("KING_ATTACKS")
     define_param("DOUBLE_KING_ATTACKS")
+    define_param("SQUARE_CONTROL")
 
     print()
     for name, mg, eg in defines:
