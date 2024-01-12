@@ -15,6 +15,7 @@ pub struct Features {
     doubled_pawn: f32,
     king_attacks: f32,
     double_king_attacks: f32,
+    under_threat: [f32; 6],
 }
 
 impl Features {
@@ -127,6 +128,13 @@ impl Features {
             
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
+            }
+
+            if Piece::ALL.iter().any(|&p| {
+                p < piece
+                    && piece_attack_map[!color as usize][p as usize][unflipped_sq as usize] > 0
+            }) {
+                self.under_threat[piece as usize] += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;

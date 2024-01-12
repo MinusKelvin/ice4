@@ -343,6 +343,10 @@ struct Board {
                     eval += sign * DOUBLED_PAWN;
                 }
 
+                if (square_flags[sq] >> opp_flags & (1 << piece*2) - 4) {
+                    eval += sign * THREATENED[piece];
+                }
+
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
                 eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }
