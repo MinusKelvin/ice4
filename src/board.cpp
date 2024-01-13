@@ -360,6 +360,8 @@ struct Board {
             }
         }
 
+        eval += BISHOP_PAIR * ((bishops[0] >= 2) - (bishops[1] >= 2));
+
         eval *= stm & WHITE ? 1 : -1;
         eval += TEMPO;
 

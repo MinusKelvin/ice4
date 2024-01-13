@@ -19,6 +19,7 @@ pub struct Features {
     tempo: f32,
     rook_behind_pawn: f32,
     king_behind_pawn: f32,
+    bishop_pair: f32,
 }
 
 impl Features {
@@ -128,7 +129,7 @@ impl Features {
             {
                 self.isolated_pawn += inc;
             }
-            
+
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
             }
@@ -156,5 +157,9 @@ impl Features {
             Color::White => 1.0,
             Color::Black => -1.0,
         };
+
+        self.bishop_pair = ((board.colored_pieces(Color::White, Piece::Bishop).len() >= 2) as i32
+            - (board.colored_pieces(Color::Black, Piece::Bishop).len() >= 2) as i32)
+            as f32;
     }
 }
