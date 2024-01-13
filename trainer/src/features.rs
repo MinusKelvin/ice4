@@ -44,6 +44,7 @@ impl Features {
                 }
                 Piece::King => get_king_moves(sq),
             };
+            let mob = mob & !board.colors(color);
 
             let attacks = match piece {
                 Piece::Pawn => get_pawn_attacks(sq, color),
