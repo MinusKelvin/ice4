@@ -44,6 +44,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("TEMPO")
     define_param("ROOK_BEHIND_PAWN")
     define_param("BISHOP_PAIR")
+    define_param("PASSER_ATTACKED")
 
     print()
     for name, mg, eg in defines:

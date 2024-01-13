@@ -19,6 +19,7 @@ pub struct Features {
     tempo: f32,
     rook_behind_pawn: f32,
     bishop_pair: f32,
+    passer_attacked: f32,
 }
 
 impl Features {
@@ -118,6 +119,10 @@ impl Features {
                         .map_or(false, |sq| pawn_ahead[!color as usize].has(sq)))
             {
                 self.passed_pawn[sq.rank() as usize] += inc;
+
+                if count_attack_map[!color as usize][unflipped_sq as usize] > 0 {
+                    self.passer_attacked += inc;
+                }
             }
 
             if piece == Piece::Pawn
