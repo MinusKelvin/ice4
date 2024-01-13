@@ -283,10 +283,10 @@ struct Board {
                             break;
                         }
                         square_flags[raysq] |= square_flags[raysq] + attacker_bit;
+                        eval += mob_sign * MOBILITY[piece];
                         if (board[raysq] & color) {
                             break;
                         }
-                        eval += mob_sign * MOBILITY[piece];
                         if (board[raysq] & other) {
                             if (moving) {
                                 list[count++] = Move(sq, raysq);
