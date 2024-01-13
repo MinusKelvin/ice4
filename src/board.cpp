@@ -308,6 +308,7 @@ struct Board {
                 int flipped_rank = board[sq] & WHITE ? rank : 7 - rank;
                 int own_flags = board[sq] & WHITE ? 0 : 16;
                 int opp_flags = 16 - own_flags;
+                int king_file = king_sq[!(board[sq] & WHITE)] % 10 - 1;
 
                 if (square_flags[sq] & 0x3000) {
                     int attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
@@ -349,6 +350,10 @@ struct Board {
 
                 if (piece == ROOK && square_flags[sq] >> own_flags & PAWN_BEHIND) {
                     eval += sign * ROOK_BEHIND_PAWN;
+                }
+
+                if (piece == PAWN && file >= king_file - 1 && file <= king_file + 1) {
+                    eval += sign * NEAR_PAWN_RANK[flipped_rank];
                 }
 
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];

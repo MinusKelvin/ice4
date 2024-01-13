@@ -19,6 +19,7 @@ pub struct Features {
     tempo: f32,
     rook_behind_pawn: f32,
     bishop_pair: f32,
+    near_pawn_rank: [f32; 8],
 }
 
 impl Features {
@@ -143,6 +144,10 @@ impl Features {
                     && piece_attack_map[!color as usize][p as usize][unflipped_sq as usize] > 0
             }) {
                 self.under_threat[piece as usize] += inc;
+            }
+
+            if piece == Piece::Pawn && (sq.file() as i32 - board.king(color).file() as i32).abs() <= 1 {
+                self.near_pawn_rank[sq.rank() as usize] += inc;
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
