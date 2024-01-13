@@ -16,6 +16,7 @@ pub struct Features {
     king_attacks: f32,
     double_king_attacks: f32,
     under_threat: [f32; 6],
+    tempo: f32,
 }
 
 impl Features {
@@ -140,5 +141,10 @@ impl Features {
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
             self.piece_file[piece as usize][sq.file() as usize] += inc;
         }
+
+        self.tempo = match board.side_to_move() {
+            Color::White => 1.0,
+            Color::Black => -1.0,
+        };
     }
 }
