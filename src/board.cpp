@@ -351,6 +351,10 @@ struct Board {
                     eval += sign * ROOK_BEHIND_PAWN;
                 }
 
+                if (piece == KING && square_flags[sq] >> own_flags & PAWN_BEHIND) {
+                    eval += sign * KING_BEHIND_PAWN;
+                }
+
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
                 eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }
