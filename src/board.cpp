@@ -347,6 +347,10 @@ struct Board {
                     eval += sign * THREATENED[piece];
                 }
 
+                if (piece == ROOK && square_flags[sq] >> own_flags & PAWN_BEHIND) {
+                    eval += sign * ROOK_BEHIND_PAWN;
+                }
+
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];
                 eval += sign * PIECE_FILE[(piece-1) * 8 + file];
             }

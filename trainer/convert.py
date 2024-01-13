@@ -42,6 +42,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("DOUBLE_KING_ATTACKS")
     array_param("THREATENED", 6, leading_zero=True)
     define_param("TEMPO")
+    define_param("ROOK_BEHIND_PAWN")
 
     print()
     for name, mg, eg in defines:

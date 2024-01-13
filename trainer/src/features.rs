@@ -17,6 +17,7 @@ pub struct Features {
     double_king_attacks: f32,
     under_threat: [f32; 6],
     tempo: f32,
+    rook_behind_pawn: f32,
 }
 
 impl Features {
@@ -129,6 +130,10 @@ impl Features {
             
             if piece == Piece::Pawn && pawn_ahead[color as usize].has(unflipped_sq) {
                 self.doubled_pawn += inc;
+            }
+
+            if piece == Piece::Rook && pawn_behind[color as usize].has(unflipped_sq) {
+                self.rook_behind_pawn += inc;
             }
 
             if Piece::ALL.iter().any(|&p| {
