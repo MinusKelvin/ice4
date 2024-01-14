@@ -20,6 +20,7 @@ pub struct Features {
     rook_behind_pawn: f32,
     bishop_pair: f32,
     passer_attacked: f32,
+    queen_attacking_king: f32,
 }
 
 impl Features {
@@ -89,11 +90,17 @@ impl Features {
                 let attacks = count_attack_map[Color::Black as usize][sq as usize];
                 self.king_attacks -= attacks as f32;
                 self.double_king_attacks -= (attacks >= 2) as i32 as f32;
+                if piece_attack_map[Color::Black as usize][Piece::Queen as usize][sq as usize] > 0 {
+                    self.queen_attacking_king -= 1.0;
+                }
             }
             if piece_attack_map[Color::Black as usize][Piece::King as usize][sq as usize] > 0 {
                 let attacks = count_attack_map[Color::White as usize][sq as usize];
                 self.king_attacks += attacks as f32;
                 self.double_king_attacks += (attacks >= 2) as i32 as f32;
+                if piece_attack_map[Color::White as usize][Piece::Queen as usize][sq as usize] > 0 {
+                    self.queen_attacking_king += 1.0;
+                }
             }
         }
 

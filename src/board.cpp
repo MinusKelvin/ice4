@@ -313,11 +313,17 @@ struct Board {
                     int attacks = __builtin_popcount(square_flags[sq] >> 16 & 0xFFFC);
                     eval -= KING_ATTACKS * attacks;
                     eval -= DOUBLE_KING_ATTACKS * (attacks >= 2);
+                    if (square_flags[sq] >> 16 & 0x0C00) {
+                        eval -= QUEEN_ATTACKING_KING;
+                    }
                 }
                 if (square_flags[sq] >> 16 & 0x3000) {
                     int attacks = __builtin_popcount(square_flags[sq] & 0xFFFC);
                     eval += KING_ATTACKS * attacks;
                     eval += DOUBLE_KING_ATTACKS * (attacks >= 2);
+                    if (square_flags[sq] & 0x0C00) {
+                        eval += QUEEN_ATTACKING_KING;
+                    }
                 }
 
                 if (!piece) {
