@@ -319,6 +319,12 @@ struct Board {
                     eval += KING_ATTACKS * attacks;
                     eval += DOUBLE_KING_ATTACKS * (attacks >= 2);
                 }
+                if (square_flags[sq] & 0xFFF0 && square_flags[sq] >> 16 & 0xC) {
+                    eval += RESTRICTED_MOBILITY;
+                }
+                if (square_flags[sq] >> 16 & 0xFFF0 && square_flags[sq] & 0xC) {
+                    eval -= RESTRICTED_MOBILITY;
+                }
 
                 if (!piece) {
                     continue;
