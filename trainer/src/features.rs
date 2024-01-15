@@ -20,6 +20,7 @@ pub struct Features {
     rook_behind_pawn: f32,
     bishop_pair: f32,
     passer_attacked: f32,
+    knight_outpost: f32,
 }
 
 impl Features {
@@ -148,6 +149,20 @@ impl Features {
                     && piece_attack_map[!color as usize][p as usize][unflipped_sq as usize] > 0
             }) {
                 self.under_threat[piece as usize] += inc;
+            }
+
+            if sq.rank() > Rank::Fourth
+                && !unflipped_sq
+                    .try_offset(-1, 0)
+                    .map_or(false, |sq| pawn_ahead[!color as usize].has(sq))
+                && !unflipped_sq
+                    .try_offset(1, 0)
+                    .map_or(false, |sq| pawn_ahead[!color as usize].has(sq))
+                && piece_attack_map[color as usize][Piece::Pawn as usize][unflipped_sq as usize] > 0
+            {
+                if piece == Piece::Knight {
+                    self.knight_outpost += inc;
+                }
             }
 
             self.piece_rank[piece as usize][sq.rank() as usize] += inc;
