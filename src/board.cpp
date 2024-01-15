@@ -330,6 +330,10 @@ struct Board {
                     square_flags[sq+1] >> opp_flags & PAWN_AHEAD
                 )) {
                     eval += sign * PASSED_PAWN[flipped_rank];
+                    eval += sign * PASSER_OPP_KING_DIST * min(
+                        abs(king_sq[!(board[sq] & BLACK)] % 10 - 1 - file),
+                        abs(king_sq[!(board[sq] & BLACK)] / 10 - 2 - rank)
+                    );
 
                     if (square_flags[sq] >> opp_flags & 0xFFFC) {
                         eval += sign * PASSER_ATTACKED;

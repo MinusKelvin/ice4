@@ -20,6 +20,7 @@ pub struct Features {
     rook_behind_pawn: f32,
     bishop_pair: f32,
     passer_attacked: f32,
+    passer_opp_king_dist: f32,
 }
 
 impl Features {
@@ -123,6 +124,8 @@ impl Features {
                 if count_attack_map[!color as usize][unflipped_sq as usize] > 0 {
                     self.passer_attacked += inc;
                 }
+
+                self.passer_opp_king_dist += inc * distance(unflipped_sq, board.king(!color)) as f32;
             }
 
             if piece == Piece::Pawn
@@ -163,4 +166,10 @@ impl Features {
             - (board.colored_pieces(Color::Black, Piece::Bishop).len() >= 2) as i32)
             as f32;
     }
+}
+
+fn distance(sq1: Square, sq2: Square) -> i32 {
+    let file = sq1.file() as i32 - sq2.file() as i32;
+    let rank = sq1.rank() as i32 - sq2.rank() as i32;
+    file.abs().min(rank.abs())
 }
