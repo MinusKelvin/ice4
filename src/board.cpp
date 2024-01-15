@@ -353,6 +353,8 @@ struct Board {
 
                 if (piece == ROOK && square_flags[sq] >> own_flags & PAWN_BEHIND) {
                     eval += sign * ROOK_BEHIND_PAWN;
+                } else if (piece == ROOK && square_flags[sq] >> opp_flags & PAWN_AHEAD) {
+                    eval += sign * ROOK_AHEAD_OPP_PAWN;
                 }
 
                 eval += sign * PIECE_RANK[(piece-1) * 8 + flipped_rank];

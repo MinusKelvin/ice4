@@ -20,6 +20,7 @@ pub struct Features {
     rook_behind_pawn: f32,
     bishop_pair: f32,
     passer_attacked: f32,
+    rook_ahead_opp_pawn: f32,
 }
 
 impl Features {
@@ -141,6 +142,8 @@ impl Features {
 
             if piece == Piece::Rook && pawn_behind[color as usize].has(unflipped_sq) {
                 self.rook_behind_pawn += inc;
+            } else if piece == Piece::Rook && pawn_ahead[!color as usize].has(unflipped_sq) {
+                self.rook_ahead_opp_pawn += inc;
             }
 
             if Piece::ALL.iter().any(|&p| {
