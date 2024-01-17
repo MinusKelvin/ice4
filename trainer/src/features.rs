@@ -29,6 +29,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    king_ring_double_attacks: f32,
 }
 
 impl Features {
@@ -55,6 +56,8 @@ impl Features {
     }
 
     pub fn extract(&mut self, board: &Board) {
+        let mut attacks = [BitBoard::EMPTY; 2];
+        let mut attacks2 = [BitBoard::EMPTY; 2];
         for &piece in &Piece::ALL {
             for unflipped_square in board.pieces(piece) {
                 let color = board.color_on(unflipped_square).unwrap();
@@ -116,11 +119,19 @@ impl Features {
                     }
                     Piece::King => get_king_moves(unflipped_square),
                 };
+
+                attacks2[color as usize] |= mob & attacks[color as usize];
+                attacks[color as usize] |= mob;
+
                 self.king_ring_attacks +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
             }
         }
+
+        self.king_ring_double_attacks = (attacks2[0] & get_king_moves(board.king(Color::Black)))
+            .len() as f32
+            - (attacks2[1] & get_king_moves(board.king(Color::White))).len() as f32;
 
         for &color in &Color::ALL {
             for square in board.pieces(Piece::Pawn) & board.colors(color) {
