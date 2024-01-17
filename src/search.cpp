@@ -181,6 +181,10 @@ struct Searcher {
                 continue;
             }
 
+            if (depth > 0 && depth < 5 && !victim && !mkmove.check && eval + 100 * depth < alpha) {
+                continue;
+            }
+
             conthist_stack[ply] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
