@@ -115,10 +115,12 @@ impl Features {
                             | get_rook_moves(unflipped_square, board.occupied())
                     }
                     Piece::King => get_king_moves(unflipped_square),
-                };
+                } & !board.colors(color);
+
                 self.king_ring_attacks +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
-                self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
+
+                self.mobility[piece as usize] += inc * mob.len() as f32;
             }
         }
 
