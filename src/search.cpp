@@ -17,7 +17,7 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    HTable history;
+    HTable history[2];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -111,7 +111,7 @@ struct Searcher {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
+                score[j] = history[board.check][board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
@@ -245,7 +245,7 @@ struct Searcher {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
-                        hist = &history[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
+                        hist = &history[board.check][board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         if (ply) {
                             hist = &(*conthist_stack[ply - 1])[board.board[moves[j].from] - WHITE_PAWN][moves[j].to-A1];
@@ -256,7 +256,7 @@ struct Searcher {
                             *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         }
                     }
-                    hist = &history[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                    hist = &history[board.check][board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     if (ply) {
                         hist = &(*conthist_stack[ply - 1])[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
