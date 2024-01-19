@@ -347,7 +347,8 @@ struct Board {
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
         int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair;
+        int castling = !castle_rights[1] - !castle_rights[0];
+        int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair + HAS_CASTLE_RIGHTS * castling;
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte

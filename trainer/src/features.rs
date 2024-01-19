@@ -29,6 +29,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    castle_rights: f32,
 }
 
 impl Features {
@@ -177,6 +178,12 @@ impl Features {
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 >> 9);
         let pawn_attacks_left = BitBoard((pawns & !File::H.bitboard()).0 >> 7);
         self.protected_pawn -= ((pawn_attacks_left | pawn_attacks_right) & pawns).len() as f32;
+
+        let wcastles = board.castle_rights(Color::White);
+        let wcastles = wcastles.short.is_some() || wcastles.long.is_some();
+        let bcastles = board.castle_rights(Color::Black);
+        let bcastles = bcastles.short.is_some() || bcastles.long.is_some();
+        self.castle_rights = (wcastles as i32 - bcastles as i32) as f32;
 
         for color in Color::ALL {
             let inc = match color {
