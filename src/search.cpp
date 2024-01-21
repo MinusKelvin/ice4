@@ -211,7 +211,7 @@ struct Searcher {
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte
-                reduction -= score[i] / 2320;
+                reduction -= score[i] / 1700;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
