@@ -90,13 +90,6 @@ struct Searcher {
             }
         }
 
-        // Internal Iterative Deepening: 24 bytes (bd674e0 vs 98a56ea)
-        // 8.0+0.08: 67.08 +- 5.38 (4027 - 2120 - 3853) 2.80 elo/byte
-        // 60.0+0.6: 94.47 +- 4.95 (3952 - 1298 - 4750) 3.94 elo/byte
-        if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 5, ply);
-        }
-
         for (int j = 0; j < mvcount; j++) {
             if (hashmv.from == moves[j].from && hashmv.to == moves[j].to) {
                 score[j] = 1e6;
