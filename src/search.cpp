@@ -300,12 +300,7 @@ struct Searcher {
         int last_score = 0;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
-                int window = 7;
-                int v = last_score + window;
-                while (v <= last_score - window || v >= last_score + window) {
-                    window *= 2;
-                    v = negamax(ROOT, mv, last_score - window, last_score + window, depth, 0);
-                }
+                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
                 v = 100;
