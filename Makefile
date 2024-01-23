@@ -33,6 +33,9 @@ ice4-asan: $(DEPS)
 ice4-usan: $(DEPS)
 	g++ -DOPENBENCH -g -fsanitize=undefined -pthread src/main.cpp -o "$@"
 
+qs_filter: $(DEPS)
+	g++ -DOPENBENCH -g -O3 -pthread src/qs_filter.cpp -o "$@"
+
 logo.png: ice4 logo_template.png
 	python3 make_ice4_logo.py < ice4
 

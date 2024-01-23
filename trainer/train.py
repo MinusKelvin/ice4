@@ -1,9 +1,9 @@
-import torch, numpy, ctypes, json, subprocess, convert, os
+import torch, numpy, ctypes, json, subprocess, convert, os, sys
 
 from time import time, strftime
 
 BATCH_SIZE = 16384
-DATASET_PATH = "data/frzn-big3.bin"
+DATASET_PATH = sys.argv[1] if len(sys.argv) > 1 else "data/frzn-big3.bin"
 
 subprocess.run(["cargo", "build", "--release", "-p", "trainer"])
 
