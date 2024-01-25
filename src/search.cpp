@@ -71,7 +71,10 @@ struct Searcher {
         }
 
         if (!pv && depth == 1 && eval <= alpha - 213) {
-            return negamax(board, bestmv, alpha, beta, 0, ply);
+            int score = negamax(board, bestmv, alpha, beta, 0, ply);
+            if (score <= alpha) {
+                return score;
+            }
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
