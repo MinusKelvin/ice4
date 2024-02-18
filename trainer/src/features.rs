@@ -28,7 +28,7 @@ pub struct Features {
     king_on_open_file: f32,
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
-    king_ring_attacks: f32,
+    king_ring_attacks: [f32; 6],
 }
 
 impl Features {
@@ -116,7 +116,7 @@ impl Features {
                     }
                     Piece::King => get_king_moves(unflipped_square),
                 };
-                self.king_ring_attacks +=
+                self.king_ring_attacks[piece as usize] +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
             }
