@@ -29,6 +29,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    queen_bishop_battery: f32,
 }
 
 impl Features {
@@ -116,6 +117,11 @@ impl Features {
                     }
                     Piece::King => get_king_moves(unflipped_square),
                 };
+
+                if piece == Piece::Queen && !(mob & board.colored_pieces(color, Piece::Bishop)).is_empty() {
+                    self.queen_bishop_battery += inc;
+                }
+
                 self.king_ring_attacks +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;

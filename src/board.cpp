@@ -264,6 +264,9 @@ struct Board {
                     for (int j = 0; j < LIMITS[piece]; j++) {
                         raysq += RAYS[i];
                         if (board[raysq] & stm) {
+                            if (piece == QUEEN && (board[raysq] & 7) == BISHOP) {
+                                mobility += QUEEN_BISHOP_BATTERY;
+                            }
                             break;
                         }
                         mobility += MOBILITY[piece] + king_ring[raysq];
