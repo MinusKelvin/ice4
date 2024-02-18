@@ -29,6 +29,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    rook_opp_queen_file: f32,
 }
 
 impl Features {
@@ -69,6 +70,9 @@ impl Features {
                         self.rook_on_open_file += inc;
                     } else if board.colored_pieces(color, Piece::Pawn).is_disjoint(file) {
                         self.rook_on_semiopen_file += inc;
+                    }
+                    if !board.colored_pieces(!color, Piece::Queen).is_disjoint(file) {
+                        self.rook_opp_queen_file += inc;
                     }
                 }
 

@@ -43,6 +43,7 @@ struct Board {
     uint8_t king_sq[2];
     uint8_t pawn_counts[2][10];
     uint8_t rook_counts[2][8];
+    uint8_t queen_counts[2][8];
     uint8_t ep_square;
     uint8_t stm;
     uint8_t phase;
@@ -60,6 +61,9 @@ struct Board {
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
         }
+        if ((board[square] & 7) == QUEEN) {
+            queen_counts[!(board[square] & WHITE)][square % 10 - 1]--;
+        }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]--;
         } else {
@@ -73,6 +77,9 @@ struct Board {
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
+        }
+        if ((board[square] & 7) == QUEEN) {
+            queen_counts[!(board[square] & WHITE)][square % 10 - 1]++;
         }
         if ((board[square] & 7) == PAWN) {
             pawn_counts[!(board[square] & WHITE)][square % 10]++;
@@ -357,6 +364,12 @@ struct Board {
             }
             if (!pawn_counts[1][file]) {
                 e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
+            }
+            if (queen_counts[1][file-1]) {
+                e += rook_counts[0][file-1] * ROOK_OPP_QUEEN_FILE;
+            }
+            if (queen_counts[0][file-1]) {
+                e -= rook_counts[1][file-1] * ROOK_OPP_QUEEN_FILE;
             }
         }
         stm_eval += stm == WHITE ? e : -e;

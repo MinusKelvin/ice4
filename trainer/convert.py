@@ -85,6 +85,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
+    define_param("ROOK_OPP_QUEEN_FILE")
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
