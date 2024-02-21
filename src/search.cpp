@@ -9,6 +9,7 @@ double now() {
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
+int STABILITY;
 Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
@@ -305,11 +306,16 @@ struct Searcher {
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     double nodes_fraction = (double) root_nodes[mv.from-A1][mv.to-A1] / nodes;
+                    if (BEST_MOVE.from == mv.from && BEST_MOVE.to == mv.to) {
+                        STABILITY++;
+                    } else {
+                        STABILITY = 1;
+                    }
                     BEST_MOVE = mv;
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put_with_newline();
                     FINISHED_DEPTH = depth;
-                    if (now() - start > time_alotment * 0.05 * (1.5 - nodes_fraction)) {
+                    if (now() - start > time_alotment * 0.1 * (1.5 - nodes_fraction) / min(STABILITY, 4)) {
                         depth = max_depth;
                     }
                 }
