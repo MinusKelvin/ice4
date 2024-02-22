@@ -152,7 +152,6 @@ struct Searcher {
             swap(score[i], score[best_so_far]);
 
             int victim = board.board[moves[i].to] & 7;
-            int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
             int opp_pawn = (board.stm ^ INVALID) | PAWN;
             int pawn_attacked =
@@ -167,13 +166,6 @@ struct Searcher {
             // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
             if (!(quiets_to_check -= !victim)) {
                 break;
-            }
-
-            // Delta Pruning: 37 bytes (939b3de vs 4cabdf1)
-            // 8.0+0.08: 25.30 +- 5.11 (3175 - 2448 - 4377) 0.68 elo/byte
-            // 60.0+0.6: 21.67 +- 4.55 (2551 - 1928 - 5521) 0.59 elo/byte
-            if (depth <= 0 && eval + deltas[victim] <= alpha) {
-                continue;
             }
 
             Board mkmove = board;
