@@ -218,7 +218,7 @@ struct Searcher {
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth - (reduction > 3), ply + 1);
                 }
             } else {
                 // first legal move is always searched with full window
