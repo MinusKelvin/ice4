@@ -13,6 +13,10 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[16][SQUARE_SPAN];
 
+double LMR_BASE = 0;
+double LMR_MOVE = 0.114;
+double LMR_DEPTH = 0.75;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -201,7 +205,7 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                int reduction = legals * 0.144 + 0.75 * LOG[max(depth, 0)];
+                int reduction = LMR_BASE + legals * LMR_MOVE + LMR_DEPTH * LOG[max(depth, 0)];
                 // History Reduction: 6 bytes (bf488d7 vs 0e2f650)
                 // 8.0+0.08: 17.60 +- 5.06 (3011 - 2505 - 4484) 2.93 elo/byte
                 // 60.0+0.6: 48.01 +- 4.69 (3062 - 1689 - 5249) 8.00 elo/byte

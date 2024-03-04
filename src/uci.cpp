@@ -44,6 +44,15 @@ void uci() {
                     case 'T':
                         THREADS = value;
                         break;
+                    case 'a':
+                        LMR_BASE = value / 100.0;
+                        break;
+                    case 'b':
+                        LMR_MOVE = value / 100.0;
+                        break;
+                    case 'c':
+                        LMR_DEPTH = value / 100.0;
+                        break;
                 }
                 break;
 #endif
