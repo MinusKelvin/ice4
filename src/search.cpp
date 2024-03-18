@@ -135,6 +135,47 @@ struct Searcher {
             return best;
         }
 
+        int pc_beta = beta + 250;
+        if (depth > 4 && !pv && eval >= pc_beta) {
+            for (int i = 0; i < mvcount; i++) {
+                int best_so_far = i;
+                for (int j = i+1; j < mvcount; j++) {
+                    if (score[j] > score[best_so_far]) {
+                        best_so_far = j;
+                    }
+                }
+                swap(moves[i], moves[best_so_far]);
+                swap(score[i], score[best_so_far]);
+
+                if (!board.board[moves[i].to]) {
+                    if (!i) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+
+                Board mkmove = board;
+                if (mkmove.make_move(moves[i])) {
+                    continue;
+                }
+
+                conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to-A1];
+                if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+                    throw 0;
+                }
+
+                int v = -negamax(mkmove, scratch, -pc_beta, -pc_beta+1, 0, ply + 1);
+
+                if (v >= pc_beta) {
+                    v = -negamax(mkmove, scratch, -pc_beta, -pc_beta+1, depth - 4, ply + 1);
+                }
+                if (v >= pc_beta) {
+                    return v;
+                }
+            }
+        }
+
         int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
 
         int raised_alpha = 0;
