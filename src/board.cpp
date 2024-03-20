@@ -364,7 +364,7 @@ struct Board {
     }
 } ROOT;
 
-uint64_t PREHISTORY[256];
+uint64_t PREHISTORY[9999];
 int PREHISTORY_LENGTH = 0;
 
 #ifdef OPENBENCH

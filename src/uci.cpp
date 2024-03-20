@@ -65,9 +65,6 @@ void uci() {
                         move[3] * 10 + move[2] - 566,
                         !!move[4]
                     );
-                    if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
-                        PREHISTORY_LENGTH = 0;
-                    }
                     // maps promotion chars to piece enums
                     //       'q'    'r'    'b'    'n'    '\0' 
                     // cast  113    114    98     110    0
