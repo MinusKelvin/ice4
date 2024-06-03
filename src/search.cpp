@@ -199,7 +199,6 @@ struct Searcher {
             }
 
             int v;
-            int next_depth = depth - 1 + mkmove.check;
             uint64_t old_nodes = nodes;
 
             if (is_rep) {
@@ -211,7 +210,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
+                int reduction = legals * 0.114 + depth * 0.152 - mkmove.check;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
@@ -219,19 +218,19 @@ struct Searcher {
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1 - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
             if (!ply) {
                 root_nodes[moves[i].from-A1][moves[i].to-A1] += nodes - old_nodes;
