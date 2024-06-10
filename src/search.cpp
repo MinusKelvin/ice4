@@ -307,12 +307,18 @@ struct Searcher {
                 int delta = 7;
                 int lower = last_score;
                 int upper = last_score;
-                int v = last_score;
-                while (v <= lower || v >= upper) {
-                    lower = lower > v ? v : lower;
-                    upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                int v;
+                for (;;) {
                     delta *= 2;
+                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                    if (v <= lower) {
+                        upper = (lower + upper) / 2;
+                        lower = v;
+                    } else if (v >= upper) {
+                        upper = v;
+                    } else {
+                        break;
+                    }
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
