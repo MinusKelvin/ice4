@@ -305,14 +305,19 @@ struct Searcher {
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
                 int delta = 7;
-                int lower = last_score;
-                int upper = last_score;
-                int v = last_score;
-                while (v <= lower || v >= upper) {
-                    lower = lower > v ? v : lower;
-                    upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                int lower = last_score - delta;
+                int upper = last_score + delta;
+                int v;
+                for (;;) {
+                    v = negamax(ROOT, mv, lower, upper, depth, 0);
                     delta *= 2;
+                    if (v <= lower) {
+                        lower = v - delta;
+                    } else if (v >= upper) {
+                        upper = v + delta;
+                    } else {
+                        break;
+                    }
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
