@@ -1,6 +1,5 @@
 ifdef EXE
 default: $(EXE)
-NOADJ = -DAVOID_ADJUDICATION
 else
 default: ice4
 EXE = ice4-ob
@@ -22,7 +21,7 @@ ice4.exe: $(DEPS)
 	x86_64-w64-mingw32-g++ -Wl,--stack,16777216 -DOPENBENCH -O3 -pthread -static src/main.cpp -o "$@"
 
 $(EXE): $(DEPS)
-	g++ -DOPENBENCH $(NOADJ) -g -O3 -pthread src/main.cpp -o "$@"
+	g++ -DOPENBENCH -g -O3 -pthread src/main.cpp -o "$@"
 
 ice4-min-ob: $(DEPS)
 	cargo run --release openbench | g++ -O3 -pthread -xc++ -o "$@" -

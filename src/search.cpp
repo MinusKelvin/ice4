@@ -29,7 +29,7 @@ struct Searcher {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
-        int mvcount, scratch_int;
+        int mvcount;
 
         int pv = beta > alpha+1;
 
@@ -298,26 +298,21 @@ struct Searcher {
         start = now();
         abort_time = start + time_alotment * 0.5;
         Move mv;
-        int last_score = 0;
+        int v = 0;
         try {
             for (int depth = 1; depth <= max_depth; depth++) {
                 // Aspiration windows: 23 bytes (v4)
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
                 int delta = 7;
-                int lower = last_score;
-                int upper = last_score;
-                int v = last_score;
+                int lower = v;
+                int upper = v;
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 2;
                 }
-                last_score = v;
-#ifdef AVOID_ADJUDICATION
-                v = 100;
-#endif
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
                     double nodes_fraction = (double) root_nodes[mv.from-A1][mv.to-A1] / nodes;
