@@ -311,8 +311,8 @@ struct Searcher {
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 2;
+                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                 }
                 last_score = v;
 #ifdef AVOID_ADJUDICATION
