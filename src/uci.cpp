@@ -98,7 +98,7 @@ void uci() {
 #endif
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
                 ABORT = 0;
-                FINISHED_DEPTH = 0;
+                MOVE_SCORE = 0;
                 vector<thread> threads;
                 for (int i = 0; i < THREADS; i++) {
                     threads.emplace_back([time_alotment]() {
