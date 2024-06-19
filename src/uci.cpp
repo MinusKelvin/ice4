@@ -97,6 +97,7 @@ void uci() {
                 btime = atoi(strtok(0, " \n"));
 #endif
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
+                ROOT.movegen(MOVES, COUNT, 1, wtime);
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
                 vector<thread> threads;
@@ -130,7 +131,13 @@ void uci() {
                     threads[i].join();
                 }
                 printf("bestmove ");
-                BEST_MOVE.put_with_newline();
+                int max = 0;
+                for (int i = 0; i < COUNT; i++) {
+                    if (VOTES[i] > VOTES[max]) {
+                        max = i;
+                    }
+                }
+                MOVES[max].put_with_newline();
         }
     }
 }
