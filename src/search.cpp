@@ -312,19 +312,22 @@ struct Searcher {
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 2;
-                }
-                MUTEX.lock();
-                if (FINISHED_DEPTH < depth) {
-                    double nodes_fraction = (double) root_nodes[mv.from-A1][mv.to-A1] / nodes;
-                    BEST_MOVE = mv;
-                    printf("info depth %d score cp %d pv ", depth, v);
-                    mv.put_with_newline();
-                    FINISHED_DEPTH = depth;
-                    if (now() - start > time_alotment * 0.05 * (1.5 - nodes_fraction)) {
-                        depth = max_depth;
+                    if (v > lower) {
+                        int score = depth * 2 + (v < upper);
+                        MUTEX.lock();
+                        if (FINISHED_DEPTH < score) {
+                            double nodes_fraction = (double) root_nodes[mv.from-A1][mv.to-A1] / nodes;
+                            BEST_MOVE = mv;
+                            printf("info depth %d score cp %d pv ", depth, v);
+                            mv.put_with_newline();
+                            FINISHED_DEPTH = score;
+                            if (now() - start > time_alotment * 0.05 * (1.5 - nodes_fraction)) {
+                                depth = max_depth;
+                            }
+                        }
+                        MUTEX.unlock();
                     }
                 }
-                MUTEX.unlock();
             }
         } catch (...) {}
     }
