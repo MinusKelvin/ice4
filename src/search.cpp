@@ -1,4 +1,5 @@
 #define MAX_HIST 4096
+#define CORR_HIST_SIZE 16384
 
 double now() {
     timespec t;
@@ -18,6 +19,7 @@ struct Searcher {
     double abort_time;
     double start;
     int16_t evals[256];
+    int64_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
@@ -58,7 +60,8 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 256;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -285,6 +288,13 @@ struct Searcher {
                 tt.mv = bestmv;
             }
             slot.store(tt, memory_order_relaxed);
+            if (!board.check && !board.board[bestmv.to] && (
+                tt.bound == BOUND_UPPER && best < evals[ply] ||
+                tt.bound == BOUND_LOWER && best > evals[ply]
+            )) {
+                int bonus = depth * depth * clamp(best - evals[ply], -16, 16);
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] += bonus - abs(bonus) * corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / MAX_HIST;
+            }
         }
 
         return best;

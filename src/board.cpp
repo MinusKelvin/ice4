@@ -51,6 +51,7 @@ struct Board {
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
+    uint64_t pawn_hash;
 
     void edit(int square, int piece) {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
@@ -61,6 +62,7 @@ struct Board {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
         }
         if ((board[square] & 7) == PAWN) {
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
             pawn_counts[!(board[square] & WHITE)][square % 10]--;
         } else {
             inc_eval -= PST[board[square]][square-A1];
@@ -75,6 +77,7 @@ struct Board {
             rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
         }
         if ((board[square] & 7) == PAWN) {
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
             pawn_counts[!(board[square] & WHITE)][square % 10]++;
         } else {
             inc_eval += PST[board[square]][square-A1];
