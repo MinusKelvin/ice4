@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::parse::*;
 
@@ -13,8 +13,8 @@ struct Scope<'p> {
 
 pub struct Identifier {
     kind: IdentKind,
-    pub others_in_scope: Vec<usize>,
-    pub occurances: usize,
+    pub conflicting: HashSet<usize>,
+    pub occurrences: usize,
 }
 
 enum IdentKind {
@@ -63,6 +63,18 @@ impl<'a> Scope<'a> {
             parent.in_scope(f);
         }
     }
+
+    fn in_scope_until(&self, reached: usize, mut f: impl FnMut(usize)) {
+        for &v in self.variables.values() {
+            if v == reached {
+                return;
+            }
+            f(v);
+        }
+        if let Some(parent) = self.parent {
+            parent.in_scope(f);
+        }
+    }
 }
 
 impl Symbols {
@@ -70,8 +82,8 @@ impl Symbols {
         let id = self.symbols.len();
         self.symbols.push(Identifier {
             kind: IdentKind::Ident(self.get_type(base, form)),
-            others_in_scope: vec![],
-            occurances: 0,
+            conflicting: HashSet::new(),
+            occurrences: 0,
         });
         id
     }
@@ -82,8 +94,8 @@ impl Symbols {
             kind: IdentKind::Ident(TypeOf::Function(Box::new(
                 self.get_type(ret_type, &function.decl_form),
             ))),
-            others_in_scope: vec![],
-            occurances: 0,
+            conflicting: HashSet::new(),
+            occurrences: 0,
         });
         id
     }
@@ -92,8 +104,8 @@ impl Symbols {
         let id = self.symbols.len();
         self.symbols.push(Identifier {
             kind: IdentKind::Type(Struct::default()),
-            others_in_scope: vec![],
-            occurances: 0,
+            conflicting: HashSet::new(),
+            occurrences: 0,
         });
         id
     }
@@ -149,18 +161,24 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
         variables: HashMap::new(),
     };
 
+    for tl in &mut *ast {
+        if let TopLevel::Function(f) = tl {
+            process_function_decl(&mut symbols, &mut scope, f);
+        }
+    }
+
     for tl in ast {
         match tl {
             TopLevel::Declaration(d) => process_declaration(&mut symbols, &mut scope, d),
             TopLevel::Using(_) => {}
-            TopLevel::Function(f) => process_function(&mut symbols, &mut scope, f),
+            TopLevel::Function(f) => process_function_body(&mut symbols, &mut scope, f),
             TopLevel::TypeDef(ty, form) => {
                 process_base_type(&mut symbols, &mut scope, ty);
                 if let Some(name) = get_name_mut(form) {
                     let id = symbols.declare_type();
                     scope.in_scope(|id2| {
-                        symbols.symbols[id].others_in_scope.push(id2);
-                        symbols.symbols[id2].others_in_scope.push(id);
+                        symbols.symbols[id].conflicting.insert(id2);
+                        symbols.symbols[id2].conflicting.insert(id);
                     });
                     scope.define(name.clone(), id);
                     *name = format!("${id}");
@@ -169,23 +187,28 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
             TopLevel::Struct(name, members, vars) => {
                 let id = symbols.declare_type();
                 scope.in_scope(|id2| {
-                    symbols.symbols[id].others_in_scope.push(id2);
-                    symbols.symbols[id2].others_in_scope.push(id);
+                    symbols.symbols[id].conflicting.insert(id2);
+                    symbols.symbols[id2].conflicting.insert(id);
                 });
                 scope.define(name.clone(), id);
                 *name = format!("${id}");
                 let mut member_scope = Scope::new(&scope);
+                for item in &mut *members {
+                    if let MemberItem::Method(f) = item {
+                        process_function_decl(&mut symbols, &mut member_scope, f);
+                    }
+                }
                 for item in members {
                     match item {
                         MemberItem::Field(d) => {
                             process_declaration(&mut symbols, &mut member_scope, d);
                         }
                         MemberItem::Method(f) => {
-                            process_function(&mut symbols, &mut member_scope, f);
+                            process_function_body(&mut symbols, &mut member_scope, f);
                         }
                         MemberItem::Constructor(tyname, args, inits, body) => {
                             *tyname = name.clone();
-                            symbols.symbols[id].occurances += 1;
+                            symbols.symbols[id].occurrences += 1;
 
                             let mut scope = Scope::new(&member_scope);
                             for (ty, arg) in args {
@@ -195,7 +218,7 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
 
                             for (member, init) in inits {
                                 if let Some(id) = scope.lookup(member) {
-                                    symbols.symbols[id].occurances += 1;
+                                    symbols.symbols[id].occurrences += 1;
                                     *member = format!("${id}");
                                     process_init(&mut symbols, &mut scope, init);
                                 }
@@ -205,7 +228,7 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
                         }
                         MemberItem::DefaultedConstructor(tyname) => {
                             *tyname = name.clone();
-                            symbols.symbols[id].occurances += 1;
+                            symbols.symbols[id].occurrences += 1;
                         }
                     }
                     symbols.symbols[id].kind.unwrap_type_mut().members =
@@ -222,6 +245,31 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
     symbols
 }
 
+fn declare_conflicts(symbols: &mut Symbols, scope: &Scope, id: usize) {
+    // Add conflicts with variables in the same block scope
+    for &id2 in scope.variables.values() {
+        symbols.symbols[id].conflicting.insert(id2);
+        symbols.symbols[id2].conflicting.insert(id);
+    }
+    scope.in_scope(|id2| {
+        // Add conflicts with types and functions
+        if matches!(
+            symbols.symbols[id2].kind,
+            IdentKind::Type(_) | IdentKind::Ident(TypeOf::Function(_))
+        ) {
+            symbols.symbols[id].conflicting.insert(id2);
+            symbols.symbols[id2].conflicting.insert(id);
+        }
+    });
+}
+
+fn usage_conflicts(symbols: &mut Symbols, scope: &Scope, id: usize) {
+    scope.in_scope_until(id, |id2| {
+        symbols.symbols[id].conflicting.insert(id2);
+        symbols.symbols[id2].conflicting.insert(id);
+    });
+}
+
 fn process_declaration(symbols: &mut Symbols, scope: &mut Scope, decl: &mut Declaration) {
     let ty = process_base_type(symbols, scope, &mut decl.base_type);
     for declexpr in &mut decl.declarations {
@@ -235,17 +283,14 @@ fn process_declexpr(
     base: &TypeOf,
     declexpr: &mut DeclExpr,
 ) {
-    process_init(symbols, scope, &mut declexpr.init);
     let id = symbols.declare(&base, &declexpr.form);
-    symbols.symbols[id].occurances += 1;
-    scope.in_scope(|id2| {
-        symbols.symbols[id].others_in_scope.push(id2);
-        symbols.symbols[id2].others_in_scope.push(id);
-    });
+    symbols.symbols[id].occurrences += 1;
+    declare_conflicts(symbols, scope, id);
     if let Some(name) = get_name_mut(&mut declexpr.form) {
         scope.define(name.clone(), id);
         *name = format!("${id}");
     }
+    process_init(symbols, scope, &mut declexpr.init);
 }
 
 fn process_init(symbols: &mut Symbols, scope: &mut Scope, init: &mut Initializer) {
@@ -262,21 +307,20 @@ fn process_init(symbols: &mut Symbols, scope: &mut Scope, init: &mut Initializer
     }
 }
 
-fn process_function(symbols: &mut Symbols, scope: &mut Scope, f: &mut Function) {
+fn process_function_decl(symbols: &mut Symbols, scope: &mut Scope, f: &mut Function) {
     let ret = process_base_type(symbols, scope, &mut f.base_type);
     if get_name_mut(&mut f.decl_form).map(|s| &**s) != Some("main") {
         let id = symbols.declare_function(&ret, f);
-        symbols.symbols[id].occurances += 1;
-        scope.in_scope(|id2| {
-            symbols.symbols[id].others_in_scope.push(id2);
-            symbols.symbols[id2].others_in_scope.push(id);
-        });
+        symbols.symbols[id].occurrences += 1;
+        declare_conflicts(symbols, scope, id);
         if let Some(name) = get_name_mut(&mut f.decl_form) {
             scope.define(name.clone(), id);
             *name = format!("${id}");
         }
     }
+}
 
+fn process_function_body(symbols: &mut Symbols, scope: &mut Scope, f: &mut Function) {
     let mut scope = Scope::new(scope);
 
     for (ty, declexpr) in &mut f.args {
@@ -284,19 +328,21 @@ fn process_function(symbols: &mut Symbols, scope: &mut Scope, f: &mut Function) 
         process_declexpr(symbols, &mut scope, &ty, declexpr);
     }
 
-    process_statements(symbols, &mut scope, &mut f.body);
+    process_statements_noscope(symbols, &mut scope, &mut f.body);
 }
 
 fn process_statements(symbols: &mut Symbols, scope: &mut Scope, block: &mut [Statement]) {
-    let mut scope = Scope::new(scope);
+    process_statements_noscope(symbols, &mut Scope::new(scope), block)
+}
 
+fn process_statements_noscope(symbols: &mut Symbols, scope: &mut Scope, block: &mut [Statement]) {
     for stmt in block {
         match stmt {
-            Statement::Declaration(d) => process_declaration(symbols, &mut scope, d),
+            Statement::Declaration(d) => process_declaration(symbols, scope, d),
             Statement::Expression(e) | Statement::Case(e) => {
-                process_expr(symbols, &mut scope, e);
+                process_expr(symbols, scope, e);
             }
-            Statement::Try(b) => process_statements(symbols, &mut scope, b),
+            Statement::Try(b) => process_statements(symbols, scope, b),
             Statement::For(decl, cond, inc, body) => {
                 let mut scope = Scope::new(&scope);
                 if let Some(decl) = decl {
@@ -308,38 +354,38 @@ fn process_statements(symbols: &mut Symbols, scope: &mut Scope, block: &mut [Sta
                 if let Some(inc) = inc {
                     process_expr(symbols, &mut scope, inc);
                 }
-                process_statements(symbols, &mut scope, body);
+                process_statements_noscope(symbols, &mut scope, body);
             }
             Statement::ForEach((ty, decl), arr, body) => {
-                let ty = process_base_type(symbols, &mut scope, ty);
+                let ty = process_base_type(symbols, scope, ty);
                 match arr {
                     Ok(e) => {
-                        process_expr(symbols, &mut scope, e);
+                        process_expr(symbols, scope, e);
                     }
                     Err(es) => {
                         for e in es {
-                            process_expr(symbols, &mut scope, e);
+                            process_expr(symbols, scope, e);
                         }
                     }
                 }
                 let mut scope = Scope::new(&scope);
                 process_declexpr(symbols, &mut scope, &ty, decl);
 
-                process_statements(symbols, &mut scope, body);
+                process_statements_noscope(symbols, &mut scope, body);
             }
             Statement::Return(e) => {
                 if let Some(e) = e {
-                    process_expr(symbols, &mut scope, e);
+                    process_expr(symbols, scope, e);
                 }
             }
             Statement::If(cond, then, otherwise) => {
-                process_expr(symbols, &mut scope, cond);
-                process_statements(symbols, &mut scope, then);
-                process_statements(symbols, &mut scope, otherwise);
+                process_expr(symbols, scope, cond);
+                process_statements(symbols, scope, then);
+                process_statements(symbols, scope, otherwise);
             }
             Statement::Switch(cond, body) | Statement::While(cond, body) => {
-                process_expr(symbols, &mut scope, cond);
-                process_statements(symbols, &mut scope, body);
+                process_expr(symbols, scope, cond);
+                process_statements(symbols, scope, body);
             }
             Statement::Continue => {}
             Statement::Break => {}
@@ -354,8 +400,9 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
         Expr::String(_) => TypeOf::Unknown(None),
         Expr::Ident(name) => match scope.lookup(name) {
             Some(id) => {
+                usage_conflicts(symbols, scope, id);
                 *name = format!("${id}");
-                symbols.symbols[id].occurances += 1;
+                symbols.symbols[id].occurrences += 1;
                 symbols.symbols[id].kind.unwrap_ident().clone()
             }
             None => TypeOf::Unknown(None),
@@ -364,8 +411,9 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             for name in captures {
                 match scope.lookup(name) {
                     Some(id) => {
+                        usage_conflicts(symbols, scope, id);
                         *name = format!("${id}");
-                        symbols.symbols[id].occurances += 1;
+                        symbols.symbols[id].occurrences += 1;
                     }
                     None => todo!(),
                 }
@@ -482,7 +530,7 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
                     .get(name)
                 {
                     *name = format!("${member_id}");
-                    symbols.symbols[member_id].occurances += 1;
+                    symbols.symbols[member_id].occurrences += 1;
                     symbols.symbols[member_id].kind.unwrap_ident().clone()
                 } else {
                     TypeOf::Unknown(None)
@@ -501,7 +549,7 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
                         .get(name)
                     {
                         *name = format!("${member_id}");
-                        symbols.symbols[member_id].occurances += 1;
+                        symbols.symbols[member_id].occurrences += 1;
                         symbols.symbols[member_id].kind.unwrap_ident().clone()
                     } else {
                         TypeOf::Unknown(None)
@@ -536,7 +584,7 @@ fn process_base_type(symbols: &mut Symbols, scope: &mut Scope, ty: &mut BaseType
     let mut r = TypeOf::Unknown(None);
     if let CoreType::User(name) = &mut ty.core {
         if let Some(id) = scope.lookup(name) {
-            symbols.symbols[id].occurances += 1;
+            symbols.symbols[id].occurrences += 1;
             *name = format!("${id}");
             r = TypeOf::User(id);
         } else {

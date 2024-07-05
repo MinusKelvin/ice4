@@ -50,7 +50,7 @@ fn group(symbols: &Symbols, blockers: &mut [usize]) -> (usize, Vec<usize>) {
         .iter()
         .enumerate()
         .filter(|&(_, &blockers)| blockers == 0)
-        .max_by_key(|&(id, _)| symbols.symbols[id].occurances);
+        .max_by_key(|&(id, _)| (symbols.symbols[id].occurrences, std::cmp::Reverse(id)));
 
     let id1 = match addition {
         Some((id, _)) => id,
@@ -58,38 +58,38 @@ fn group(symbols: &Symbols, blockers: &mut [usize]) -> (usize, Vec<usize>) {
     };
 
     blockers[id1] += 1;
-    for &adj in &symbols.symbols[id1].others_in_scope {
+    for &adj in &symbols.symbols[id1].conflicting {
         blockers[adj] += 1;
     }
 
     let (s, mut coloring1) = group(symbols, blockers);
-    let size1 = s + symbols.symbols[id1].occurances;
+    let size1 = s + symbols.symbols[id1].occurrences;
     coloring1.push(id1);
 
     blockers[id1] -= 1;
-    for &adj in &symbols.symbols[id1].others_in_scope {
+    for &adj in &symbols.symbols[id1].conflicting {
         blockers[adj] -= 1;
     }
 
     let id2 = symbols.symbols[id1]
-        .others_in_scope
+        .conflicting
         .iter()
         .copied()
         .filter(|&id| blockers[id] == 0)
-        .max_by_key(|&id| symbols.symbols[id].occurances);
+        .max_by_key(|&id| (symbols.symbols[id].occurrences, std::cmp::Reverse(id)));
 
     if let Some(id2) = id2 {
         blockers[id2] += 1;
-        for &adj in &symbols.symbols[id2].others_in_scope {
+        for &adj in &symbols.symbols[id2].conflicting {
             blockers[adj] += 1;
         }
 
         let (s, mut coloring2) = group(symbols, blockers);
-        let size2 = s + symbols.symbols[id2].occurances;
+        let size2 = s + symbols.symbols[id2].occurrences;
         coloring2.push(id2);
 
         blockers[id2] -= 1;
-        for &adj in &symbols.symbols[id2].others_in_scope {
+        for &adj in &symbols.symbols[id2].conflicting {
             blockers[adj] -= 1;
         }
 
