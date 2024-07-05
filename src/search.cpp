@@ -1,7 +1,7 @@
 #define MAX_HIST 4096
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 256
-#define CORR_HIST_MAX 16384
+#define CORR_HIST_MAX 64
 
 double now() {
     timespec t;
@@ -62,8 +62,8 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
+        int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        evals[ply] = static_eval + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -291,14 +291,13 @@ struct Searcher {
             }
             slot.store(tt, memory_order_relaxed);
             if (!board.check && !board.board[bestmv.to] && (
-                tt.bound == BOUND_UPPER && best < evals[ply] ||
-                tt.bound == BOUND_LOWER && best > evals[ply]
+                tt.bound == BOUND_UPPER && best < static_eval ||
+                tt.bound == BOUND_LOWER && best > static_eval
             )) {
-                int target = clamp((best - evals[ply]) * CORR_HIST_UNIT, -CORR_HIST_MAX, CORR_HIST_MAX);
-                int weight = min(depth * depth + 4, 128);
-                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] = (
-                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1024 - weight) + target * weight
-                ) / 1024;
+                double weight = min(depth * depth + 4, 128) / 1024.0;
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
+                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
             }
         }
 
