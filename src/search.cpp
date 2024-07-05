@@ -290,15 +290,13 @@ struct Searcher {
                 tt.mv = bestmv;
             }
             slot.store(tt, memory_order_relaxed);
-            if (!board.check && !board.board[bestmv.to] && (
+            if (depth > 4 && !board.check && !board.board[bestmv.to] && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
                 int target = clamp((best - evals[ply]) * CORR_HIST_UNIT, -CORR_HIST_MAX, CORR_HIST_MAX);
-                int weight = min(depth * depth + 4, 128);
-                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] = (
-                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1024 - weight) + target * weight
-                ) / 1024;
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
+                    0.95 * corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] + 0.05 * target;
             }
         }
 
