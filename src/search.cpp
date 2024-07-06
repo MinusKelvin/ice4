@@ -19,14 +19,12 @@ typedef int16_t HTable[23][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double abort_time;
-    double start;
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
-    uint64_t root_nodes[SQUARE_SPAN][SQUARE_SPAN];
     int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
@@ -208,7 +206,6 @@ struct Searcher {
 
             int v;
             int next_depth = depth - 1 + mkmove.check;
-            uint64_t old_nodes = nodes;
 
             if (is_rep) {
                 v = 0;
@@ -240,9 +237,6 @@ struct Searcher {
             } else {
                 // first legal move is always searched with full window
                 v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
-            }
-            if (!ply) {
-                root_nodes[moves[i].from][moves[i].to] += nodes - old_nodes;
             }
             legals++;
             if (v > best) {
@@ -312,8 +306,8 @@ struct Searcher {
         nodes = 0;
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        start = now();
-        abort_time = start + time_alotment * 0.5;
+        abort_time = now() + time_alotment * 0.5;
+        time_alotment = now() + time_alotment * 0.04;
         Move mv;
         int v = 0;
         try {
@@ -332,12 +326,11 @@ struct Searcher {
                 }
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
-                    double nodes_fraction = (double) root_nodes[mv.from][mv.to] / nodes;
                     BEST_MOVE = mv;
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put_with_newline();
                     FINISHED_DEPTH = depth;
-                    if (now() - start > time_alotment * 0.05 * (1.5 - nodes_fraction)) {
+                    if (now() > time_alotment) {
                         depth = max_depth;
                     }
                 }
