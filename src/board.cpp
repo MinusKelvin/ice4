@@ -4,7 +4,7 @@ struct Move {
     uint8_t promo : 1;
 
     Move() = default;
-    Move(uint8_t f, uint8_t t=0, uint8_t p=0) : from(f), to(t), promo(p) {}
+    Move(int f, int t=0, int p=0) : from(f), to(t), promo(p) {}
 
     void put_with_newline() {
         putchar(from%10+96);
@@ -41,8 +41,7 @@ struct Board {
     uint8_t castle_rights[2];
     uint8_t bishops[2];
     uint8_t king_sq[2];
-    uint8_t pawn_counts[2][10];
-    uint8_t rook_counts[2][8];
+    uint8_t piece_file_counts[23][10];
     uint8_t ep_square;
     uint8_t stm;
     uint8_t phase;
@@ -57,13 +56,10 @@ struct Board {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
             pawn_eval_dirty = 1;
         }
-        zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
-        if ((board[square] & 7) == ROOK) {
-            rook_counts[!(board[square] & WHITE)][square % 10 - 1]--;
-        }
+        zobrist ^= ZOBRIST.pieces[board[square]][square];
+        piece_file_counts[board[square]][square % 10]--;
         if ((board[square] & 7) == PAWN) {
-            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
-            pawn_counts[!(board[square] & WHITE)][square % 10]--;
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square];
         } else {
             inc_eval -= PST[board[square]][square-A1];
         }
@@ -72,13 +68,10 @@ struct Board {
             bishops[!(board[square] & WHITE)]--;
         }
         board[square] = piece;
-        zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
-        if ((board[square] & 7) == ROOK) {
-            rook_counts[!(board[square] & WHITE)][square % 10 - 1]++;
-        }
+        zobrist ^= ZOBRIST.pieces[board[square]][square];
+        piece_file_counts[board[square]][square % 10]++;
         if ((board[square] & 7) == PAWN) {
-            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
-            pawn_counts[!(board[square] & WHITE)][square % 10]++;
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square];
         } else {
             inc_eval += PST[board[square]][square-A1];
         }
@@ -108,12 +101,6 @@ struct Board {
             edit(A5 + i, EMPTY);
             edit(A6 + i, EMPTY);
         }
-    }
-
-    void null_move() {
-        zobrist ^= ZOBRIST.stm;
-        stm ^= INVALID;
-        ep_square = 0;
     }
 
     void remove_castle_rights(int btm, int which) {
@@ -286,21 +273,21 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
-        if (!pawn_counts[ci][king_sq[ci] % 10]) {
-            pawn_eval += pawn_counts[!ci][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
+        if (!piece_file_counts[own_pawn][king_sq[ci] % 10]) {
+            pawn_eval += piece_file_counts[opp_pawn][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
         }
         for (int file = 1; file < 9; file++) {
             // Doubled pawns: 44 bytes (8117455 vs 7f7c2b5)
             // 8.0+0.08: 5.04 +- 5.14 (2930 - 2785 - 4285) 0.11 elo/byte
             // 60.0+0.6: 6.46 +- 4.69 (2473 - 2287 - 5240) 0.15 elo/byte
-            if (pawn_counts[ci][file]) {
-                pawn_eval -= (pawn_counts[ci][file] - 1) * DOUBLED_PAWN;
+            if (piece_file_counts[own_pawn][file]) {
+                pawn_eval -= (piece_file_counts[own_pawn][file] - 1) * DOUBLED_PAWN;
             }
             // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
             // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
             // 60.0+0.6: 16.79 +- 4.82 (2749 - 2266 - 4985) 0.93 elo/byte
-            if (!pawn_counts[ci][file-1] && !pawn_counts[ci][file+1]) {
-                pawn_eval -= ISOLATED_PAWN * pawn_counts[ci][file];
+            if (!piece_file_counts[own_pawn][file-1] && !piece_file_counts[own_pawn][file+1]) {
+                pawn_eval -= ISOLATED_PAWN * piece_file_counts[own_pawn][file];
             }
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = file+rank;
@@ -355,11 +342,13 @@ struct Board {
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
         for (int file = 1; file < 9; file++) {
-            if (!pawn_counts[0][file]) {
-                e += (pawn_counts[1][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[0][file-1];
+            if (!piece_file_counts[WHITE_PAWN][file]) {
+                e += (piece_file_counts[BLACK_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
+                    * piece_file_counts[WHITE_ROOK][file];
             }
-            if (!pawn_counts[1][file]) {
-                e -= (pawn_counts[0][file] ? ROOK_SEMIOPEN : ROOK_OPEN) * rook_counts[1][file-1];
+            if (!piece_file_counts[BLACK_PAWN][file]) {
+                e -= (piece_file_counts[WHITE_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
+                    * piece_file_counts[BLACK_ROOK][file];
             }
         }
         stm_eval += stm == WHITE ? e : -e;

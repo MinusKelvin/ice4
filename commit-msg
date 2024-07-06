@@ -3,10 +3,14 @@
 # git commit message hook. install with:
 # ln -s ../../commit-msg .git/hooks/commit-msg
 
-if ! git diff --exit-code --quiet
-then
-    echo "Working directory is not clean; cannot generate bench" >&2
-    exit 1
+if ! [ -z "$1" ]; then
+    if ! git diff --exit-code --quiet; then
+        echo "Working directory is not clean; cannot generate bench" >&2
+        exit 1
+    fi
+    TO="$1"
+else
+    TO="/dev/stdout"
 fi
 
 make ice4-tcec ice4-ob ice4-min-ob || exit 1
@@ -21,7 +25,6 @@ then
 fi
 
 SIZE=$(du -b ice4-tcec | awk '{print $1}')
-echo >>"$1"
-echo "size: $SIZE" >> "$1"
-echo "bench: $NODES" >>"$1"
-
+echo >>"$TO"
+echo "size: $SIZE" >> "$TO"
+echo "bench: $NODES" >>"$TO"

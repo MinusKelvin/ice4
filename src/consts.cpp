@@ -22,8 +22,10 @@
 #define PASSED_PAWN 7
 #define WHITE_PASSED_PAWN 15
 #define BLACK_PASSED_PAWN 23
+#define WHITE_ROOK 12
+#define BLACK_ROOK 20
 
-#define SQUARE_SPAN 78
+#define SQUARE_SPAN 99
 
 #define BOUND_EXACT 0
 #define BOUND_LOWER 1
