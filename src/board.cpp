@@ -71,6 +71,9 @@ struct Board {
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
+        if ((board[square] & 7) == KING) {
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
+        }
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square-A1];
         if ((board[square] & 7) == ROOK) {
@@ -87,6 +90,7 @@ struct Board {
             bishops[!(board[square] & WHITE)]++;
         }
         if ((board[square] & 7) == KING) {
+            pawn_hash ^= ZOBRIST.pieces[board[square]][square-A1];
             king_sq[!(board[square] & WHITE)] = square;
         }
     }
