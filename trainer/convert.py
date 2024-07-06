@@ -74,7 +74,6 @@ def to_evalcpp(last_loss, train_id, param_map):
         print("};")
 
     define_param("BISHOP_PAIR")
-    define_param("DOUBLED_PAWN", sign=-1)
     define_param("TEMPO")
     define_param("ISOLATED_PAWN", sign=-1)
     define_param("PROTECTED_PAWN")

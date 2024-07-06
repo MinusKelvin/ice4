@@ -18,7 +18,6 @@ pub struct Features {
     queen_pst: [f32; 16],
     queen_quadrant: [f32; 3],
     bishop_pair: f32,
-    doubled_pawn: f32,
     tempo: f32,
     isolated_pawn: f32,
     protected_pawn: f32,
@@ -154,19 +153,6 @@ impl Features {
                 self.passed_pawn_pst[sq - 8] += inc;
             }
         }
-
-        let mut white_doubled_mask = board.colored_pieces(Color::White, Piece::Pawn).0 >> 8;
-        let mut black_doubled_mask = board.colored_pieces(Color::Black, Piece::Pawn).0 << 8;
-        for _ in 0..6 {
-            white_doubled_mask |= white_doubled_mask >> 8;
-            black_doubled_mask |= black_doubled_mask << 8;
-        }
-        self.doubled_pawn += (board.colored_pieces(Color::White, Piece::Pawn)
-            & BitBoard(white_doubled_mask))
-        .len() as f32;
-        self.doubled_pawn -= (board.colored_pieces(Color::Black, Piece::Pawn)
-            & BitBoard(black_doubled_mask))
-        .len() as f32;
 
         let pawns = board.colored_pieces(Color::White, Piece::Pawn);
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 << 7);
