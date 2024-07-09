@@ -195,6 +195,7 @@ struct Board {
         check = attacked(king_sq[!btm], stm);
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
+        pawn_hash ^= ZOBRIST.stm;
         return 0;
     }
 
