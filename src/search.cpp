@@ -1,6 +1,6 @@
 #define MAX_HIST 4096
 #define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 256
+#define CORR_HIST_UNIT 128
 #define CORR_HIST_MAX 64
 
 double now() {
