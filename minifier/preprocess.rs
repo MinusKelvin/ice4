@@ -9,6 +9,7 @@ use crate::parse::{Lexer, Token};
 static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)""#).unwrap());
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
+static UNDEF: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#undef (\w+)"#).unwrap());
 
 #[derive(Default)]
 pub struct Preprocessed {
@@ -59,6 +60,8 @@ fn process(
                 _ => captures.get(2).unwrap().as_str(),
             };
             defines.insert(text, replacement.to_owned());
+        } else if let Some(captures) = UNDEF.captures(line) {
+            defines.remove(captures.get(1).unwrap().as_str());
         } else if !openbench && line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
             // munch until end of block
             while !matches!(lines.next(), Some("#endif" | "#else")) {}

@@ -152,15 +152,13 @@ struct Searcher {
             swap(score[i], score[best_so_far]);
 
             int victim = board.board[moves[i].to] & 7;
-            int deltas[] = {814, 139, 344, 403, 649, 867, 0};
 
             // Pawn Protected Pruning: 61 bytes (v4)
             // 8.0+0.08: 34.43 +- 3.02     0.56 elo/byte
             // 60.0+0.6: 22.55 +- 2.66     0.37 elo/byte
-            int opp_pawn = (board.stm ^ INVALID) | PAWN;
             int pawn_attacked =
-                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == opp_pawn ||
-                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == opp_pawn;
+                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
+                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN);
             if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
                 continue;
             }
@@ -175,7 +173,7 @@ struct Searcher {
             // Delta Pruning: 37 bytes (v4)
             // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
             // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
-            if (depth <= 0 && eval + deltas[victim] <= alpha) {
+            if (depth <= 0 && eval + DELTAS[victim] <= alpha) {
                 continue;
             }
 
@@ -294,7 +292,13 @@ struct Searcher {
         return best;
     }
 
+#ifdef OPENBENCH
     void iterative_deepening(double time_alotment, int max_depth=200) {
+    #define MAX_DEPTH max_depth
+#else
+    void iterative_deepening(double time_alotment) {
+    #define MAX_DEPTH 200
+#endif
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
         conthist_stack[0] = &conthist[0][1];
@@ -304,7 +308,7 @@ struct Searcher {
         Move mv;
         int v = 0;
         try {
-            for (int depth = 1; depth <= max_depth; depth++) {
+            for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 // Aspiration windows: 23 bytes (v4)
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
@@ -324,7 +328,7 @@ struct Searcher {
                     mv.put_with_newline();
                     FINISHED_DEPTH = depth;
                     if (now() > time_alotment) {
-                        depth = max_depth;
+                        depth = MAX_DEPTH;
                     }
                 }
                 MUTEX.unlock();

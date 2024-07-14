@@ -11,9 +11,7 @@ struct Move {
         putchar(from/10+47);
         putchar(to%10+96);
         putchar(to/10+47);
-        if (promo) {
-            putchar('q');
-        }
+        putchar(promo ? 'q' : ' ');
         putchar('\n');
     }
 };
@@ -90,16 +88,15 @@ struct Board {
         castle_rights[0] = 3;
         castle_rights[1] = 3;
         stm = WHITE;
-        int layout[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
         for (int i = 0; i < 8; i++) {
-            edit(A1 + i, layout[i] | WHITE);
-            edit(A8 + i, layout[i] | BLACK);
-            edit(A2 + i, PAWN | WHITE);
-            edit(A7 + i, PAWN | BLACK);
-            edit(A3 + i, EMPTY);
-            edit(A4 + i, EMPTY);
-            edit(A5 + i, EMPTY);
-            edit(A6 + i, EMPTY);
+            edit(i + A1, LAYOUT[i] | WHITE);
+            edit(i + A8, LAYOUT[i] | BLACK);
+            edit(i + A2, WHITE_PAWN);
+            edit(i + A7, BLACK_PAWN);
+            edit(i + A3, EMPTY);
+            edit(i + A4, EMPTY);
+            edit(i + A5, EMPTY);
+            edit(i + A6, EMPTY);
         }
     }
 
@@ -111,8 +108,10 @@ struct Board {
     }
 
     int attacked(int ksq, int by) {
-        int pawndir = by & WHITE ? -10 : 10;
-        if (board[ksq + pawndir + 1] == (PAWN | by) || board[ksq + pawndir - 1] == (PAWN | by)) {
+        if (
+            board[ksq + (by & WHITE ? -10 : 10) + 1] == (PAWN | by) ||
+            board[ksq + (by & WHITE ? -10 : 10) - 1] == (PAWN | by)
+        ) {
             return 1;
         }
         for (int i = 0; i < 16; i++) {
@@ -132,14 +131,13 @@ struct Board {
 
     int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
-        int nstm = stm ^ INVALID;
-        int btm = stm != WHITE;
+        #define NSTM (stm ^ INVALID)
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
 
         // handle en-passant
         zobrist ^= ZOBRIST.ep[ep_square];
-        int ep = btm ? 10 : -10;
+        int ep = stm != WHITE ? 10 : -10;
         if ((piece & 7) == PAWN) {
             if (mv.to == ep_square) {
                 edit(mv.to + ep, EMPTY);
@@ -155,24 +153,24 @@ struct Board {
         zobrist ^= ZOBRIST.ep[ep_square];
 
         // handle castling
-        int back_rank = btm ? A8 : A1;
+        int back_rank = stm != WHITE ? A8 : A1;
         if ((piece & 7) == KING && mv.from == back_rank + 4) {
             if (mv.to == back_rank + 6) {
                 edit(back_rank + 7, EMPTY);
                 edit(back_rank + 5, stm | ROOK);
-                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 5, nstm)) {
+                if (attacked(back_rank + 4, NSTM) || attacked(back_rank + 5, NSTM)) {
                     return 1;
                 }
             }
             if (mv.to == back_rank + 2) {
                 edit(back_rank + 0, EMPTY);
                 edit(back_rank + 3, stm | ROOK);
-                if (attacked(back_rank + 4, nstm) || attacked(back_rank + 3, nstm)) {
+                if (attacked(back_rank + 4, NSTM) || attacked(back_rank + 3, NSTM)) {
                     return 1;
                 }
             }
-            remove_castle_rights(btm, SHORT_CASTLE);
-            remove_castle_rights(btm, LONG_CASTLE);
+            remove_castle_rights(stm != WHITE, SHORT_CASTLE);
+            remove_castle_rights(stm != WHITE, LONG_CASTLE);
         }
 
         if (mv.from == A1 || mv.to == A1) {
@@ -188,19 +186,21 @@ struct Board {
             remove_castle_rights(1, SHORT_CASTLE);
         }
 
-        if (attacked(king_sq[btm], nstm)) {
+        if (attacked(king_sq[stm != WHITE], NSTM)) {
             return 1;
         }
 
-        check = attacked(king_sq[!btm], stm);
+        check = attacked(king_sq[stm == WHITE], stm);
         stm ^= INVALID;
         zobrist ^= ZOBRIST.stm;
         return 0;
+
+        #undef NSTM
     }
 
     void movegen(Move list[], int& count, int quiets, int& mobility) {
         int king_ring[120] = {};
-        int other = stm ^ INVALID;
+        #define OTHER (stm ^ INVALID)
         count = 0;
         mobility = 0;
         for (int i = 0; i < 8; i++) {
@@ -240,11 +240,11 @@ struct Board {
                         }
                     }
                 }
-                if (ep_square == sq + dir-1 || board[sq + dir-1] & other && ~board[sq + dir-1] & stm) {
+                if (ep_square == sq + dir-1 || board[sq + dir-1] & OTHER && ~board[sq + dir-1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir-1];
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
-                if (ep_square == sq + dir+1 || board[sq + dir+1] & other && ~board[sq + dir+1] & stm) {
+                if (ep_square == sq + dir+1 || board[sq + dir+1] & OTHER && ~board[sq + dir+1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir+1];
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
@@ -257,7 +257,7 @@ struct Board {
                             break;
                         }
                         mobility += MOBILITY[piece] + king_ring[raysq];
-                        if (board[raysq] & other) {
+                        if (board[raysq] & OTHER) {
                             list[count++] = Move(sq, raysq);
                             break;
                         } else if (quiets) {
@@ -267,6 +267,7 @@ struct Board {
                 }
             }
         }
+        #undef OTHER
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
@@ -330,8 +331,7 @@ struct Board {
         // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
         // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
         // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
-        int bishop_pair = (bishops[0] >= 2) - (bishops[1] >= 2);
-        int e = inc_eval + pawn_eval + BISHOP_PAIR * bishop_pair;
+        int e = inc_eval + pawn_eval + BISHOP_PAIR * ((bishops[0] >= 2) - (bishops[1] >= 2));
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte

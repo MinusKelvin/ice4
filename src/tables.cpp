@@ -5,7 +5,9 @@ int STARTS[] = {0,0,8,4,0,0,0};
 int LIMITS[] = {0,0,1,8,8,8,1};
 int ENDS[] = {0,0,16,8,4,8,8};
 int SLIDER[] = {ROOK, ROOK, ROOK, ROOK, BISHOP, BISHOP, BISHOP, BISHOP, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT, KNIGHT};
+int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
+int DELTAS[] = {814, 139, 344, 403, 649, 867, 0};
 
 int get_data(int i) {
     auto data = DATA_STRING;
