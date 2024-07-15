@@ -11,7 +11,8 @@ void uci() {
     char buf[4096], *move;
     int wtime, btime;
 #ifdef OPENBENCH
-    int opt, value;
+    int opt;
+    double value;
 #endif
     fgets(buf, 4096, stdin); // uci
     printf(
@@ -20,6 +21,38 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aIIR_MIN_DEPTH type string default 3\n"
+        "option name bRFP_MAX_DEPTH type string default 7\n"
+        "option name cRFP_MARGIN type string default 77\n"
+        "option name dNMP_MIN_DEPTH type string default 1\n"
+        "option name eNMP_DIVISOR type string default 76\n"
+        "option name fNMP_DEPTH_FACTOR type string default 29\n"
+        "option name gNMP_CONSTANT type string default 228\n"
+        "option name hIID_MIN_DEPTH type string default 1\n"
+        "option name iIID_REDUCTION type string default 5\n"
+        "option name jCMH_CONTRIB type string default 2\n"
+        "option name kFMH_CONTRIB type string default 3\n"
+        "option name lLMP_FACTOR type string default 1\n"
+        "option name nLMP_C type string default 4\n"
+        "option name pDELTA_NONE type string default 814\n"
+        "option name qDELTA_PAWN type string default 139\n"
+        "option name rDELTA_KNIGHT type string default 344\n"
+        "option name sDELTA_BISHOP type string default 403\n"
+        "option name tDELTA_ROOK type string default 649\n"
+        "option name uDELTA_QUEEN type string default 867\n"
+        "option name vPPP_DEPTH_FACTOR type string default 0.5\n"
+        "option name wLMR_MOVES type string default 0.114\n"
+        "option name xLMR_DEPTH type string default 0.152\n"
+        "option name 0LMR_BASE type string default 0.0\n"
+        "option name yLMR_HISTORY type string default 580\n"
+        "option name zCORR_DIV type string default 1\n"
+        "option name 1CORR_C type string default 4\n"
+        "option name 2CORR_MAX type string default 128\n"
+        "option name 3CORR_HIST_UNIT type string default 256\n"
+        "option name 4TM_HARD type string default 0.5\n"
+        "option name 5TM_SOFT type string default 0.04\n"
+        "option name 6ASP_INITIAL type string default 7\n"
+        "option name 7ASP_EXPAND type string default 2\n"
 #endif
         "uciok\n"
     );
@@ -36,7 +69,7 @@ void uci() {
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");
                 strtok(0, " \n"); // value
-                value = atoi(strtok(0, " \n"));
+                value = atof(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
                         TT = vector< atomic<TtData> >(value * 131072);
@@ -44,6 +77,38 @@ void uci() {
                     case 'T':
                         THREADS = value;
                         break;
+                    case 'a': IIR_MIN_DEPTH = value; break;
+                    case 'b': RFP_MAX_DEPTH = value; break;
+                    case 'c': RFP_MARGIN = value; break;
+                    case 'd': NMP_MIN_DEPTH = value; break;
+                    case 'e': NMP_DIVISOR = value; break;
+                    case 'f': NMP_DEPTH_FACTOR = value; break;
+                    case 'g': NMP_CONSTANT = value; break;
+                    case 'h': IID_MIN_DEPTH = value; break;
+                    case 'i': IID_REDUCTION = value; break;
+                    case 'j': CMH_CONTRIB = value; break;
+                    case 'k': FMH_CONTRIB = value; break;
+                    case 'l': LMP_FACTOR = value; break;
+                    case 'n': LMP_C = value; break;
+                    case 'p': DELTA_NONE = value; break;
+                    case 'q': DELTA_PAWN = value; break;
+                    case 'r': DELTA_KNIGHT = value; break;
+                    case 's': DELTA_BISHOP = value; break;
+                    case 't': DELTA_ROOK = value; break;
+                    case 'u': DELTA_QUEEN = value; break;
+                    case 'v': PPP_DEPTH_FACTOR = value; break;
+                    case 'w': LMR_MOVES = value; break;
+                    case 'x': LMR_DEPTH = value; break;
+                    case '0': LMR_BASE = value; break;
+                    case 'y': LMR_HISTORY = value; break;
+                    case 'z': CORR_DIV = value; break;
+                    case '1': CORR_C = value; break;
+                    case '2': CORR_MAX = value; break;
+                    case '3': CORR_HIST_UNIT = value; break;
+                    case '4': TM_HARD = value; break;
+                    case '5': TM_SOFT = value; break;
+                    case '6': ASP_INITIAL = value; break;
+                    case '7': ASP_EXPAND = value; break;
                 }
                 break;
 #endif
