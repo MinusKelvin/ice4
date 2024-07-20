@@ -1,7 +1,7 @@
 #define MAX_HIST 4096
 #define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 256
-#define CORR_HIST_MAX 64
+#define CORR_HIST_UNIT 228
+#define CORR_HIST_MAX 72
 
 double now() {
     timespec t;
@@ -71,7 +71,7 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && !board.check && depth > 0 && depth < 7 && eval >= beta + 77 * depth) {
+        if (!pv && !board.check && depth > 0 && depth < 6 && eval >= beta + 59 * depth) {
             return eval;
         }
 
@@ -86,7 +86,7 @@ struct Searcher {
 
             conthist_stack[ply + 2] = &conthist[0][0];
 
-            int reduction = (eval - beta) / 76 + depth * 0.38 + 3;
+            int reduction = (eval - beta + depth * 18 + 208) / 71;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -97,8 +97,8 @@ struct Searcher {
         // Internal Iterative Deepening: 16 bytes (v4)
         // 8.0+0.08: -7.38 +- 2.97    -0.46 elo/byte
         // 60.0+0.6:  9.13 +- 2.63     0.57 elo/byte
-        if (depth >= 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 5, ply);
+        if (depth >= 1 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+            negamax(board, hashmv, alpha, beta, depth - 6, ply);
         }
 
         for (int j = 0; j < mvcount; j++) {
@@ -126,7 +126,7 @@ struct Searcher {
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 3 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + 2.8 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -137,7 +137,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth - depth + 4) >> !improving;
+        int quiets_to_check = pv ? -1 : (depth*depth*13/16 + 6) >> !improving;
 
         int raised_alpha = 0;
         int legals = 0;
@@ -207,11 +207,11 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.114 + depth * 0.152;
+                int reduction = legals * 0.137 + depth * 0.172;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 580;
+                reduction -= score[i] / 563;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
@@ -282,7 +282,7 @@ struct Searcher {
                 tt.bound == BOUND_UPPER && best < static_eval ||
                 tt.bound == BOUND_LOWER && best > static_eval
             )) {
-                double weight = min(depth * depth + 4, 128) / 1024.0;
+                double weight = min(depth * depth - 0.278*depth + 3.87, 69.0) / 721.0;
                 corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
@@ -303,8 +303,8 @@ struct Searcher {
         nodes = 0;
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        abort_time = now() + time_alotment * 0.5;
-        time_alotment = now() + time_alotment * 0.04;
+        abort_time = now() + time_alotment * 0.4;
+        time_alotment = now() + time_alotment * 0.043;
         Move mv;
         int v = 0;
         try {
@@ -312,14 +312,14 @@ struct Searcher {
                 // Aspiration windows: 23 bytes (v4)
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
-                int delta = 7;
+                int delta = 6;
                 int lower = v;
                 int upper = v;
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
-                    delta *= 2;
+                    delta *= 1.9;
                 }
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
