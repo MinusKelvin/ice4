@@ -282,7 +282,7 @@ struct Searcher {
                 tt.bound == BOUND_UPPER && best < static_eval ||
                 tt.bound == BOUND_LOWER && best > static_eval
             )) {
-                double weight = min(depth * depth - 0.278*depth + 3.87, 69.0) / 721.0;
+                double weight = min(depth * depth + 4, 73) / 759.0;
                 corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
