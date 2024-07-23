@@ -208,6 +208,7 @@ struct Searcher {
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[min(legals, 31)] * LOG[clamp(depth, 0, 31)] * 0.7 + 0.35;
+                reduction -= pv;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
