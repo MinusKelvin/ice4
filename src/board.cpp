@@ -36,7 +36,7 @@ vector< atomic<TtData> > TT(HASH_SIZE);
 
 struct Board {
     uint8_t board[120];
-    uint8_t castle_rights[2];
+    uint8_t castle_rights;
     uint8_t bishops[2];
     uint8_t king_sq[2];
     uint8_t piece_file_counts[23][10];
@@ -85,8 +85,6 @@ struct Board {
     Board() {
         memset(this, 0, sizeof(Board));
         memset(board, INVALID, 120);
-        castle_rights[0] = 3;
-        castle_rights[1] = 3;
         stm = WHITE;
         for (int i = 0; i < 8; i++) {
             edit(i + A1, LAYOUT[i] | WHITE);
@@ -97,13 +95,6 @@ struct Board {
             edit(i + A4, EMPTY);
             edit(i + A5, EMPTY);
             edit(i + A6, EMPTY);
-        }
-    }
-
-    void remove_castle_rights(int btm, int which) {
-        if (castle_rights[btm] & which) {
-            castle_rights[btm] &= ~which;
-            zobrist ^= ZOBRIST.castle_rights[which ^ btm];
         }
     }
 
@@ -153,6 +144,7 @@ struct Board {
         zobrist ^= ZOBRIST.ep[ep_square];
 
         // handle castling
+        zobrist ^= ZOBRIST.castle_rights[castle_rights];
         int back_rank = stm != WHITE ? A8 : A1;
         if ((piece & 7) == KING && mv.from == back_rank + 4) {
             if (mv.to == back_rank + 6) {
@@ -169,22 +161,22 @@ struct Board {
                     return 1;
                 }
             }
-            remove_castle_rights(stm != WHITE, SHORT_CASTLE);
-            remove_castle_rights(stm != WHITE, LONG_CASTLE);
+            castle_rights |= 3 << 2*(stm != WHITE);
         }
 
         if (mv.from == A1 || mv.to == A1) {
-            remove_castle_rights(0, LONG_CASTLE);
+            castle_rights |= WHITE_LONG_CASTLE;
         }
         if (mv.from == H1 || mv.to == H1) {
-            remove_castle_rights(0, SHORT_CASTLE);
+            castle_rights |= WHITE_SHORT_CASTLE;
         }
         if (mv.from == A8 || mv.to == A8) {
-            remove_castle_rights(1, LONG_CASTLE);
+            castle_rights |= BLACK_LONG_CASTLE;
         }
         if (mv.from == H8 || mv.to == H8) {
-            remove_castle_rights(1, SHORT_CASTLE);
+            castle_rights |= BLACK_SHORT_CASTLE;
         }
+        zobrist ^= ZOBRIST.castle_rights[castle_rights];
 
         if (attacked(king_sq[stm != WHITE], NSTM)) {
             return 1;
@@ -215,11 +207,11 @@ struct Board {
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
-                if (castle_rights[stm == BLACK] & SHORT_CASTLE &&
+                if (!(castle_rights >> 2*(stm != WHITE) & SHORT_CASTLE) &&
                         !board[sq+1] && !board[sq+2]) {
                     list[count++] = Move(sq, sq + 2, 0);
                 }
-                if (castle_rights[stm == BLACK] & LONG_CASTLE &&
+                if (!(castle_rights >> 2*(stm != WHITE) & LONG_CASTLE) &&
                         !board[sq-1] && !board[sq-2] && !board[sq-3]) {
                     list[count++] = Move(sq, sq - 2, 0);
                 }
@@ -437,18 +429,20 @@ void parse_fen() {
                 break;
         }
     }
+    ROOT.zobrist ^= ZOBRIST.castle_rights[ROOT.castle_rights];
     if (remove_white_short) {
-        ROOT.remove_castle_rights(0, SHORT_CASTLE);
+        ROOT.castle_rights |= WHITE_SHORT_CASTLE;
     }
     if (remove_white_long) {
-        ROOT.remove_castle_rights(0, LONG_CASTLE);
+        ROOT.castle_rights |= WHITE_LONG_CASTLE;
     }
     if (remove_black_short) {
-        ROOT.remove_castle_rights(1, SHORT_CASTLE);
+        ROOT.castle_rights |= BLACK_SHORT_CASTLE;
     }
     if (remove_black_long) {
-        ROOT.remove_castle_rights(1, LONG_CASTLE);
+        ROOT.castle_rights |= BLACK_LONG_CASTLE;
     }
+    ROOT.zobrist ^= ZOBRIST.castle_rights[ROOT.castle_rights];
 
     word = strtok(0, " \n");
     if (*word != '-') {

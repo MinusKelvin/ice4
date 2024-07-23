@@ -33,7 +33,7 @@ uint64_t rng() {
 struct Zobrist {
     uint64_t pieces[25][SQUARE_SPAN];
     uint64_t ep[120];
-    uint64_t castle_rights[4];
+    uint64_t castle_rights[16];
     uint64_t stm;
 } ZOBRIST;
 
@@ -72,10 +72,9 @@ void init_tables() {
     for (int i = 0; i < 120; i++) {
         ZOBRIST.ep[i] = rng();
     }
-    ZOBRIST.castle_rights[0] = rng();
-    ZOBRIST.castle_rights[1] = rng();
-    ZOBRIST.castle_rights[2] = rng();
-    ZOBRIST.castle_rights[3] = rng();
+    for (int i = 0; i < 16; i++) {
+        ZOBRIST.castle_rights[i] = rng();
+    }
     ZOBRIST.stm = rng();
 #else
     auto rng = fopen("/dev/urandom", "r");
