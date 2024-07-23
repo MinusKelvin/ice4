@@ -207,7 +207,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.137 + depth * 0.172;
+                int reduction = legals * 0.137 + (depth >> pv) * 0.172;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
