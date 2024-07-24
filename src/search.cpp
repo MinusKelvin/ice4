@@ -27,13 +27,11 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(int pv, Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv(0);
         Move moves[256];
         int score[256];
         int mvcount;
-
-        int pv = beta > alpha+1;
 
         auto& slot = TT[board.zobrist % TT_SIZE_EXPR];
         uint16_t upper_key = board.zobrist / TT_SIZE_EXPR;
@@ -88,7 +86,7 @@ struct Searcher {
 
             int reduction = (eval - beta + depth * 18 + 208) / 71;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
+            int v = -negamax(0, mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
                 return v;
             }
@@ -98,7 +96,7 @@ struct Searcher {
         // 8.0+0.08: -7.38 +- 2.97    -0.46 elo/byte
         // 60.0+0.6:  9.13 +- 2.63     0.57 elo/byte
         if (depth >= 1 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
-            negamax(board, hashmv, alpha, beta, depth - 6, ply);
+            negamax(1, board, hashmv, alpha, beta, depth - 6, ply);
         }
 
         for (int j = 0; j < mvcount; j++) {
@@ -215,19 +213,19 @@ struct Searcher {
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(0, mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                    v = -negamax(0, mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(1, mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                v = -negamax(pv, mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
             }
             legals++;
             if (v > best) {
@@ -318,7 +316,7 @@ struct Searcher {
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                    v = negamax(1, ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 1.9;
                 }
                 MUTEX.lock();
