@@ -71,7 +71,7 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && !board.check && depth > 0 && depth < 6 && eval >= beta + 59 * depth) {
+        if (!pv && !board.check && depth > 0 && depth < 7 && eval >= beta + 44 * depth) {
             return eval;
         }
 
@@ -86,7 +86,7 @@ struct Searcher {
 
             conthist_stack[ply + 2] = &conthist[0][0];
 
-            int reduction = (eval - beta + depth * 18 + 208) / 71;
+            int reduction = (eval - beta + depth * 29 + 242) / 88;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -97,7 +97,7 @@ struct Searcher {
         // Internal Iterative Deepening: 16 bytes (v4)
         // 8.0+0.08: -7.38 +- 2.97    -0.46 elo/byte
         // 60.0+0.6:  9.13 +- 2.63     0.57 elo/byte
-        if (depth >= 1 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+        if (depth > 2 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
             negamax(board, hashmv, alpha, beta, depth - 6, ply);
         }
 
@@ -126,7 +126,7 @@ struct Searcher {
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.8 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -137,7 +137,7 @@ struct Searcher {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth*13/16 + 6) >> !improving;
+        int quiets_to_check = pv ? -1 : (depth*depth + 12) >> (!improving + 1);
 
         int raised_alpha = 0;
         int legals = 0;
@@ -207,11 +207,11 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.137 + depth * 0.172;
+                int reduction = legals * 0.155 + depth * 0.165;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 563;
+                reduction -= score[i] / 691;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
@@ -282,7 +282,7 @@ struct Searcher {
                 tt.bound == BOUND_UPPER && best < static_eval ||
                 tt.bound == BOUND_LOWER && best > static_eval
             )) {
-                double weight = min(depth * depth - 0.278*depth + 3.87, 69.0) / 721.0;
+                double weight = min(depth * depth + 3, 95) / 689.0;
                 corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
@@ -312,14 +312,14 @@ struct Searcher {
                 // Aspiration windows: 23 bytes (v4)
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
-                int delta = 6;
+                int delta = 7;
                 int lower = v;
                 int upper = v;
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
-                    delta *= 1.9;
+                    delta *= 1.8;
                 }
                 MUTEX.lock();
                 if (FINISHED_DEPTH < depth) {
