@@ -61,12 +61,14 @@ struct Searcher {
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
         int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
-        evals[ply] = static_eval + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        int corrected = static_eval + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
+        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : corrected;
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
-        int improving = ply > 1 && evals[ply] > evals[ply-2];
+        int improving = ply > 1 && !board.check && corrected > evals[ply-2];
+
+        evals[ply] = board.check ? 30000 : corrected;
 
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
