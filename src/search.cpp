@@ -94,6 +94,13 @@ struct Searcher {
             }
         }
 
+        if (!pv && !board.check && depth > 0 && depth < 4 && eval <= alpha - 50 * depth - 250) {
+            int v = negamax(board, scratch, alpha, beta, 0, ply);
+            if (v <= alpha) {
+                return v;
+            }
+        }
+
         // Internal Iterative Deepening: 16 bytes (v4)
         // 8.0+0.08: -7.38 +- 2.97    -0.46 elo/byte
         // 60.0+0.6:  9.13 +- 2.63     0.57 elo/byte
