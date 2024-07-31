@@ -16,6 +16,12 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
+int RAZOR_MAX_DEPTH = 4;
+int RAZOR_BASE = 250;
+int RAZOR_MARGIN = 50;
+double LMR_MOVES = 0.155;
+double LMR_DEPTH = 0.165;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -94,7 +100,7 @@ struct Searcher {
             }
         }
 
-        if (!pv && !board.check && depth > 0 && depth < 4 && eval <= alpha - 50 * depth - 250) {
+        if (!pv && !board.check && depth > 0 && depth < RAZOR_MAX_DEPTH && eval <= alpha - RAZOR_MARGIN * depth - RAZOR_BASE) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -214,7 +220,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.155 + depth * 0.165;
+                int reduction = legals * LMR_MOVES + depth * LMR_DEPTH;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte

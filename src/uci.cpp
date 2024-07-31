@@ -11,7 +11,8 @@ void uci() {
     char buf[4096], *move;
     int wtime, btime;
 #ifdef OPENBENCH
-    int opt, value;
+    int opt;
+    double value;
 #endif
     fgets(buf, 4096, stdin); // uci
     printf(
@@ -20,6 +21,11 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aRAZOR_MAX_DEPTH type string default 4\n"
+        "option name bRAZOR_BASE type string default 250\n"
+        "option name cRAZOR_MARGIN type string default 50\n"
+        "option name dLMR_MOVES type string default 0.155\n"
+        "option name eLMR_DEPTH type string default 0.165\n"
 #endif
         "uciok\n"
     );
@@ -36,7 +42,7 @@ void uci() {
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");
                 strtok(0, " \n"); // value
-                value = atoi(strtok(0, " \n"));
+                value = atof(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
                         TT = vector< atomic<TtData> >(value * 131072);
@@ -44,6 +50,11 @@ void uci() {
                     case 'T':
                         THREADS = value;
                         break;
+                    case 'a': RAZOR_MAX_DEPTH = value; break;
+                    case 'b': RAZOR_BASE = value; break;
+                    case 'c': RAZOR_MARGIN = value; break;
+                    case 'd': LMR_MOVES = value; break;
+                    case 'e': LMR_DEPTH = value; break;
                 }
                 break;
 #endif
