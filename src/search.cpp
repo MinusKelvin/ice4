@@ -94,7 +94,7 @@ struct Searcher {
             }
         }
 
-        if (!pv && !board.check && depth > 0 && depth < 4 && eval <= alpha - 50 * depth - 250) {
+        if (!pv && !board.check && depth > 0 && depth < 4 && eval <= alpha - 44 * depth - 262) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -214,7 +214,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.155 + depth * 0.165;
+                int reduction = legals * 0.148 + depth * 0.164;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
