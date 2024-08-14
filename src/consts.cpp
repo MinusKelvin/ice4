@@ -9,6 +9,8 @@
 #define QUEEN 5
 #define KING 6
 
+#define PASSED_PAWN 7
+
 #define WHITE 8
 #define BLACK 16
 
@@ -23,12 +25,16 @@
 #define BLACK_LONG_CASTLE 8
 
 #define WHITE_PAWN 9
-#define BLACK_PAWN 17
-#define PASSED_PAWN 7
-#define WHITE_PASSED_PAWN 15
-#define BLACK_PASSED_PAWN 23
+#define WHITE_BISHOP 11
 #define WHITE_ROOK 12
+#define WHITE_QUEEN 13
+#define WHITE_PASSED_PAWN 15
+
+#define BLACK_PAWN 17
+#define BLACK_BISHOP 19
 #define BLACK_ROOK 20
+#define BLACK_QUEEN 21
+#define BLACK_PASSED_PAWN 23
 
 #define SQUARE_SPAN 99
 

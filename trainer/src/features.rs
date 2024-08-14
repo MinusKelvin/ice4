@@ -28,6 +28,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    pawn_opp_no_major: f32,
 }
 
 impl Features {
@@ -163,6 +164,14 @@ impl Features {
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 >> 9);
         let pawn_attacks_left = BitBoard((pawns & !File::H.bitboard()).0 >> 7);
         self.protected_pawn -= ((pawn_attacks_left | pawn_attacks_right) & pawns).len() as f32;
+
+        let majors = board.pieces(Piece::Rook) | board.pieces(Piece::Queen);
+        if (majors & board.colors(Color::Black)).is_empty() {
+            self.pawn_opp_no_major += board.colored_pieces(Color::White, Piece::Pawn).len() as f32;
+        }
+        if (majors & board.colors(Color::White)).is_empty() {
+            self.pawn_opp_no_major -= board.colored_pieces(Color::Black, Piece::Pawn).len() as f32;
+        }
 
         for color in Color::ALL {
             let inc = match color {
