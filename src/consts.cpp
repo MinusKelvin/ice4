@@ -29,6 +29,8 @@
 #define BLACK_PASSED_PAWN 23
 #define WHITE_ROOK 12
 #define BLACK_ROOK 20
+#define WHITE_QUEEN 13
+#define BLACK_QUEEN 21
 
 #define SQUARE_SPAN 99
 

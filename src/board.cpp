@@ -327,6 +327,7 @@ struct Board {
         // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
         // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
         // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
+        int majors = 0;
         for (int file = 1; file < 9; file++) {
             if (!piece_file_counts[WHITE_PAWN][file]) {
                 e += (piece_file_counts[BLACK_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
@@ -336,9 +337,11 @@ struct Board {
                 e -= (piece_file_counts[WHITE_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
                     * piece_file_counts[BLACK_ROOK][file];
             }
+            majors += piece_file_counts[BLACK_ROOK][file] + piece_file_counts[WHITE_ROOK][file] +
+                piece_file_counts[BLACK_QUEEN][file] + piece_file_counts[WHITE_QUEEN][file];
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16 + !majors) * (24 - phase)) / 24;
     }
 } ROOT;
 
