@@ -138,7 +138,7 @@ Atom: Expression = {
     Number => Box::new(Expr::Number(<>)),
     String+ => Box::new(Expr::String(string_concat(<>))),
     "this" => Box::new(Expr::Ident("this".to_owned())),
-    "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
+    "[" <d:( "&" "," )?> <c:Comma<Identifier>> "]" "(" <a:Comma<Argument>> ")" "{" <b:Statement*> "}" => Box::new(Expr::Lambda(d.is_some(), c, a, b)),
     "(" <CommaExpression> ")",
 };
 

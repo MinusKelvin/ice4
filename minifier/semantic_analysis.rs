@@ -360,7 +360,7 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             }
             None => TypeOf::Unknown(None),
         },
-        Expr::Lambda(captures, args, body) => {
+        Expr::Lambda(_, captures, args, body) => {
             for name in captures {
                 match scope.lookup(name) {
                     Some(id) => {
@@ -544,7 +544,11 @@ fn process_base_type(symbols: &mut Symbols, scope: &mut Scope, ty: &mut BaseType
         }
     }
     for ty in ty.template_parameters.iter_mut().flatten() {
-        process_base_type(symbols, scope, ty);
+        let ty = process_base_type(symbols, scope, ty);
+
+        if matches!(r, TypeOf::Unknown(Some(ref v)) if v == "vector") {
+            r = TypeOf::Array(Box::new(ty), 0);
+        }
     }
     r
 }

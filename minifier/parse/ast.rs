@@ -96,7 +96,7 @@ pub enum Expr {
     Number(Result<ParsedNumber, String>),
     String(PrefixString),
     Ident(String),
-    Lambda(Vec<String>, Vec<(BaseType, DeclExpr)>, Vec<Statement>),
+    Lambda(bool, Vec<String>, Vec<(BaseType, DeclExpr)>, Vec<Statement>),
 
     Comma(Expression, Expression),
     Throw(Expression),

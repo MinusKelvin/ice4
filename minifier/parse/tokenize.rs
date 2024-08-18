@@ -282,7 +282,7 @@ impl Expr {
             Expr::Number(_) => Precedence::Postfix,
             Expr::String(_) => Precedence::Postfix,
             Expr::Ident(_) => Precedence::Postfix,
-            Expr::Lambda(_, _, _) => Precedence::Postfix,
+            Expr::Lambda(_, _, _, _) => Precedence::Postfix,
             Expr::Comma(_, _) => Precedence::Comma,
             Expr::Throw(_) => Precedence::Assignment,
             Expr::Assign(_, _) => Precedence::Assignment,
@@ -346,8 +346,11 @@ impl Expr {
             Expr::Number(n) => result.push(number(n)),
             Expr::String(s) => result.push(String(s)),
             Expr::Ident(n) => result.push(Identifier(n)),
-            Expr::Lambda(caps, args, b) => {
+            Expr::Lambda(default_cap, caps, args, b) => {
                 result.push(LeftBracket);
+                if default_cap {
+                    result.extend([Ampersand, Comma]);
+                }
                 for (i, cap) in caps.into_iter().enumerate() {
                     if i != 0 {
                         result.push(Comma);
