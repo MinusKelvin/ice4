@@ -447,6 +447,10 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             process_expr(symbols, scope, e);
             ty
         }
+        Expr::Delete(e) => {
+            process_expr(symbols, scope, e);
+            TypeOf::Unknown(None)
+        }
         Expr::Index(arr, i) => {
             let ty = process_expr(symbols, scope, arr);
             process_expr(symbols, scope, i);
@@ -512,6 +516,10 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             } else {
                 TypeOf::Unknown(None)
             }
+        }
+        Expr::New(ty) => {
+            let ty = process_modified_type(symbols, scope, ty);
+            TypeOf::Pointer(Box::new(ty))
         }
     }
 }

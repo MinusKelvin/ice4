@@ -326,6 +326,7 @@ impl Expr {
             Expr::SizeOf(_) => Precedence::Prefix,
             Expr::SizeOfType(_) => Precedence::Prefix,
             Expr::Cast(_, _) => Precedence::Prefix,
+            Expr::Delete(_) => Precedence::Prefix,
             Expr::Index(_, _) => Precedence::Postfix,
             Expr::Call(_, _) => Precedence::Postfix,
             Expr::Construct(_, _) => Precedence::Postfix,
@@ -334,6 +335,7 @@ impl Expr {
             Expr::PointerMemberAccess(_, _) => Precedence::Postfix,
             Expr::PostIncrement(_) => Precedence::Postfix,
             Expr::PostDecrement(_) => Precedence::Postfix,
+            Expr::New(_) => Precedence::Postfix,
         }
     }
 
@@ -580,6 +582,10 @@ impl Expr {
                 result.push(RightParen);
                 e.tokenize(result, Precedence::Prefix);
             }
+            Expr::Delete(e) => {
+                result.push(Keyword("delete"));
+                e.tokenize(result, Precedence::Prefix);
+            }
             Expr::Index(e, i) => {
                 e.tokenize(result, Precedence::Postfix);
                 result.push(LeftBracket);
@@ -634,6 +640,11 @@ impl Expr {
             Expr::PostDecrement(e) => {
                 e.tokenize(result, Precedence::Postfix);
                 result.push(MinusMinus);
+            }
+            Expr::New(ty) => {
+                result.push(Keyword("new"));
+                ty.tokenize(result);
+                result.extend([LeftParen, RightParen])
             }
         }
         if prec < grouping_level {

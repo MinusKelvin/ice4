@@ -2,6 +2,7 @@
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_MAX 72
+#define PAWN_HIST_SIZE 4096
 
 double now() {
     timespec t;
@@ -22,6 +23,7 @@ struct Searcher {
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
+    HTable pawnhist[PAWN_HIST_SIZE];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -133,7 +135,8 @@ struct Searcher {
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to]
+                    + 0.5 * pawnhist[board.pawn_hash % PAWN_HIST_SIZE][board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -259,12 +262,16 @@ struct Searcher {
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        hist = &pawnhist[board.pawn_hash % PAWN_HIST_SIZE][board.board[moves[j].from]][moves[j].to];
+                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                     }
                     hist = &history[board.board[moves[i].from]][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
+                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    hist = &pawnhist[board.pawn_hash % PAWN_HIST_SIZE][board.board[moves[i].from]][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                 }
                 break;

@@ -149,6 +149,8 @@ pub enum Expr {
     PointerMemberAccess(Expression, String),
     PostIncrement(Expression),
     PostDecrement(Expression),
+    New(ModifiedType),
+    Delete(Expression),
 }
 
 #[derive(Debug)]

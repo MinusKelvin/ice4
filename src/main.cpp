@@ -111,9 +111,10 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 64; i++) {
             ROOT = Board();
             parse_fen();
-            Searcher s;
-            s.iterative_deepening(1.0/0.0, 12);
-            nodes += s.nodes;
+            Searcher *s = new Searcher();
+            s->iterative_deepening(1.0/0.0, 12);
+            nodes += s->nodes;
+            delete s;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);
         double start_s = start.tv_sec + start.tv_nsec / 1000000000.0;
