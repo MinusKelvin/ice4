@@ -45,7 +45,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
-    uint8_t sufficient_material;
+    uint8_t sufficient_material[2];
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -63,7 +63,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
-        sufficient_material -= SUFFICIENT_MATERIAL[board[square] & 7];
+        sufficient_material[!(board[square] & WHITE)] -= SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]--;
         }
@@ -76,7 +76,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
-        sufficient_material += SUFFICIENT_MATERIAL[board[square] & 7];
+        sufficient_material[!(board[square] & WHITE)] += SUFFICIENT_MATERIAL[board[square] & 7];
         if ((board[square] & 7) == BISHOP) {
             bishops[!(board[square] & WHITE)]++;
         }
@@ -341,7 +341,8 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        stm_eval = ((int16_t)stm_eval * phase + (int16_t)(stm_eval + 0x8000 >> 16) * (24 - phase)) / 24;
+        return stm_eval > 0 && sufficient_material[stm != WHITE] < 2 || stm_eval < 0 && sufficient_material[stm == WHITE] < 2 ? 0 : stm_eval;
     }
 } ROOT;
 
