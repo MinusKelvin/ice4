@@ -28,6 +28,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    pawn_threat: [f32; 6],
 }
 
 impl Features {
@@ -158,11 +159,21 @@ impl Features {
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 << 7);
         let pawn_attacks_left = BitBoard((pawns & !File::H.bitboard()).0 << 9);
         self.protected_pawn += ((pawn_attacks_left | pawn_attacks_right) & pawns).len() as f32;
+        for attacked in pawn_attacks_left.iter().chain(pawn_attacks_right) {
+            if board.colors(Color::Black).has(attacked) {
+                self.pawn_threat[board.piece_on(attacked).unwrap() as usize] += 1.0;
+            }
+        }
 
         let pawns = board.colored_pieces(Color::Black, Piece::Pawn);
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 >> 9);
         let pawn_attacks_left = BitBoard((pawns & !File::H.bitboard()).0 >> 7);
         self.protected_pawn -= ((pawn_attacks_left | pawn_attacks_right) & pawns).len() as f32;
+        for attacked in pawn_attacks_left.iter().chain(pawn_attacks_right) {
+            if board.colors(Color::White).has(attacked) {
+                self.pawn_threat[board.piece_on(attacked).unwrap() as usize] -= 1.0;
+            }
+        }
 
         for color in Color::ALL {
             let inc = match color {

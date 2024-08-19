@@ -233,11 +233,11 @@ struct Board {
                     }
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & OTHER && ~board[sq + dir-1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir-1];
+                    mobility += MOBILITY[piece] + king_ring[sq + dir-1] + PAWN_THREAT[board[sq + dir-1] & 7];
                     list[count++] = Move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & OTHER && ~board[sq + dir+1] & stm) {
-                    mobility += MOBILITY[piece] + king_ring[sq + dir+1];
+                    mobility += MOBILITY[piece] + king_ring[sq + dir+1] + PAWN_THREAT[board[sq + dir-1] & 7];
                     list[count++] = Move(sq, sq + dir+1, promo);
                 }
             } else {
