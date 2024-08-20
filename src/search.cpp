@@ -311,6 +311,8 @@ struct Searcher {
         nodes = 0;
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
+        // f3 is a bad idea, don't think about it
+        history[WHITE_PAWN][F3] = -MAX_HIST;
         abort_time = now() + time_alotment * 0.4;
         time_alotment = now() + time_alotment * 0.043;
         Move mv;
