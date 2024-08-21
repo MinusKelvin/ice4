@@ -323,10 +323,11 @@ struct Searcher {
                 int delta = 7;
                 int lower = v;
                 int upper = v;
+                int failhigh = 0;
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
-                    upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                    upper = upper < v ? failhigh++, v : upper;
+                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth - failhigh / 2, 0);
                     delta *= 1.8;
                 }
                 MUTEX.lock();
