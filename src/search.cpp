@@ -14,7 +14,7 @@ mutex MUTEX;
 int FINISHED_DEPTH;
 Move BEST_MOVE(0);
 
-typedef int16_t HTable[23][SQUARE_SPAN];
+typedef int16_t HTable[14][SQUARE_SPAN];
 
 struct Searcher {
     uint64_t nodes;
@@ -22,7 +22,7 @@ struct Searcher {
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
-    HTable conthist[14][SQUARE_SPAN];
+    HTable conthist[2][14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
@@ -84,7 +84,7 @@ struct Searcher {
             mkmove.stm ^= INVALID;
             mkmove.ep_square = 0;
 
-            conthist_stack[ply + 2] = &conthist[0][0];
+            conthist_stack[ply + 2] = &conthist[0][0][0];
 
             int reduction = (eval - beta + depth * 29 + 242) / 88;
 
@@ -122,18 +122,18 @@ struct Searcher {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from]][moves[j].to]
+                score[j] = history[board.board[moves[j].from]-WHITE_PAWN][moves[j].to]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 2 * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + 2 * (*conthist_stack[ply + 1])[board.board[moves[j].from]-WHITE_PAWN][moves[j].to]
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]-WHITE_PAWN][moves[j].to];
             }
         }
 
@@ -189,7 +189,7 @@ struct Searcher {
                 continue;
             }
 
-            conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
+            conthist_stack[ply + 2] = &conthist[mkmove.check][board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
@@ -253,18 +253,18 @@ struct Searcher {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
-                        hist = &history[board.board[moves[j].from]][moves[j].to];
+                        hist = &history[board.board[moves[j].from]-WHITE_PAWN][moves[j].to];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
-                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
+                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]-WHITE_PAWN][moves[j].to];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
-                        hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                        hist = &(*conthist_stack[ply])[board.board[moves[j].from]-WHITE_PAWN][moves[j].to];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                     }
-                    hist = &history[board.board[moves[i].from]][moves[i].to];
+                    hist = &history[board.board[moves[i].from]-WHITE_PAWN][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
+                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]-WHITE_PAWN][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
+                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]-WHITE_PAWN][moves[i].to];
                     *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                 }
                 break;
@@ -301,16 +301,16 @@ struct Searcher {
     }
 
 #ifdef OPENBENCH
-    void iterative_deepening(double time_alotment, int max_depth=200) {
+    void iterative_deepening(double time_alotment, int max_depth=100) {
     #define MAX_DEPTH max_depth
 #else
     void iterative_deepening(double time_alotment) {
-    #define MAX_DEPTH 200
+    #define MAX_DEPTH 100
 #endif
         memset(this, 0, sizeof(Searcher));
         nodes = 0;
-        conthist_stack[0] = &conthist[0][1];
-        conthist_stack[1] = &conthist[0][1];
+        conthist_stack[0] = &conthist[0][0][1];
+        conthist_stack[1] = &conthist[0][0][1];
         abort_time = now() + time_alotment * 0.4;
         time_alotment = now() + time_alotment * 0.043;
         Move mv;

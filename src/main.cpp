@@ -103,6 +103,7 @@ char BENCH_FENS[] = "skipped\n"
 
 int main(int argc, char *argv[]) {
     init_tables();
+    printf("%d\n", sizeof(Searcher));
     if (argc == 2 && !strcmp(argv[1], "bench")) {
         strtok(BENCH_FENS, " \n");
         uint64_t nodes = 0;
