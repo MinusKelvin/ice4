@@ -220,6 +220,7 @@ struct Searcher {
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
                 reduction -= score[i] / 691;
+                reduction += mkmove.attacked(moves[i].to, mkmove.stm);
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
