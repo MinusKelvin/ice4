@@ -249,23 +249,24 @@ struct Searcher {
             if (v >= beta) {
                 if (!victim) {
                     int16_t *hist;
+                    int16_t bonus = max(depth * 16, 4);
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
                         hist = &history[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
                     hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                 }
                 break;
             }
