@@ -203,7 +203,7 @@ struct Searcher {
             }
 
             int v;
-            int next_depth = depth - 1 + mkmove.check;
+            int next_depth = depth - 1;
 
             if (is_rep) {
                 v = 0;
