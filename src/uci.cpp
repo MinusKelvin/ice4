@@ -11,7 +11,8 @@ void uci() {
     char buf[4096], *move;
     int wtime, btime;
 #ifdef OPENBENCH
-    int opt, value;
+    int opt;
+    double value;
 #endif
     fgets(buf, 4096, stdin); // uci
     printf(
@@ -20,6 +21,11 @@ void uci() {
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
+        "option name aBONUS_FACTOR type string default 16\n"
+        "option name bMIN_UPDATE type string default 4\n"
+        "option name cHIST_RED type string default 691\n"
+        "option name dCOUNTER_FACTOR type string default 2\n"
+        "option name eFOLLOWUP_FACTOR type string default 2.2\n"
 #endif
         "uciok\n"
     );
@@ -36,7 +42,7 @@ void uci() {
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");
                 strtok(0, " \n"); // value
-                value = atoi(strtok(0, " \n"));
+                value = atof(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
                         TT = vector< atomic<TtData> >(value * 131072);
@@ -44,6 +50,11 @@ void uci() {
                     case 'T':
                         THREADS = value;
                         break;
+                    case 'a': BONUS_FACTOR = value; break;
+                    case 'b': MIN_UPDATE = value; break;
+                    case 'c': HIST_RED = value; break;
+                    case 'd': COUNTER_FACTOR = value; break;
+                    case 'e': FOLLOWUP_FACTOR = value; break;
                 }
                 break;
 #endif

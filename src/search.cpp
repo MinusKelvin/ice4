@@ -16,6 +16,12 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
+int BONUS_FACTOR = 16;
+int MIN_UPDATE = 4;
+int HIST_RED = 691;
+double COUNTER_FACTOR = 2;
+double FOLLOWUP_FACTOR = 2.2;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -129,11 +135,11 @@ struct Searcher {
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 2 * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + COUNTER_FACTOR * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.2 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + FOLLOWUP_FACTOR * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -219,7 +225,7 @@ struct Searcher {
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 691;
+                reduction -= score[i] / HIST_RED;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
@@ -249,7 +255,7 @@ struct Searcher {
             if (v >= beta) {
                 if (!victim) {
                     int16_t *hist;
-                    int16_t bonus = max(depth * 16, 4);
+                    int16_t bonus = max(depth * BONUS_FACTOR, MIN_UPDATE);
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
                             continue;
