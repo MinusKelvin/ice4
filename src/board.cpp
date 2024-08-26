@@ -191,6 +191,10 @@ struct Board {
     }
 
     void movegen(Move list[], int& count, int quiets, int& mobility) {
+        // King ring attacks: 30 bytes (v5)
+        // 8.0+0.08: 7.47 +- 4.89 [382, 1239, 1891, 1190, 299] 0.25 elo/byte
+        // Mobility: 26 bytes (v5)
+        // 8.0+0.08: 103.92 +- 5.26 [970, 1765, 1563, 604, 98] 4.00 elo/byte
         int king_ring[120] = {};
         #define OTHER (stm ^ INVALID)
         count = 0;
@@ -266,13 +270,14 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
+        // King on (semi-)open file: 23 bytes (v5)
+        // 8.0+0.08: 11.02 +- 4.70 [319, 1331, 1950, 1148, 252] 0.48 elo/byte
         if (!piece_file_counts[own_pawn][king_sq[ci] % 10]) {
             pawn_eval += piece_file_counts[opp_pawn][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
         }
         for (int file = 1; file < 9; file++) {
-            // Isolated pawns: 18 bytes (b4d32e5 vs 7f7c2b5)
-            // 8.0+0.08: 14.64 +- 5.20 (3128 - 2707 - 4165) 0.81 elo/byte
-            // 60.0+0.6: 16.79 +- 4.82 (2749 - 2266 - 4985) 0.93 elo/byte
+            // Isolated pawns: 17 bytes (v5)
+            // 8.0+0.08: 11.88 +- 4.85 [381, 1311, 1835, 1217, 257] 0.70 elo/byte
             if (!piece_file_counts[own_pawn][file-1] && !piece_file_counts[own_pawn][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * piece_file_counts[own_pawn][file];
             }
@@ -291,6 +296,8 @@ struct Board {
             for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
                 int sq = rank+file;
                 if (board[sq] == own_pawn) {
+                    // Protected pawn: 32 bytes (v5)
+                    // 8.0+0.08: 9.70 +- 4.84 [353, 1319, 1869, 1172, 287] 0.30 elo/byte
                     if (board[sq - pawndir+1] == own_pawn || board[sq - pawndir-1] == own_pawn) {
                         pawn_eval += PROTECTED_PAWN;
                     }
@@ -301,9 +308,8 @@ struct Board {
                 }
             }
         }
-        // Pawn shield: 65 bytes (f3241b8 vs 7f7c2b5)
-        // 8.0+0.08: 19.58 +- 5.17 (3159 - 2596 - 4245) 0.30 elo/byte
-        // 60.0+0.6: 14.88 +- 4.63 (2526 - 2098 - 5376) 0.23 elo/byte
+        // Pawn shield: 66 bytes (v5)
+        // 8.0+0.08: 12.76 +- 4.75 [337, 1368, 1862, 1191, 242] 0.19 elo/byte
         for (int dx = -1; dx < 2; dx++) {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
@@ -320,13 +326,11 @@ struct Board {
             pawn_eval_dirty = 0;
         }
 
-        // Bishop pair: 31 bytes (ae3b5f8 vs 7f7c2b5)
-        // 8.0+0.08: 23.84 +- 5.24 (3297 - 2612 - 4091) 0.77 elo/byte
-        // 60.0+0.6: 31.91 +- 4.91 (3059 - 2143 - 4698) 1.03 elo/byte
+        // Bishop pair: 29 bytes (v5)
+        // 8.0+0.08: 25.79 +- 4.96 [466, 1393, 1806, 1086, 249] 0.89 elo/byte
         int e = inc_eval + pawn_eval + BISHOP_PAIR * ((bishops[0] >= 2) - (bishops[1] >= 2));
-        // Rook on (semi-)open file: 64 bytes (87a0681 vs 7f7c2b5)
-        // 8.0+0.08: 36.62 +- 5.35 (3594 - 2544 - 3862) 0.57 elo/byte
-        // 60.0+0.6: 39.82 +- 4.99 (3251 - 2110 - 4639) 0.62 elo/byte
+        // Rook on (semi-)open file: 42 bytes (v5)
+        // 8.0+0.08: 9.83 +- 4.84 [344, 1347, 1852, 1166, 293] 0.23 elo/byte
         for (int file = 1; file < 9; file++) {
             if (!piece_file_counts[WHITE_PAWN][file]) {
                 e += (piece_file_counts[BLACK_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
