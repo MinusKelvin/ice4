@@ -1,4 +1,4 @@
-// loss: 0.07908    train id: 2024-07-06-12-36-33-frzn-big3
+// loss: 0.07908    train id: 2024-08-27-08-18-09-frzn-big3
 
 #define S(a, b) (a + (b * 0x10000))
 
@@ -11,7 +11,7 @@ int QUADRANTS[] = {
 int PAWN_SHIELD[] = {S(-3, -7), S(4, -21), S(5, -16), S(13, -9)};
 int MOBILITY[] = {0, S(5, 9), S(1, 0), S(3, 5), S(2, 3), S(1, 4), S(-3, 5)};
 
-#define DATA_STRING L"7PN521, ANF><:-(?GROLB2*EPZYRF>2U`zb`^H<>(^bEk2D97--2631%)%%+7-5&!))<C+4659BLF! 5CEIUQFUNBH]x@V?>\\E #4H61*]vaj )02+2@>6FHO=;NM\"$ $'30))85-')*7/28? +32)5/1#&*, ),/..33131,,*$$ (7C85.0$&5;;1--*//2335244226:9<AR=QTFMD|¢¢¨©¥1.% &*6.4@6.(0<4TXMA7;DIrtcNGKXd¢\\To~ ¤w@@CO^\"3/ 3JG4EXXI6=C0 Lfk]luzf|p -**$(*+1144*353!#& '''&\"#&$'))'% \",*$)/.=FA7FOT"
+#define DATA_STRING L"7PN521, ANF><:-(@GROLB2*EPZYRF>2U`zb`^H<>(^bEk2D:7--3620$)$$)6-4&!)(;B+3659BKF! 5CEIUQFUNBH]x@V??\\D #4G61+]vaj )02+2@>6FHO=;NM\"$ $'30))85-')*7/28? +32)5/1#&*, ),/..33131,,*$$ (7C85.0$&5;;1--*//2335244226:9<AR=QTFMD|¢¢¨©¥1.% &*6.4@6.(0<5SXMA7;DIrtcNGKXd¢\\To~ ¤w@@CP^\"2/ 3JG4EXXI6=C0 Lfk]luzf|p -**$(*+1144*353!#& '''&\"#&$'))'% \",*$)/.=FA7FOT"
 
 #define PAWN_OFFSET S(23, 68)
 #define PASSED_PAWN_OFFSET S(-16, -8)
@@ -24,3 +24,4 @@ int MOBILITY[] = {0, S(5, 9), S(1, 0), S(3, 5), S(2, 3), S(1, 4), S(-3, 5)};
 #define KING_OPEN S(-44, -4)
 #define KING_SEMIOPEN S(-10, 13)
 #define KING_RING_ATTACKS S(14, -6)
+#define PROTECTED_PASSER S(2, 1)

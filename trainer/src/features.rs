@@ -28,6 +28,7 @@ pub struct Features {
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
     king_ring_attacks: f32,
+    protected_passer: f32,
 }
 
 impl Features {
@@ -151,6 +152,13 @@ impl Features {
                     Color::Black => (square.flip_rank() as usize, -1.0),
                 };
                 self.passed_pawn_pst[sq - 8] += inc;
+
+                if !board
+                    .colored_pieces(color, Piece::Pawn)
+                    .is_disjoint(get_pawn_attacks(square, !color))
+                {
+                    self.protected_passer += inc;
+                }
             }
         }
 
