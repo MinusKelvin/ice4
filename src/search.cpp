@@ -60,7 +60,7 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
-        int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO) * 0.8 - (ply ? 0.2 * evals[ply - 1] : 0);
         evals[ply] = static_eval + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
