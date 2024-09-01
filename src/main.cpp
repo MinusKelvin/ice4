@@ -1,4 +1,4 @@
-#include "everything.cpp"
+#include "everything.hpp"
 
 #ifdef OPENBENCH
 
