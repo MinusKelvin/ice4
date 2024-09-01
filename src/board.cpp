@@ -281,7 +281,7 @@ struct Board {
             if (!piece_file_counts[own_pawn][file-1] && !piece_file_counts[own_pawn][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * piece_file_counts[own_pawn][file];
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
+            for (int rank = seventh_rank; rank != first_rank + 2 * pawndir; rank -= pawndir) {
                 int sq = file+rank;
                 if (board[sq] == own_pawn) {
                     if (king_sq[ci] % 10 > 4) {

@@ -141,6 +141,10 @@ impl Features {
                     continue;
                 }
 
+                if square.rank().relative_to(color) < Rank::Fourth {
+                    continue;
+                }
+
                 let square = match board.king(color).file() > File::D {
                     true => square.flip_file(),
                     false => square,
