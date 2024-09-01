@@ -1,3 +1,8 @@
+#pragma once
+
+#include "consts.hpp"
+#include "eval.hpp"
+
 int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};

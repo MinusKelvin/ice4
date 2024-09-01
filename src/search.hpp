@@ -1,3 +1,8 @@
+#pragma once
+
+#include "board.hpp"
+#include "consts.hpp"
+
 #define MAX_HIST 4096
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228

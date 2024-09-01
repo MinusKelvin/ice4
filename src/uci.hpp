@@ -1,3 +1,6 @@
+#pragma once
+
+#include "board.hpp"
 
 #ifdef OPENBENCH
 int THREADS = 1;

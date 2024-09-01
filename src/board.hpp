@@ -1,3 +1,7 @@
+#pragma once
+
+#include "std.hpp"
+
 struct Move {
     uint8_t from;
     uint8_t to : 7;

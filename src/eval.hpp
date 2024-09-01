@@ -1,4 +1,5 @@
 // loss: 0.07908    train id: 2024-07-06-12-36-33-frzn-big3
+#pragma once
 
 #define S(a, b) (a + (b * 0x10000))
 
