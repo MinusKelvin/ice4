@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use once_cell::sync::Lazy;
@@ -8,6 +8,7 @@ use crate::parse::{Lexer, Token};
 
 static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)""#).unwrap());
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
+static PRAGMA: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#pragma (\w+)"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
 static UNDEF: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#undef (\w+)"#).unwrap());
 
@@ -22,6 +23,7 @@ pub fn preprocess(path: &Path, tcec: bool, openbench: bool) -> Preprocessed {
     process(
         &mut result,
         &mut Lexer::new(),
+        &mut HashSet::new(),
         &mut HashMap::new(),
         path,
         tcec,
@@ -33,6 +35,7 @@ pub fn preprocess(path: &Path, tcec: bool, openbench: bool) -> Preprocessed {
 fn process(
     into: &mut Preprocessed,
     lexer: &mut Lexer,
+    onces: &mut HashSet<String>,
     defines: &mut HashMap<String, String>,
     path: &Path,
     tcec: bool,
@@ -47,10 +50,23 @@ fn process(
         if let Some(captures) = LOCAL_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             let path = path.parent().unwrap().join(file);
-            process(into, lexer, defines, &path, tcec, openbench);
+            // Check if the file has already been included.
+            if !onces.contains(path.to_string_lossy().as_ref()) {
+                process(into, lexer, onces, defines, &path, tcec, openbench);
+            }
         } else if let Some(captures) = LIB_INCLUDE.captures(line) {
             let file = captures.get(1).unwrap().as_str();
             into.lib_includes.push(file.to_owned());
+        } else if let Some(captures) = PRAGMA.captures(line) {
+            let directive = captures.get(1).unwrap().as_str();
+            if directive != "once" {
+                eprintln!(
+                    "Unknown pragma directive in {}: {directive}",
+                    path.display()
+                );
+                continue;
+            }
+            onces.insert(path.to_string_lossy().into_owned());
         } else if let Some(captures) = DEFINE.captures(line) {
             let text = regex::escape(captures.get(1).unwrap().as_str());
             // TCEC builds use 96 GB hash and 101 threads
@@ -59,7 +75,14 @@ fn process(
                 "THREADS" if tcec => "101",
                 _ => captures.get(2).unwrap().as_str(),
             };
-            defines.insert(text, replacement.to_owned());
+            if let Some(old) = defines.insert(text.to_owned(), replacement.to_owned()) {
+                if replacement != old {
+                    eprintln!(
+                        "'{text}' macro redefined in {}: '{old}' => '{replacement}'",
+                        path.display()
+                    );
+                }
+            }
         } else if let Some(captures) = UNDEF.captures(line) {
             defines.remove(captures.get(1).unwrap().as_str());
         } else if !openbench && line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
