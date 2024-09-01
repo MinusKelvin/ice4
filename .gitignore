@@ -10,3 +10,4 @@ minifier/parse/cpp.rs
 trainer/models/
 trainer/data/
 __pycache__
+.vscode
