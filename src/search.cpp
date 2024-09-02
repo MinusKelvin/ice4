@@ -60,8 +60,14 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
-        int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
-        evals[ply] = static_eval + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
+        uint64_t material_hash = 0;
+        for (int piece = PAWN; piece < KING; piece++) {
+            material_hash ^= ZOBRIST.pieces[WHITE | piece][board.piece_counts[WHITE | piece]];
+            material_hash ^= ZOBRIST.pieces[BLACK | piece][board.piece_counts[BLACK | piece]];
+        }
+        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT
+            + corr_hist[board.stm != WHITE][material_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -287,13 +293,14 @@ struct Searcher {
             }
             slot.store(tt, memory_order_relaxed);
             if (!board.board[bestmv.to] && (
-                tt.bound == BOUND_UPPER && best < static_eval ||
-                tt.bound == BOUND_LOWER && best > static_eval
+                tt.bound == BOUND_UPPER && best < evals[ply] ||
+                tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
                 double weight = min(depth * depth + 3, 95) / 689.0;
-                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] +=
+                    (best - evals[ply]) * CORR_HIST_UNIT * weight;
+                corr_hist[board.stm != WHITE][material_hash % CORR_HIST_SIZE] +=
+                    (best - evals[ply]) * CORR_HIST_UNIT * weight;
             }
         }
 
