@@ -38,9 +38,6 @@ def to_evalcpp(last_loss, train_id, param_map):
     mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
     eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
     defines.append(("PAWN_OFFSET", mg_off, eg_off))
-    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
-    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
-    defines.append(("PASSED_PAWN_OFFSET", mg_off, eg_off))
 
     mg_stringer.add([mg.popleft() for _ in range(16)])
     eg_stringer.add([eg.popleft() for _ in range(16)])
@@ -63,15 +60,24 @@ def to_evalcpp(last_loss, train_id, param_map):
             round(eg.popleft()) * sign
         ))
 
-    def array_param(name, size, *, leading_zero=False, sign=1):
-        print(f"int {name}[] = {{", end="")
-        if leading_zero:
-            print("0, ", end="")
-        print(", ".join(
-            f"S({sign * round(mg.popleft())}, {sign * round(eg.popleft())})"
-            for _ in range(size)
-        ), end="")
-        print("};")
+    def array_param(name, *sizes, leading_zero=False, sign=1):
+        print(f"int {name}[]", end="")
+        for s in sizes[1:]:
+            print(f"[{s}]", end="")
+        print(" = ", end="")
+        def print_arr(sizes):
+            if len(sizes) == 0:
+                print(f"S({sign * round(mg.popleft())}, {sign * round(eg.popleft())})", end="")
+            else:
+                print("{ ", end="")
+                if leading_zero and len(sizes) == 1:
+                    print("0, ", end="")
+                for i in range(sizes[0]):
+                    if i != 0: print(", ", end="")
+                    print_arr(sizes[1:])
+                print(" }", end="")
+        print_arr(sizes)
+        print(";")
 
     define_param("BISHOP_PAIR")
     define_param("TEMPO")
@@ -84,6 +90,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
+    array_param("PASSER_RANK", 2, 6)
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")

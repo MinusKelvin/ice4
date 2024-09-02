@@ -256,10 +256,15 @@ DeclExpr: DeclExpr = {
     },
     <form:DeclForm> "{" <i:Comma<Expression>> "}" => DeclExpr { form, init: Initializer::Brace(i) },
     <form:DeclForm> "=" <i:Expression> => DeclExpr { form, init: Initializer::Equal(i) },
-    <form:DeclForm> "=" "{" <v:Comma<Expression>> "}" => DeclExpr {
+    <form:DeclForm> "=" "{" <v:Comma<ArrayInit>> "}" => DeclExpr {
         form,
         init: Initializer::Array(v),
     },
+};
+
+ArrayInit: ArrayInit = {
+    Expression => ArrayInit::Expr(<>),
+    "{" <Comma<ArrayInit>> "}" => ArrayInit::SubArray(<>),
 };
 
 DeclForm = DeclForm1;
