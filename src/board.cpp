@@ -39,7 +39,7 @@ struct Board {
     uint8_t castle_rights;
     uint8_t bishops[2];
     uint8_t king_sq[2];
-    uint8_t piece_file_counts[23][10];
+    uint8_t piece_file_counts[25][10];
     uint8_t ep_square;
     uint8_t stm;
     uint8_t phase;
