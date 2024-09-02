@@ -1,5 +1,7 @@
 #pragma once
 
+#include "std.hpp"
+
 #define LOST -30000
 #define WON 30000
 
