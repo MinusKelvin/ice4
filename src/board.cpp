@@ -37,8 +37,8 @@ vector< atomic<TtData> > TT(HASH_SIZE);
 struct Board {
     uint8_t board[120];
     uint8_t castle_rights;
-    uint8_t bishops[2];
     uint8_t king_sq[2];
+    uint8_t piece_counts[23];
     uint8_t piece_file_counts[23][10];
     uint8_t ep_square;
     uint8_t stm;
@@ -62,9 +62,7 @@ struct Board {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]--;
-        }
+        piece_counts[board[square]]--;
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square];
         piece_file_counts[board[square]][square % 10]++;
@@ -74,9 +72,7 @@ struct Board {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
-        if ((board[square] & 7) == BISHOP) {
-            bishops[!(board[square] & WHITE)]++;
-        }
+        piece_counts[board[square]]++;
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
@@ -328,7 +324,7 @@ struct Board {
 
         // Bishop pair: 29 bytes (v5)
         // 8.0+0.08: 25.79 +- 4.96 [466, 1393, 1806, 1086, 249] 0.89 elo/byte
-        int e = inc_eval + pawn_eval + BISHOP_PAIR * ((bishops[0] >= 2) - (bishops[1] >= 2));
+        int e = inc_eval + pawn_eval + BISHOP_PAIR * ((piece_counts[WHITE_BISHOP] >= 2) - (piece_counts[BLACK_BISHOP] >= 2));
         // Rook on (semi-)open file: 42 bytes (v5)
         // 8.0+0.08: 9.83 +- 4.84 [344, 1347, 1852, 1166, 293] 0.23 elo/byte
         for (int file = 1; file < 9; file++) {
