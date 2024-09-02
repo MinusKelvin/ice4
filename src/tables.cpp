@@ -65,7 +65,7 @@ void init_tables() {
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
-        for (int j = A1; j < SQUARE_SPAN; j++) {
+        for (int j = 0; j < SQUARE_SPAN; j++) {
             ZOBRIST.pieces[i][j] = rng();
         }
     }

@@ -1,6 +1,7 @@
 #define MAX_HIST 4096
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
+#define CORR_HIST_DIV 456
 #define CORR_HIST_MAX 72
 
 double now() {
@@ -60,8 +61,15 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
 
+        uint64_t material_hash = 0;
+        for (int piece = PAWN; piece < KING; piece++) {
+            material_hash ^= ZOBRIST.pieces[WHITE | piece][board.piece_counts[WHITE | piece]];
+            material_hash ^= ZOBRIST.pieces[BLACK | piece][board.piece_counts[BLACK | piece]];
+        }
+
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
+            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT
+            + corr_hist[board.stm != WHITE][material_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -293,6 +301,9 @@ struct Searcher {
                 double weight = min(depth * depth + 3, 95) / 689.0;
                 corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
+                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                corr_hist[board.stm != WHITE][material_hash % CORR_HIST_SIZE] =
+                    corr_hist[board.stm != WHITE][material_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
             }
         }
