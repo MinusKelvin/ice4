@@ -38,9 +38,6 @@ def to_evalcpp(last_loss, train_id, param_map):
     mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
     eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
     defines.append(("PAWN_OFFSET", mg_off, eg_off))
-    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
-    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
-    defines.append(("PASSED_PAWN_OFFSET", mg_off, eg_off))
 
     mg_stringer.add([mg.popleft() for _ in range(16)])
     eg_stringer.add([eg.popleft() for _ in range(16)])
@@ -84,6 +81,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
+    array_param("PASSER_RANK", 6)
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")

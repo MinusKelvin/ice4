@@ -277,15 +277,12 @@ struct Board {
             if (!piece_file_counts[own_pawn][file-1] && !piece_file_counts[own_pawn][file+1]) {
                 pawn_eval -= ISOLATED_PAWN * piece_file_counts[own_pawn][file];
             }
-            for (int rank = seventh_rank; rank != first_rank; rank -= pawndir) {
-                int sq = file+rank;
+            for (int rank = 6; rank > 0; rank--) {
+                int sq = file + first_rank + rank * pawndir;
                 if (board[sq] == own_pawn) {
-                    if (king_sq[ci] % 10 > 4) {
-                        sq = 9 + rank - file;
-                    }
-                    pawn_eval += PST[own_pawn+6][sq-A1];
+                    pawn_eval += PASSER_RANK[rank-1];
                 }
-                if (board[file+rank] == opp_pawn || board[file+rank-1] == opp_pawn || board[file+rank+1] == opp_pawn) {
+                if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {
                     break;
                 }
             }
