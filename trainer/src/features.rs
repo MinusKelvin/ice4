@@ -7,7 +7,7 @@ use cozy_chess::{
 #[repr(C)]
 pub struct Features {
     pawn_pst: [f32; 48],
-    passed_pawn_pst: [f32; 48],
+    passed_pawn_pst: [f32; 32],
     king_pst: [f32; 16],
     knight_pst: [f32; 16],
     knight_quadrant: [f32; 3],
@@ -154,7 +154,7 @@ impl Features {
                     Color::White => (square as usize, 1.0),
                     Color::Black => (square.flip_rank() as usize, -1.0),
                 };
-                self.passed_pawn_pst[sq - 8] += inc;
+                self.passed_pawn_pst[sq - 24] += inc;
             }
         }
 

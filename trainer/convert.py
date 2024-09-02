@@ -38,8 +38,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
     eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
     defines.append(("PAWN_OFFSET", mg_off, eg_off))
-    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
-    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
+    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(32)]))
+    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(32)]))
     defines.append(("PASSED_PAWN_OFFSET", mg_off, eg_off))
 
     mg_stringer.add([mg.popleft() for _ in range(16)])

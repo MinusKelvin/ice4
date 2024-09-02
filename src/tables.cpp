@@ -11,7 +11,7 @@ int DELTAS[] = {717, 100, 423, 569, 755, 1280, 0};
 
 int get_data(int i) {
     auto data = DATA_STRING;
-    return data[i] + 0x10000 * data[i+176] - S(32, 32);
+    return data[i] + 0x10000 * data[i+160] - S(32, 32);
 }
 
 #ifdef OPENBENCH
@@ -41,21 +41,23 @@ void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             PST[BLACK | KING][70-10*rank+file] = -(
-                PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+96)
+                PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+80)
             );
 
             if (rank > 0 && rank < 7) {
                 PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
                     get_data(rank*8+file-8) + PAWN_OFFSET;
 
-                PST[WHITE_PASSED_PAWN][10*rank+file] = PST[BLACK_PASSED_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file+40) + PASSED_PAWN_OFFSET;
+                if (rank > 2) {
+                    PST[WHITE_PASSED_PAWN][10*rank+file] = PST[BLACK_PASSED_PAWN][70-10*rank+file] =
+                        get_data(rank*8+file+24) + PASSED_PAWN_OFFSET;
+                }
             }
 
             for (int piece = KNIGHT; piece <= QUEEN; piece++) {
                 PST[BLACK | piece][70-10*rank+file] = -(
                     PST[WHITE | piece][10*rank+file] = get_data(
-                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+80
+                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+64
                     ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
                 );
             }
