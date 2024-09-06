@@ -82,7 +82,7 @@ struct Searcher {
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
         if (!pv && !board.check && eval >= beta && beta > -20000 && depth > 1) {
             Board mkmove = board;
-            mkmove.zobrist ^= ZOBRIST.stm;
+            mkmove.zobrist ^= ZOBRIST[EMPTY][0];
             mkmove.stm ^= INVALID;
             mkmove.ep_square = 0;
 

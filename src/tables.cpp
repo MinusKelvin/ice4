@@ -30,12 +30,7 @@ uint64_t rng() {
 }
 #endif
 
-struct Zobrist {
-    uint64_t pieces[25][SQUARE_SPAN];
-    uint64_t ep[120];
-    uint64_t castle_rights[16];
-    uint64_t stm;
-} ZOBRIST;
+uint64_t ZOBRIST[25][SQUARE_SPAN];
 
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
@@ -63,16 +58,9 @@ void init_tables() {
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {
         for (int j = 0; j < SQUARE_SPAN; j++) {
-            ZOBRIST.pieces[i][j] = rng();
+            ZOBRIST[i][j] = rng();
         }
     }
-    for (int i = 0; i < 120; i++) {
-        ZOBRIST.ep[i] = rng();
-    }
-    for (int i = 0; i < 16; i++) {
-        ZOBRIST.castle_rights[i] = rng();
-    }
-    ZOBRIST.stm = rng();
 #else
     auto rng = fopen("/dev/urandom", "r");
     fread(&ZOBRIST, sizeof(ZOBRIST), 1, rng);
