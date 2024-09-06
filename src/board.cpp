@@ -49,6 +49,7 @@ struct Board {
     int32_t pawn_eval;
     uint64_t zobrist;
     uint64_t pawn_hash;
+    uint64_t material_hash;
 
     void edit(int square, int piece) {
         if ((board[square] & 7) == PAWN || (piece & 7) == PAWN || (piece & 7) == KING) {
@@ -56,23 +57,27 @@ struct Board {
         }
         zobrist ^= ZOBRIST.pieces[board[square]][square];
         piece_file_counts[board[square]][square % 10]--;
+        if (board[square] & 7) {
+            material_hash ^= ZOBRIST.pieces[board[square]][piece_counts[board[square]]--];
+        }
         if ((board[square] & 7) == PAWN) {
             pawn_hash ^= ZOBRIST.pieces[board[square]][square];
         } else {
             inc_eval -= PST[board[square]][square-A1];
         }
         phase -= PHASE[board[square] & 7];
-        piece_counts[board[square]]--;
         board[square] = piece;
         zobrist ^= ZOBRIST.pieces[board[square]][square];
         piece_file_counts[board[square]][square % 10]++;
+        if (board[square] & 7) {
+            material_hash ^= ZOBRIST.pieces[board[square]][++piece_counts[board[square]]];
+        }
         if ((board[square] & 7) == PAWN) {
             pawn_hash ^= ZOBRIST.pieces[board[square]][square];
         } else {
             inc_eval += PST[board[square]][square-A1];
         }
         phase += PHASE[board[square] & 7];
-        piece_counts[board[square]]++;
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
         }
