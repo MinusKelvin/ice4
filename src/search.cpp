@@ -17,6 +17,10 @@ Move BEST_MOVE(0);
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
+double LMR_BASE = 1.0;
+double LMR_FACTOR = 0.5;
+int LMR_HISTORY = 700;
+
 struct Searcher {
     uint64_t nodes;
     double abort_time;
@@ -222,12 +226,12 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = 0.35 * LOG[min(legals, 63)] * LOG[clamp(depth, 1, 63)] + 1.2;
+                int reduction = LMR_FACTOR * LOG[min(legals, 63)] * LOG[clamp(depth, 1, 63)] + LMR_BASE;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 691;
+                reduction -= score[i] / LMR_HISTORY;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
