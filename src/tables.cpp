@@ -9,6 +9,8 @@ int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 int DELTAS[] = {717, 100, 423, 569, 755, 1280, 0};
 
+double LOG[64];
+
 int get_data(int i) {
     auto data = DATA_STRING;
     return data[i] + 0x10000 * data[i+128] - S(32, 32);
@@ -56,6 +58,8 @@ void init_tables() {
                     ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
                 );
             }
+
+            LOG[rank*8+file] = log(rank*8+file);
         }
     }
     
