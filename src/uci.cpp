@@ -12,6 +12,7 @@ void uci() {
     int wtime, btime;
 #ifdef OPENBENCH
     int opt, value;
+    TtData empty{};
 #endif
     fgets(buf, 4096, stdin); // uci
     printf(
@@ -32,6 +33,11 @@ void uci() {
             case 'q': // quit
                 exit(0);
 #ifdef OPENBENCH
+            case 'u': // ucinewgame
+                for (int i = 0; i < TT.size(); i++) {
+                    TT[i] = empty;
+                }
+                break;
             case 's': // setoption
                 strtok(0, " \n"); // name
                 opt = *strtok(0, " \n");
@@ -113,7 +119,10 @@ void uci() {
                         if (buf[0] == 's') {
                             // stop
                             break;
-                        } else if (buf[1] == 'q') {
+                        } else if (buf[0] == 'i') {
+                            // isready
+                            printf("readyok\n");
+                        } else if (buf[0] == 'q') {
                             // quit
                             ABORT = 1;
                             for (auto& t : threads) {
