@@ -62,7 +62,6 @@ void init_tables() {
         }
     }
 #else
-    auto rng = fopen("/dev/urandom", "r");
-    fread(&ZOBRIST, sizeof(ZOBRIST), 1, rng);
+    fread(&ZOBRIST, sizeof(ZOBRIST), 1, fopen("/dev/urandom", "r"));
 #endif
 }
