@@ -91,6 +91,7 @@ impl ParsedNumber {
 impl Token {
     pub fn as_str(&self) -> Cow<str> {
         match self {
+            Token::Identifier(w) if w == "memory_order_relaxed" => "{}", //HACK
             Token::Identifier(w) => w,
             Token::Typename(w) => w,
             Token::Keyword(k) => *k,
