@@ -3,8 +3,7 @@ struct Move {
     uint8_t to : 7;
     uint8_t promo : 1;
 
-    Move() = default;
-    Move(int f, int t=0, int p=0) : from(f), to(t), promo(p) {}
+    Move(int f=0, int t=0, int p=0) : from(f), to(t), promo(p) {}
 
     void put_with_newline() {
         putchar(from%10+96);
