@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 64; i++) {
             ROOT = Board();
             parse_fen();
-            Searcher s;
+            Searcher s{};
             s.iterative_deepening(1.0/0.0, 12);
             nodes += s.nodes;
         }

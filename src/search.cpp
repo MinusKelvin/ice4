@@ -312,8 +312,6 @@ struct Searcher {
     void iterative_deepening(double time_alotment) {
     #define MAX_DEPTH 200
 #endif
-        memset(this, 0, sizeof(Searcher));
-        nodes = 0;
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
         abort_time = now() + time_alotment * 0.4;
