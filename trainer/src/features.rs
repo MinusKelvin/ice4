@@ -131,7 +131,7 @@ impl Features {
                         }
                     }
                     Color::Black => {
-                        for r in square.rank() as usize + 1..8 {
+                        for r in square.rank() as usize..8 {
                             passer_mask &= !Rank::index(r).bitboard();
                         }
                     }
