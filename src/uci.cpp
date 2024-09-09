@@ -60,12 +60,12 @@ void uci() {
                 PREHISTORY_LENGTH = 0;
                 while (move = strtok(0, " \n")) {
                     PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
-                    Move mv(
+                    BEST_MOVE = create_move(
                         move[1] * 10 + move[0] - 566,
                         move[3] * 10 + move[2] - 566,
                         !!move[4]
                     );
-                    if ((ROOT.board[mv.from] & 7) == PAWN || ROOT.board[mv.to]) {
+                    if ((ROOT.board[BEST_MOVE.from] & 7) == PAWN || ROOT.board[BEST_MOVE.to]) {
                         PREHISTORY_LENGTH = 0;
                     }
                     // maps promotion chars to piece enums
@@ -75,7 +75,7 @@ void uci() {
                     // * 5   35     40     225    20     0
                     // % 6   5      4      3      2      0
                     // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
-                    ROOT.make_move(mv, move[4] % 53 * 5 % 6);
+                    ROOT.make_move(BEST_MOVE, move[4] % 53 * 5 % 6);
                 }
                 break;
             case 'g': // go

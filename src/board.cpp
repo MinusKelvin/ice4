@@ -3,9 +3,6 @@ struct Move {
     uint8_t to : 7;
     uint8_t promo : 1;
 
-    Move() = default;
-    Move(int f, int t=0, int p=0) : from(f), to(t), promo(p) {}
-
     void put_with_newline() {
         putchar(from%10+96);
         putchar(from/10+47);
@@ -15,6 +12,10 @@ struct Move {
         putchar('\n');
     }
 };
+
+Move create_move(uint8_t from, uint8_t to, uint8_t promo) {
+    return Move{from, to, promo};
+}
 
 struct TtData {
     uint16_t key;
@@ -214,11 +215,11 @@ struct Board {
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
                 if (!(castle_rights >> 2*(stm != WHITE) & SHORT_CASTLE) &&
                         !board[sq+1] && !board[sq+2]) {
-                    list[count++] = Move(sq, sq + 2, 0);
+                    list[count++] = create_move(sq, sq + 2, 0);
                 }
                 if (!(castle_rights >> 2*(stm != WHITE) & LONG_CASTLE) &&
                         !board[sq-1] && !board[sq-2] && !board[sq-3]) {
-                    list[count++] = Move(sq, sq - 2, 0);
+                    list[count++] = create_move(sq, sq - 2, 0);
                 }
             }
 
@@ -228,22 +229,22 @@ struct Board {
                 if (!board[sq + dir]) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir];
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
-                        list[count++] = Move(sq, sq + dir, promo);
+                        list[count++] = create_move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         mobility += MOBILITY[piece] + king_ring[sq + dir+dir];
                         if (quiets) {
-                            list[count++] = Move(sq, sq + dir+dir, promo);
+                            list[count++] = create_move(sq, sq + dir+dir, promo);
                         }
                     }
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & OTHER && ~board[sq + dir-1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir-1];
-                    list[count++] = Move(sq, sq + dir-1, promo);
+                    list[count++] = create_move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & OTHER && ~board[sq + dir+1] & stm) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir+1];
-                    list[count++] = Move(sq, sq + dir+1, promo);
+                    list[count++] = create_move(sq, sq + dir+1, promo);
                 }
             } else {
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
@@ -255,10 +256,10 @@ struct Board {
                         }
                         mobility += MOBILITY[piece] + king_ring[raysq];
                         if (board[raysq] & OTHER) {
-                            list[count++] = Move(sq, raysq);
+                            list[count++] = create_move(sq, raysq, 0);
                             break;
                         } else if (quiets) {
-                            list[count++] = Move(sq, raysq);
+                            list[count++] = create_move(sq, raysq, 0);
                         }
                     }
                 }
