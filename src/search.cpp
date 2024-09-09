@@ -13,7 +13,7 @@ double now() {
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
-Move BEST_MOVE(0);
+Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
@@ -29,7 +29,7 @@ struct Searcher {
     int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
-        Move scratch, hashmv(0);
+        Move scratch, hashmv{};
         Move moves[256];
         int score[256];
         int mvcount;
