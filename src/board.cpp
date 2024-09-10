@@ -251,10 +251,14 @@ struct Board {
                     int raysq = sq;
                     for (int j = 0; j < LIMITS[piece]; j++) {
                         raysq += RAYS[i];
+                        if (board[raysq] == INVALID) {
+                            break;
+                        }
+                        mobility += king_ring[raysq];
                         if (board[raysq] & stm) {
                             break;
                         }
-                        mobility += MOBILITY[piece] + king_ring[raysq];
+                        mobility += MOBILITY[piece];
                         if (board[raysq] & OTHER) {
                             list[count++] = create_move(sq, raysq, 0);
                             break;
