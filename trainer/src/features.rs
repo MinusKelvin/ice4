@@ -115,6 +115,7 @@ impl Features {
                     }
                     Piece::King => get_king_moves(unflipped_square),
                 };
+                let mob = mob - board.colors(color);
                 self.king_ring_attacks +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
@@ -131,7 +132,7 @@ impl Features {
                         }
                     }
                     Color::Black => {
-                        for r in square.rank() as usize + 1..8 {
+                        for r in square.rank() as usize..8 {
                             passer_mask &= !Rank::index(r).bitboard();
                         }
                     }
