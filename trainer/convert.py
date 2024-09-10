@@ -82,6 +82,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
     array_param("PASSER_RANK", 6)
+    array_param("PASSER_OWN_KING_DIST", 8)
+    array_param("PASSER_ENEMY_KING_DIST", 8)
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")

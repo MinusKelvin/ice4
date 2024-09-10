@@ -28,6 +28,8 @@ pub struct Features {
     mobility: [f32; 6],
     king_ring_attacks: f32,
     passed_pawn_ranks: [f32; 6],
+    passer_own_king_dist: [f32; 8],
+    passer_enemy_king_dist: [f32; 8],
 }
 
 impl Features {
@@ -142,16 +144,20 @@ impl Features {
                     continue;
                 }
 
-                let square = match board.king(color).file() > File::D {
-                    true => square.flip_file(),
-                    false => square,
-                };
-
                 let (rank, inc) = match color {
                     Color::White => (square.rank() as usize, 1.0),
                     Color::Black => (square.rank().flip() as usize, -1.0),
                 };
                 self.passed_pawn_ranks[rank - 1] += inc;
+
+                let king_dist = |king_color| {
+                    let king = board.king(king_color);
+                    let file_dist = (king.file() as u8).abs_diff(square.file() as u8);
+                    let rank_dist = (king.rank() as u8).abs_diff(square.rank() as u8);
+                    file_dist.max(rank_dist) as usize
+                };
+                self.passer_own_king_dist[king_dist(color)] += inc;
+                self.passer_enemy_king_dist[king_dist(!color)] += inc;
             }
         }
 
