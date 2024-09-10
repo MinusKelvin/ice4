@@ -9,7 +9,7 @@ class DataStringer:
         self.data = ""
 
     def add(self, data):
-        smallest = min(data)
+        smallest = round(min(data))
         for v in data:
             v = round(v - smallest)
             c = chr(v + 32)
@@ -35,8 +35,8 @@ def to_evalcpp(last_loss, train_id, param_map):
 
     defines = []
 
-    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
-    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
+    mg_off = mg_stringer.add([mg.popleft() for _ in range(48)])
+    eg_off = eg_stringer.add([eg.popleft() for _ in range(48)])
     defines.append(("PAWN_OFFSET", mg_off, eg_off))
 
     mg_stringer.add([mg.popleft() for _ in range(16)])
