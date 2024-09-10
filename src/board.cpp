@@ -287,14 +287,14 @@ struct Board {
                 int sq = file + first_rank + rank * pawndir;
                 if (board[sq] == own_pawn) {
                     pawn_eval += PASSER_RANK[rank-1]
-                        + PASSER_OWN_KING_DIST[max(
+                        + get_data(128 + max(
                             abs(sq / 10 - king_sq[ci] / 10),
-                            abs(sq % 10 - king_sq[ci] % 10)
-                        )]
-                        + PASSER_ENEMY_KING_DIST[max(
+                            abs(file - king_sq[ci] % 10)
+                        ))
+                        + get_data(136 + max(
                             abs(sq / 10 - king_sq[!ci] / 10),
-                            abs(sq % 10 - king_sq[!ci] % 10)
-                        )];
+                            abs(file - king_sq[!ci] % 10)
+                        )) + DIST_OFFSET;
                 }
                 if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {
                     break;

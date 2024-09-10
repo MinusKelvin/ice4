@@ -11,7 +11,7 @@ int DELTAS[] = {717, 100, 423, 569, 755, 1280, 0};
 
 int get_data(int i) {
     auto data = DATA_STRING;
-    return data[i] + 0x10000 * data[i+128] - S(32, 32);
+    return data[i] + 0x10000 * data[i+144] - S(32, 32);
 }
 
 #ifdef OPENBENCH

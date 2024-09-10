@@ -8,8 +8,10 @@ class DataStringer:
     def __init__(self):
         self.data = ""
 
-    def add(self, data):
+    def add(self, data, round_smallest=False):
         smallest = min(data)
+        if round_smallest:
+            smallest = round(smallest)
         for v in data:
             v = round(v - smallest)
             c = chr(v + 32)
@@ -82,8 +84,10 @@ def to_evalcpp(last_loss, train_id, param_map):
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
     array_param("PASSER_RANK", 6)
-    array_param("PASSER_OWN_KING_DIST", 8)
-    array_param("PASSER_ENEMY_KING_DIST", 8)
+
+    mg_off = mg_stringer.add([mg.popleft() for _ in range(16)], round_smallest=True)
+    eg_off = eg_stringer.add([eg.popleft() for _ in range(16)], round_smallest=True)
+    defines.append(("DIST_OFFSET", mg_off * 2, eg_off * 2))
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
