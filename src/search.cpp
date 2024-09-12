@@ -60,13 +60,11 @@ struct Searcher {
         }
 
         {
-            int mob;
             Board mkmove = board;
             mkmove.zobrist ^= ZOBRIST[EMPTY][0];
             mkmove.stm ^= INVALID;
             mkmove.ep_square = 0;
-            mkmove.movegen(moves, mvcount, 0, mob);
-            volatile int foo = mob;
+            mkmove.movegen(moves, mvcount, 0, mobilities[ply]);
         }
 
         board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
