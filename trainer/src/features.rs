@@ -120,7 +120,9 @@ impl Features {
                 let mob = mob - board.colors(color);
                 self.king_ring_attacks +=
                     inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
-                self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
+
+                let mob = mob.len() as f32;
+                self.mobility[piece as usize] += inc * (mob.sqrt() * 8.0).floor() / 8.0;
             }
         }
 
