@@ -254,7 +254,7 @@ struct Board {
                         if (board[raysq] & stm) {
                             break;
                         }
-                        mobility += MOBILITY[piece] + king_ring[raysq];
+                        mobility += MOBILITY[piece] + king_ring[raysq] * (piece != KING);
                         if (board[raysq] & OTHER) {
                             list[count++] = create_move(sq, raysq, 0);
                             break;
