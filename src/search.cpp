@@ -21,7 +21,9 @@ struct Searcher {
     uint64_t nodes;
     double abort_time;
     int16_t evals[256];
-    int64_t corr_hist[2][CORR_HIST_SIZE];
+    int16_t *cont_corr_hist_stack[256];
+    int16_t corr_hist[2][CORR_HIST_SIZE];
+    HTable cont_corr_hist;
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
@@ -63,7 +65,8 @@ struct Searcher {
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT
-            + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT;
+            + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT
+            + *cont_corr_hist_stack[ply] / CORR_HIST_UNIT;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -87,6 +90,7 @@ struct Searcher {
             mkmove.ep_square = 0;
 
             conthist_stack[ply + 2] = &conthist[0][0];
+            cont_corr_hist_stack[ply + 1] = &cont_corr_hist[0][0];
 
             int reduction = (eval - beta + depth * 29 + 242) / 88;
 
@@ -192,6 +196,7 @@ struct Searcher {
             }
 
             conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
+            cont_corr_hist_stack[ply + 1] = &cont_corr_hist[board.board[moves[i].from]][moves[i].to];
             if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
                 throw 0;
             }
@@ -299,6 +304,9 @@ struct Searcher {
                 corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] =
                     corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                *cont_corr_hist_stack[ply] =
+                    *cont_corr_hist_stack[ply] * (1 - weight) +
+                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
             }
         }
 
@@ -314,6 +322,7 @@ struct Searcher {
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
+        cont_corr_hist_stack[0] = &cont_corr_hist[0][1];
         abort_time = now() + time_alotment * 0.4;
         time_alotment = now() + time_alotment * 0.043;
         Move mv;
