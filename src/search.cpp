@@ -248,6 +248,15 @@ struct Searcher {
             if (v > alpha) {
                 alpha = v;
                 raised_alpha = 1;
+                if (!victim) {
+                    int16_t *hist;
+                    hist = &history[board.board[moves[i].from]][moves[i].to];
+                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
+                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
+                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                }
             }
             if (v >= beta) {
                 if (!victim) {
@@ -263,12 +272,6 @@ struct Searcher {
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
                     }
-                    hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
                 }
                 break;
             }
