@@ -89,6 +89,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     eg_off = eg_stringer.add([eg.popleft() for _ in range(16)], round_smallest=True)
     defines.append(("DIST_OFFSET", mg_off * 2, eg_off * 2))
 
+    array_param("PHALANX_RANK", 6, leading_zero=True)
+
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
 
