@@ -118,8 +118,10 @@ impl Features {
                     Piece::King => get_king_moves(unflipped_square),
                 };
                 let mob = mob - board.colors(color);
-                self.king_ring_attacks +=
-                    inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
+                let kra = (get_king_moves(board.king(!color)) & mob).len();
+                if kra != 0 {
+                    self.king_ring_attacks += inc * (1 << kra) as f32;
+                }
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
             }
         }
