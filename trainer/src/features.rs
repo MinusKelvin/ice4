@@ -56,6 +56,8 @@ impl Features {
     }
 
     pub fn extract(&mut self, board: &Board) {
+        let mut kras = [0; 2];
+
         for &piece in &Piece::ALL {
             for unflipped_square in board.pieces(piece) {
                 let color = board.color_on(unflipped_square).unwrap();
@@ -118,11 +120,13 @@ impl Features {
                     Piece::King => get_king_moves(unflipped_square),
                 };
                 let mob = mob - board.colors(color);
-                self.king_ring_attacks +=
-                    inc * (get_king_moves(board.king(!color)) & mob).len() as f32;
+                kras[color as usize] += (get_king_moves(board.king(!color)) & mob).len();
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
             }
         }
+
+        self.king_ring_attacks =
+            kras[Color::White as usize].pow(2) as f32 - kras[Color::Black as usize].pow(2) as f32;
 
         for &color in &Color::ALL {
             for square in board.pieces(Piece::Pawn) & board.colors(color) {
