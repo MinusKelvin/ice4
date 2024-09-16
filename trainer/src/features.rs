@@ -120,7 +120,11 @@ impl Features {
                     Piece::King => get_king_moves(unflipped_square),
                 };
                 let mob = mob - board.colors(color);
-                kras[color as usize] += (get_king_moves(board.king(!color)) & mob).len();
+                let kra_sqs = match piece {
+                    Piece::Pawn => mob - get_pawn_quiets(unflipped_square, color, board.occupied()),
+                    _ => mob,
+                };
+                kras[color as usize] += (get_king_moves(board.king(!color)) & kra_sqs).len();
                 self.mobility[piece as usize] += inc * (mob & !board.colors(color)).len() as f32;
             }
         }

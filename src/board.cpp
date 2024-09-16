@@ -229,13 +229,11 @@ struct Board {
                 int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
                 if (!board[sq + dir]) {
                     mobility += MOBILITY[piece];
-                    king_attacks += king_ring[sq + dir];
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
                         list[count++] = create_move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         mobility += MOBILITY[piece];
-                        king_attacks += king_ring[sq + dir+dir];
                         if (quiets) {
                             list[count++] = create_move(sq, sq + dir+dir, promo);
                         }
