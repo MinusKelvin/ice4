@@ -55,34 +55,34 @@ def to_evalcpp(last_loss, train_id, param_map):
             print(f" S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
     print("\n};")
 
-    def define_param(name, *, sign=1):
+    def define_param(name, *, coeff=1):
         defines.append((
             name,
-            round(mg.popleft()) * sign,
-            round(eg.popleft()) * sign
+            round(mg.popleft() * coeff),
+            round(eg.popleft() * coeff)
         ))
 
-    def array_param(name, size, *, leading_zero=False, sign=1):
+    def array_param(name, size, *, leading_zero=False, coeff=1):
         print(f"int {name}[] = {{", end="")
         if leading_zero:
             print("0, ", end="")
         print(", ".join(
-            f"S({sign * round(mg.popleft())}, {sign * round(eg.popleft())})"
+            f"S({round(mg.popleft() * coeff)}, {round(eg.popleft() * coeff)})"
             for _ in range(size)
         ), end="")
         print("};")
 
     define_param("BISHOP_PAIR")
-    define_param("TEMPO")
-    define_param("ISOLATED_PAWN", sign=-1)
+    define_param("TEMPO", coeff=4)
+    define_param("ISOLATED_PAWN", coeff=-1)
     define_param("PROTECTED_PAWN")
     define_param("ROOK_OPEN")
     define_param("ROOK_SEMIOPEN")
     array_param("PAWN_SHIELD", 4)
     define_param("KING_OPEN")
     define_param("KING_SEMIOPEN")
-    array_param("MOBILITY", 6, leading_zero=True)
-    define_param("KING_RING_ATTACKS")
+    array_param("MOBILITY", 6, leading_zero=True, coeff=4)
+    define_param("KING_RING_ATTACKS", coeff=4)
     array_param("PASSER_RANK", 6)
 
     mg_off = mg_stringer.add([mg.popleft() for _ in range(16)], round_smallest=True)
