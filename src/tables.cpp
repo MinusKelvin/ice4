@@ -1,3 +1,4 @@
+double SQRT[64];
 int PST[25][SQUARE_SPAN];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
@@ -35,6 +36,8 @@ uint64_t ZOBRIST[25][SQUARE_SPAN];
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
+            SQRT[rank*8+file] = sqrt(rank*8+file);
+
             PST[BLACK | KING][70-10*rank+file] = -(
                 PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+48)
             );
