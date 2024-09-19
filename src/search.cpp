@@ -113,14 +113,12 @@ struct Searcher {
 
         for (int j = 0; j < mvcount; j++) {
             if (hashmv.from == moves[j].from && hashmv.to == moves[j].to) {
-                score[j] = 1e6;
+                score[j] = 1e7;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
-                score[j] = (board.board[moves[j].to] & 7) * 8
-                    - (board.board[moves[j].from] & 7)
-                    + 1e5;
+                score[j] = board.board[moves[j].to] * 1e5 - board.board[moves[j].from];
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
