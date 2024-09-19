@@ -337,17 +337,16 @@ struct Searcher {
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 1.8;
                 }
-                MUTEX.lock();
+                lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
                     BEST_MOVE = mv;
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put_with_newline();
                     FINISHED_DEPTH = depth;
                     if (now() > time_alotment) {
-                        depth = MAX_DEPTH;
+                        break;
                     }
                 }
-                MUTEX.unlock();
             }
         } catch (...) {}
     }
