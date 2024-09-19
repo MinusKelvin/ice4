@@ -268,7 +268,7 @@ struct Board {
         #undef OTHER
     }
 
-    void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank, int seventh_rank) {
+    void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank) {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
@@ -331,9 +331,9 @@ struct Board {
     int eval(int stm_eval) {
         if (pawn_eval_dirty) {
             pawn_eval = 0;
-            calculate_pawn_eval(1, BLACK, -10, 90, 30);
+            calculate_pawn_eval(1, BLACK, -10, 90);
             pawn_eval = -pawn_eval;
-            calculate_pawn_eval(0, WHITE, 10, 20, 80);
+            calculate_pawn_eval(0, WHITE, 10, 20);
             pawn_eval_dirty = 0;
         }
 
