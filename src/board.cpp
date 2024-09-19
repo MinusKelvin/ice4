@@ -325,7 +325,9 @@ struct Board {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
+        if (king_sq[ci] / 10 == first_rank / 10) {
+            pawn_eval += PAWN_SHIELD[shield_pawns];
+        }
     }
 
     int eval(int stm_eval) {
