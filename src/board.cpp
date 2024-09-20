@@ -295,6 +295,7 @@ struct Board {
                             abs(sq / 10 - king_sq[!ci] / 10),
                             abs(file - king_sq[!ci] % 10)
                         )) + DIST_OFFSET;
+                    break;
                 }
                 if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {
                     break;
