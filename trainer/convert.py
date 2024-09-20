@@ -90,6 +90,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     defines.append(("DIST_OFFSET", mg_off * 2, eg_off * 2))
 
     array_param("PHALANX_RANK", 6, leading_zero=True)
+    define_param("DOUBLED_PAWN", sign=-1)
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
