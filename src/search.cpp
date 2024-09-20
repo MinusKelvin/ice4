@@ -59,7 +59,7 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth > 0 || board.check, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / CORR_HIST_UNIT
@@ -142,7 +142,7 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
-        int best = depth > 0 ? LOST + ply : eval;
+        int best = depth > 0 || board.check ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
