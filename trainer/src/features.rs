@@ -146,6 +146,12 @@ impl Features {
                     continue;
                 }
 
+                if !(passer_mask & square.file().bitboard())
+                    .is_disjoint(board.colored_pieces(color, Piece::Pawn))
+                {
+                    continue;
+                }
+
                 let (rank, inc) = match color {
                     Color::White => (square.rank() as usize, 1.0),
                     Color::Black => (square.rank().flip() as usize, -1.0),
