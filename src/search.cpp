@@ -229,6 +229,17 @@ struct Searcher {
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
+
+                    if (!victim) {
+                        int16_t *hist;
+                        hist = &history[board.board[moves[i].from]][moves[i].to];
+                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
+                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                        hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
+                        *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    }
+
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
                 if (v > alpha && pv) {
