@@ -32,6 +32,7 @@ struct Searcher {
         Move scratch, hashmv{};
         Move moves[256];
         int score[256];
+        int searches[256];
         int mvcount;
 
         int pv = beta > alpha+1;
@@ -160,6 +161,7 @@ struct Searcher {
             }
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
+            searches[i] = 0;
 
             int victim = board.board[moves[i].to] & 7;
 
@@ -226,18 +228,22 @@ struct Searcher {
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
+                searches[i]++;
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
+                    searches[i]++;
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
+                    searches[i]++;
                     v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
                 }
             } else {
                 // first legal move is always searched with full window
+                searches[i]++;
                 v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
             }
             legals++;
@@ -252,23 +258,26 @@ struct Searcher {
             if (v >= beta) {
                 if (!victim) {
                     int16_t *hist;
+                    int bonus;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
+                        bonus = depth * depth * searches[j];
                         hist = &history[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= depth * depth + depth * depth * *hist / MAX_HIST;
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
+                    bonus = depth * depth * searches[i];
                     hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
-                    *hist += depth * depth - depth * depth * *hist / MAX_HIST;
+                    *hist += bonus - bonus * *hist / MAX_HIST;
                 }
                 break;
             }
