@@ -1,4 +1,4 @@
-#define MAX_HIST 4096
+#define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_DIV 456
@@ -221,7 +221,7 @@ struct Searcher {
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 691;
+                reduction -= score[i] / 2764;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
@@ -250,7 +250,7 @@ struct Searcher {
             }
             if (v >= beta) {
                 if (!victim) {
-                    int bonus = depth * depth << ((eval <= alpha) + (eval <= alpha - 30));
+                    int bonus = 4 * depth * depth << ((eval <= alpha) + (eval <= alpha - 30));
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
