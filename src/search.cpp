@@ -251,7 +251,7 @@ struct Searcher {
             }
             if (v >= beta) {
                 if (!victim) {
-                    int bonus = depth * depth << (eval <= alpha);
+                    int bonus = depth * depth << ((eval <= alpha) + (eval <= alpha - 30));
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
