@@ -28,11 +28,12 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int orig_alpha, int beta, int depth, int ply) {
         Move scratch, hashmv{};
         Move moves[256];
         int score[256];
         int mvcount;
+        int alpha = orig_alpha;
 
         int pv = beta > alpha+1;
 
@@ -149,7 +150,6 @@ struct Searcher {
 
         int quiets_to_check = pv ? -1 : (depth*depth + 12) >> (!improving + 1);
 
-        int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
@@ -247,11 +247,10 @@ struct Searcher {
             }
             if (v > alpha) {
                 alpha = v;
-                raised_alpha = 1;
             }
             if (v >= beta) {
                 if (!victim) {
-                    int bonus = depth * depth << (eval <= alpha);
+                    int bonus = depth * depth << (eval <= orig_alpha);
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
                         if (board.board[moves[j].to]) {
@@ -285,7 +284,7 @@ struct Searcher {
             tt.depth = depth > 0 ? depth : 0;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
-                raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+                alpha > orig_alpha ? BOUND_EXACT : BOUND_UPPER;
             if (!tt_good || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
