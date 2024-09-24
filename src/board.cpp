@@ -286,15 +286,16 @@ struct Board {
             for (int rank = 6; rank > 0; rank--) {
                 int sq = file + first_rank + rank * pawndir;
                 if (board[sq] == own_pawn) {
-                    pawn_eval += PASSER_RANK[rank-1]
-                        + get_data(128 + max(
+                    pawn_eval += get_data(PASSER_RANK_INDEX + rank)
+                        + get_data(KING_PASSER_DIST_INDEX + max(
                             abs(sq / 10 - king_sq[ci] / 10),
                             abs(file - king_sq[ci] % 10)
                         ))
-                        + get_data(136 + max(
+                        + get_data(KING_PASSER_DIST_INDEX + 8 + max(
                             abs(sq / 10 - king_sq[!ci] / 10),
                             abs(file - king_sq[!ci] % 10)
-                        )) + DIST_OFFSET;
+                        ))
+                        + PASSER_RANK + KING_PASSER_DIST;
                     break;
                 }
                 if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {
@@ -310,7 +311,7 @@ struct Board {
                         pawn_eval += PROTECTED_PAWN;
                     }
                     if (board[sq - 1] == own_pawn) {
-                        pawn_eval += PHALANX_RANK[rank];
+                        pawn_eval += get_data(PHALANX_RANK_INDEX + rank) + PHALANX_RANK;
                     }
                     if (king_sq[ci] % 10 > 4) {
                         sq += 9 - file - file;
@@ -325,7 +326,9 @@ struct Board {
             shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
                 || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
         }
-        pawn_eval += (king_sq[ci] / 10 == first_rank / 10) * PAWN_SHIELD[shield_pawns];
+        if (king_sq[ci] / 10 == first_rank / 10) {
+            pawn_eval += get_data(PAWN_SHIELD_INDEX + shield_pawns) + PAWN_SHIELD;
+        }
     }
 
     int eval(int stm_eval) {
