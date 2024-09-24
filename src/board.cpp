@@ -27,12 +27,12 @@ struct TtData {
 
 // 8MB. Replaced for TCEC builds by the minifier.
 #define HASH_SIZE 1048576
-vector< atomic<TtData> > TT(HASH_SIZE);
+auto TT = new atomic<TtData>[HASH_SIZE]();
 
 #ifdef OPENBENCH
-#define TT_SIZE_EXPR TT.size()
+int TT_SIZE = HASH_SIZE;
 #else
-#define TT_SIZE_EXPR HASH_SIZE
+#define TT_SIZE HASH_SIZE
 #endif
 
 struct Board {

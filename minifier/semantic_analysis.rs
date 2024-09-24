@@ -378,7 +378,12 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
             process_statements(symbols, &mut scope, body);
             TypeOf::Unknown(None)
         }
-        Expr::Throw(e) => {
+        Expr::NewArray(ty, len) => {
+            let type_ = process_modified_type(symbols, scope, ty);
+            process_expr(symbols, scope, len);
+            TypeOf::Array(Box::new(type_), 0)
+        }
+        Expr::Throw(e) | Expr::DeleteArray(e) => {
             process_expr(symbols, scope, e);
             TypeOf::Unknown(None)
         }

@@ -118,6 +118,7 @@ PrefixExprNoParen = {
     "--" <PrefixExpr> => Box::new(Expr::PreDecrement(<>)),
     "sizeof" <PrefixExprNoParen> => Box::new(Expr::SizeOf(<>)),
     "sizeof" "(" <ModifiedType> ")" => Box::new(Expr::SizeOfType(<>)),
+    "delete" "[" "]" <PrefixExpr> => Box::new(Expr::DeleteArray(<>)),
     PostfixExpr,
 };
 
@@ -137,6 +138,7 @@ Atom: Expression = {
     Identifier => Box::new(Expr::Ident(<>)),
     Number => Box::new(Expr::Number(<>)),
     String+ => Box::new(Expr::String(string_concat(<>))),
+    "new" <ModifiedType> "[" <Expression> "]" "(" ")" => Box::new(Expr::NewArray(<>)),
     "this" => Box::new(Expr::Ident("this".to_owned())),
     "[" <Comma<Identifier>> "]" "(" <Comma<Argument>> ")" "{" <Statement*> "}" => Box::new(Expr::Lambda(<>)),
     "(" <CommaExpression> ")",

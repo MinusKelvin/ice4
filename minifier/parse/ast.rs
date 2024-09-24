@@ -97,6 +97,7 @@ pub enum Expr {
     String(PrefixString),
     Ident(String),
     Lambda(Vec<String>, Vec<(BaseType, DeclExpr)>, Vec<Statement>),
+    NewArray(ModifiedType, Expression),
 
     Comma(Expression, Expression),
     Throw(Expression),
@@ -140,6 +141,7 @@ pub enum Expr {
     PreDecrement(Expression),
     SizeOf(Expression),
     SizeOfType(ModifiedType),
+    DeleteArray(Expression),
     Cast(ModifiedType, Expression),
     Index(Expression, Expression),
     Call(Expression, Vec<Expression>),

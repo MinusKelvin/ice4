@@ -34,7 +34,7 @@ void uci() {
                 exit(0);
 #ifdef OPENBENCH
             case 'u': // ucinewgame
-                for (int i = 0; i < TT.size(); i++) {
+                for (int i = 0; i < TT_SIZE; i++) {
                     TT[i] = empty;
                 }
                 break;
@@ -45,7 +45,9 @@ void uci() {
                 value = atoi(strtok(0, " \n"));
                 switch (opt) {
                     case 'H':
-                        TT = vector< atomic<TtData> >(value * 131072);
+                        delete[] TT;
+                        TT_SIZE = value * 131072;
+                        TT = new atomic<TtData>[TT_SIZE]();
                         break;
                     case 'T':
                         THREADS = value;
@@ -105,9 +107,13 @@ void uci() {
                 double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
-                vector<thread> threads;
+#ifdef OPENBENCH
+                vector<thread> threads(THREADS);
+#else
+                thread threads[THREADS];
+#endif
                 for (int i = 0; i < THREADS; i++) {
-                    threads.emplace_back([time_alotment]() {
+                    threads[i] = thread([time_alotment]() {
                         Searcher().iterative_deepening(time_alotment);
                         ABORT = 1;
                     });

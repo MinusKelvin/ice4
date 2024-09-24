@@ -283,6 +283,7 @@ impl Expr {
             Expr::String(_) => Precedence::Postfix,
             Expr::Ident(_) => Precedence::Postfix,
             Expr::Lambda(_, _, _) => Precedence::Postfix,
+            Expr::NewArray(_, _) => Precedence::Postfix,
             Expr::Comma(_, _) => Precedence::Comma,
             Expr::Throw(_) => Precedence::Assignment,
             Expr::Assign(_, _) => Precedence::Assignment,
@@ -325,6 +326,7 @@ impl Expr {
             Expr::PreDecrement(_) => Precedence::Prefix,
             Expr::SizeOf(_) => Precedence::Prefix,
             Expr::SizeOfType(_) => Precedence::Prefix,
+            Expr::DeleteArray(_) => Precedence::Prefix,
             Expr::Cast(_, _) => Precedence::Prefix,
             Expr::Index(_, _) => Precedence::Postfix,
             Expr::Call(_, _) => Precedence::Postfix,
@@ -365,6 +367,13 @@ impl Expr {
                 }
                 result.push(RightParen);
                 block(b, result);
+            }
+            Expr::NewArray(ty, len) => {
+                result.push(Keyword("new"));
+                ty.tokenize(result);
+                result.push(LeftBracket);
+                len.tokenize(result, Precedence::Comma);
+                result.extend([RightBracket, LeftParen, RightParen]);
             }
             Expr::Comma(l, r) => {
                 l.tokenize(result, Precedence::Comma);
@@ -573,6 +582,10 @@ impl Expr {
                 result.extend([Keyword("sizeof"), LeftParen]);
                 ty.tokenize(result);
                 result.push(RightParen);
+            }
+            Expr::DeleteArray(e) => {
+                result.extend([Keyword("delete"), LeftBracket, RightBracket]);
+                e.tokenize(result, Precedence::Prefix);
             }
             Expr::Cast(ty, e) => {
                 result.push(LeftParen);
