@@ -21,11 +21,16 @@ TopLevel: TopLevel = {
 ///////////////////////////////////////////////////////////////////////////////
 
 CommaExpression = {
-    <CommaExpression> "," <Expression> => Box::new(Expr::Comma(<>)),
+    <CommaExpression> "," <ExprOrBraceConstruct> => Box::new(Expr::Comma(<>)),
     Expression
 };
 
 Expression = AssignmentExpr;
+
+ExprOrBraceConstruct = {
+    "{" <Comma<Expression>> "}" => Box::new(Expr::BraceConstruct(None, <>)),
+    AssignmentExpr,
+};
 
 AssignmentExpr = {
     <LogicalOrExpr> "=" <AssignmentExpr> => Box::new(Expr::Assign(<>)),
@@ -124,13 +129,13 @@ PrefixExprNoParen = {
 
 PostfixExpr = {
     <PostfixExpr> "[" <CommaExpression> "]" => Box::new(Expr::Index(<>)),
-    <PostfixExpr> "(" <Comma<Expression>> ")" => Box::new(Expr::Call(<>)),
+    <PostfixExpr> "(" <Comma<ExprOrBraceConstruct>> ")" => Box::new(Expr::Call(<>)),
     <PostfixExpr> "." <Identifier> => Box::new(Expr::MemberAccess(<>)),
     <PostfixExpr> "->" <Identifier> => Box::new(Expr::PointerMemberAccess(<>)),
     <PostfixExpr> "++" => Box::new(Expr::PostIncrement(<>)),
     <PostfixExpr> "--" => Box::new(Expr::PostDecrement(<>)),
-    <BaseType> "(" <Comma<Expression>> ")" => Box::new(Expr::Construct(<>)),
-    <BaseType> "{" <Comma<Expression>> "}" => Box::new(Expr::BraceConstruct(<>)),
+    <BaseType> "(" <Comma<ExprOrBraceConstruct>> ")" => Box::new(Expr::Construct(<>)),
+    <t:BaseType> "{" <e:Comma<ExprOrBraceConstruct>> "}" => Box::new(Expr::BraceConstruct(Some(t), e)),
     Atom,
 };
 
@@ -168,7 +173,7 @@ Statement: Statement = {
     If,
     "switch" "(" <CommaExpression> ")" "{" <Statement*> "}" => Statement::Switch(<>),
     "while" "(" <CommaExpression> ")" "{" <Statement*> "}" => Statement::While(<>),
-    "return" <CommaExpression?> ";" => Statement::Return(<>),
+    "return" <ExprOrBraceConstruct?> ";" => Statement::Return(<>),
     "continue" ";" => Statement::Continue,
     "break" ";" => Statement::Break,
 };
