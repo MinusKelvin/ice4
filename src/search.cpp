@@ -19,7 +19,8 @@ typedef int16_t HTable[23][SQUARE_SPAN];
 
 struct Searcher {
     uint64_t nodes;
-    double abort_time;
+    double hard_limit;
+    double soft_limit;
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
@@ -191,7 +192,7 @@ struct Searcher {
             }
 
             conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
-            if (!(++nodes & 0xFFF) && (ABORT || now() > abort_time)) {
+            if (!(++nodes & 0xFFF) && (ABORT || now() > hard_limit)) {
                 throw 0;
             }
 
@@ -309,16 +310,16 @@ struct Searcher {
     }
 
 #ifdef OPENBENCH
-    void iterative_deepening(double time_alotment, int max_depth=200) {
+    void iterative_deepening(int time_alotment, int max_depth=200) {
     #define MAX_DEPTH max_depth
 #else
-    void iterative_deepening(double time_alotment) {
+    void iterative_deepening(int time_alotment) {
     #define MAX_DEPTH 200
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        abort_time = now() + time_alotment * 0.4;
-        time_alotment = now() + time_alotment * 0.043;
+        hard_limit = now() + time_alotment * 0.0004;
+        soft_limit = now() + time_alotment * 0.000043;
         Move mv;
         int v = 0;
         try {
