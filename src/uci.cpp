@@ -104,7 +104,7 @@ void uci() {
                 strtok(0, " \n"); // btime
                 btime = atoi(strtok(0, " \n"));
 #endif
-                double time_alotment = (ROOT.stm == WHITE ? wtime : btime) / 1e3;
+                int time_alotment = ROOT.stm == WHITE ? wtime : btime;
                 ABORT = 0;
                 FINISHED_DEPTH = 0;
 #ifdef OPENBENCH
