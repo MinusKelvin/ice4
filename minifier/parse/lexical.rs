@@ -66,8 +66,8 @@ pub enum Token<S = String> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ParsedNumber {
-    pub value: u64,
-    suffix: String,
+    pub value: i128,
+    pub suffix: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -78,12 +78,17 @@ pub struct PrefixString {
 
 impl ParsedNumber {
     pub fn to_string(&self) -> String {
-        let decimal = format!("{}{}", self.value, self.suffix);
-        let hex = format!("0x{:x}{}", self.value, self.suffix);
-        if decimal.len() <= hex.len() {
+        let decimal = format!("{}{}", self.value.abs(), self.suffix);
+        let hex = format!("0x{:x}{}", self.value.abs(), self.suffix);
+        let text = if decimal.len() <= hex.len() {
             decimal
         } else {
             hex
+        };
+        if self.value < 0 {
+            format!("-{text}")
+        } else {
+            text
         }
     }
 }
@@ -91,7 +96,6 @@ impl ParsedNumber {
 impl Token {
     pub fn as_str(&self) -> Cow<str> {
         match self {
-            Token::Identifier(w) if w == "memory_order_relaxed" => "{}", //HACK
             Token::Identifier(w) => w,
             Token::Typename(w) => w,
             Token::Keyword(k) => *k,
@@ -343,22 +347,22 @@ const CHAR: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\A'(([^'\\]|\\.)+)'\z"#).un
 fn parse_number(text: &str) -> Token {
     Token::Integer(if let Some(captures) = OCTAL.captures(text) {
         ParsedNumber {
-            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 8).unwrap(),
+            value: i128::from_str_radix(captures.get(1).unwrap().as_str(), 8).unwrap(),
             suffix: captures.get(2).unwrap().as_str().to_owned(),
         }
     } else if let Some(captures) = DECIMAL.captures(text) {
         ParsedNumber {
-            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 10).unwrap(),
+            value: i128::from_str_radix(captures.get(1).unwrap().as_str(), 10).unwrap(),
             suffix: captures.get(2).unwrap().as_str().to_owned(),
         }
     } else if let Some(captures) = HEX.captures(text) {
         ParsedNumber {
-            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 16).unwrap(),
+            value: i128::from_str_radix(captures.get(1).unwrap().as_str(), 16).unwrap(),
             suffix: captures.get(2).unwrap().as_str().to_owned(),
         }
     } else if let Some(captures) = BINARY.captures(text) {
         ParsedNumber {
-            value: u64::from_str_radix(captures.get(1).unwrap().as_str(), 2).unwrap(),
+            value: i128::from_str_radix(captures.get(1).unwrap().as_str(), 2).unwrap(),
             suffix: captures.get(2).unwrap().as_str().to_owned(),
         }
     } else if let Some(captures) = CHAR.captures(text) {
@@ -381,7 +385,7 @@ fn parse_number(text: &str) -> Token {
                     '?' => 0x3F,
                     c => panic!("invalid escape sequence: `\\{c}`"),
                 },
-                Some(c) => c as u64,
+                Some(c) => c as i128,
                 None => break,
             };
             value <<= 8;

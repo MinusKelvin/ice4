@@ -39,7 +39,7 @@ struct Searcher {
 
         auto& slot = TT[board.zobrist % TT_SIZE];
         uint16_t upper_key = board.zobrist / TT_SIZE;
-        TtData tt = slot.load(memory_order_relaxed);
+        TtData tt = slot.load({});
         int tt_good = upper_key == tt.key;
         if (tt_good) {
             if (depth > 0 || board.board[tt.mv.to]) {
@@ -288,7 +288,7 @@ struct Searcher {
             if (!tt_good || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
-            slot.store(tt, memory_order_relaxed);
+            slot.store(tt, {});
             if (!board.board[bestmv.to] && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]

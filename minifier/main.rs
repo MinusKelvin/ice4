@@ -4,6 +4,7 @@ mod parse;
 mod preprocess;
 mod renamer;
 mod semantic_analysis;
+mod constant_fold;
 
 fn main() {
     let tcec = std::env::args().any(|s| s == "tcec");
@@ -17,6 +18,7 @@ fn main() {
 
     decl_merger::merge_decls(&mut ast);
     expr_merger::merge_exprs(&mut ast);
+    constant_fold::fold_constants(&mut ast);
 
     let mut tokens = parse::unparse(ast);
 

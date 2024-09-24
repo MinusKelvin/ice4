@@ -23,6 +23,7 @@ enum IdentKind {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 enum TypeOf {
     Unknown(Option<String>),
     User(usize),
@@ -108,7 +109,7 @@ impl Symbols {
             DeclForm::LReference(f) => self.get_type(base, f),
             DeclForm::RReference(f) => self.get_type(base, f),
             DeclForm::Array(f, Some(n)) => {
-                TypeOf::Array(Box::new(self.get_type(base, f)), n.as_ref().unwrap().value)
+                TypeOf::Array(Box::new(self.get_type(base, f)), n.as_ref().unwrap().value as u64)
             }
             DeclForm::BitField(f, _) => self.get_type(base, f),
         }
@@ -471,8 +472,18 @@ fn process_expr(symbols: &mut Symbols, scope: &mut Scope, expr: &mut Expression)
                 _ => TypeOf::Unknown(None),
             }
         }
-        Expr::Construct(ty, args) | Expr::BraceConstruct(ty, args) => {
+        Expr::Construct(ty, args) => {
             let ty = process_base_type(symbols, scope, ty);
+            for arg in args {
+                process_expr(symbols, scope, arg);
+            }
+            ty
+        }
+        Expr::BraceConstruct(ty, args) => {
+            let ty = match ty {
+                Some(ty) => process_base_type(symbols, scope, ty),
+                None => TypeOf::Unknown(None),
+            };
             for arg in args {
                 process_expr(symbols, scope, arg);
             }

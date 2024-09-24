@@ -14,6 +14,7 @@ struct Move {
 };
 
 Move create_move(uint8_t from, uint8_t to, uint8_t promo) {
+    // removing Move here increases size, somehow
     return Move{from, to, promo};
 }
 
@@ -225,7 +226,7 @@ struct Board {
 
             if (piece == PAWN) {
                 int dir = stm == WHITE ? 10 : -10;
-                int promo = board[sq + dir + dir] == INVALID ? QUEEN : 0;
+                int promo = board[sq + dir + dir] == INVALID;
                 if (!board[sq + dir]) {
                     mobility += MOBILITY[piece] + king_ring[sq + dir];
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
@@ -295,7 +296,7 @@ struct Board {
                             abs(sq / 10 - king_sq[!ci] / 10),
                             abs(file - king_sq[!ci] % 10)
                         ))
-                        + PASSER_RANK + KING_PASSER_DIST;
+                        + (PASSER_RANK + KING_PASSER_DIST);
                     break;
                 }
                 if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {

@@ -146,7 +146,7 @@ pub enum Expr {
     Index(Expression, Expression),
     Call(Expression, Vec<Expression>),
     Construct(BaseType, Vec<Expression>),
-    BraceConstruct(BaseType, Vec<Expression>),
+    BraceConstruct(Option<BaseType>, Vec<Expression>),
     MemberAccess(Expression, String),
     PointerMemberAccess(Expression, String),
     PostIncrement(Expression),

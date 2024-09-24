@@ -622,7 +622,9 @@ impl Expr {
                 result.push(RightParen);
             }
             Expr::BraceConstruct(e, args) => {
-                e.tokenize(result);
+                if let Some(e) = e {
+                    e.tokenize(result);
+                }
                 result.push(LeftBrace);
                 for (i, arg) in args.into_iter().enumerate() {
                     if i != 0 {
@@ -733,7 +735,7 @@ impl Statement {
                             v.tokenize(result, Precedence::Assignment);
                         }
                         result.push(RightBrace);
-                    },
+                    }
                 }
                 result.push(RightParen);
                 statement_block(b, result);
