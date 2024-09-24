@@ -7,6 +7,7 @@ from collections import deque
 class DataStringer:
     def __init__(self):
         self.data = ""
+        self.len = 0
 
     def add(self, data, round_smallest=False):
         smallest = min(data)
@@ -21,6 +22,7 @@ class DataStringer:
                 self.data += "\\" + c
             else:
                 self.data += c
+        self.len += len(data)
         return smallest
 
 def to_evalcpp(last_loss, train_id, param_map):
@@ -72,31 +74,39 @@ def to_evalcpp(last_loss, train_id, param_map):
         ), end="")
         print("};")
 
+    def datastring_param(name, size, *, scale=1, adjust=0):
+        defines.append((f"{name}_INDEX", mg_stringer.len + adjust))
+        mg_off = mg_stringer.add([mg.popleft() for _ in range(size)], round_smallest=True)
+        eg_off = eg_stringer.add([eg.popleft() for _ in range(size)], round_smallest=True)
+        defines.append((name, mg_off * scale, eg_off * scale))
+
     define_param("BISHOP_PAIR")
     define_param("TEMPO")
     define_param("ISOLATED_PAWN", sign=-1)
     define_param("PROTECTED_PAWN")
     define_param("ROOK_OPEN")
     define_param("ROOK_SEMIOPEN")
-    array_param("PAWN_SHIELD", 4)
+    datastring_param("PAWN_SHIELD", 4)
     define_param("KING_OPEN")
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)
     define_param("KING_RING_ATTACKS")
-    array_param("PASSER_RANK", 6)
-
-    mg_off = mg_stringer.add([mg.popleft() for _ in range(16)], round_smallest=True)
-    eg_off = eg_stringer.add([eg.popleft() for _ in range(16)], round_smallest=True)
-    defines.append(("DIST_OFFSET", mg_off * 2, eg_off * 2))
-
-    array_param("PHALANX_RANK", 6, leading_zero=True)
+    datastring_param("PASSER_RANK", 6, adjust=-1)
+    datastring_param("KING_PASSER_DIST", 16, scale=2)
+    datastring_param("PHALANX_RANK", 6, adjust=-1)
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
+    print()
+    print(f"#define EG_OFFSET {mg_stringer.len}")
 
     print()
-    for name, mg, eg in defines:
-        print(f"#define {name} S({mg}, {eg})")
+    for name, *data in defines:
+        if len(data) == 2:
+            mg, eg = data
+            print(f"#define {name} S({mg}, {eg})")
+        else:
+            print(f"#define {name} {data[0]}")
 
 def dump_result(result):
     with open("../src/eval.cpp", "w") as f:
