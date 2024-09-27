@@ -1,21 +1,22 @@
 use cozy_chess::{
     get_bishop_moves, get_king_moves, get_knight_moves, get_pawn_attacks, get_pawn_quiets,
-    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank, Square,
+    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank,
 };
 
 #[derive(Debug)]
 #[repr(C)]
 pub struct Features {
     pawn_pst: [f32; 48],
-    king_pst: [f32; 16],
-    knight_pst: [f32; 16],
-    knight_quadrant: [f32; 3],
-    bishop_pst: [f32; 16],
-    bishop_quadrant: [f32; 3],
-    rook_pst: [f32; 16],
-    rook_quadrant: [f32; 3],
-    queen_pst: [f32; 16],
-    queen_quadrant: [f32; 3],
+    knight_rank: [f32; 8],
+    knight_file: [f32; 8],
+    bishop_rank: [f32; 8],
+    bishop_file: [f32; 8],
+    rook_rank: [f32; 8],
+    rook_file: [f32; 8],
+    queen_rank: [f32; 8],
+    queen_file: [f32; 8],
+    king_rank: [f32; 8],
+    king_file: [f32; 8],
     bishop_pair: f32,
     tempo: f32,
     isolated_pawn: f32,
@@ -36,22 +37,24 @@ pub struct Features {
 impl Features {
     pub const COUNT: usize = std::mem::size_of::<Self>() / std::mem::size_of::<f32>();
 
-    fn quad(&mut self, piece: Piece) -> &mut [f32; 3] {
+    fn rank(&mut self, piece: Piece) -> &mut [f32; 8] {
         match piece {
-            Piece::Knight => &mut self.knight_quadrant,
-            Piece::Bishop => &mut self.bishop_quadrant,
-            Piece::Rook => &mut self.rook_quadrant,
-            Piece::Queen => &mut self.queen_quadrant,
+            Piece::Knight => &mut self.knight_rank,
+            Piece::Bishop => &mut self.bishop_rank,
+            Piece::Rook => &mut self.rook_rank,
+            Piece::Queen => &mut self.queen_rank,
+            Piece::King => &mut self.king_rank,
             _ => unreachable!(),
         }
     }
 
-    fn quad_pst(&mut self, piece: Piece) -> &mut [f32; 16] {
+    fn file(&mut self, piece: Piece) -> &mut [f32; 8] {
         match piece {
-            Piece::Knight => &mut self.knight_pst,
-            Piece::Bishop => &mut self.bishop_pst,
-            Piece::Rook => &mut self.rook_pst,
-            Piece::Queen => &mut self.queen_pst,
+            Piece::Knight => &mut self.knight_file,
+            Piece::Bishop => &mut self.bishop_file,
+            Piece::Rook => &mut self.rook_file,
+            Piece::Queen => &mut self.queen_file,
+            Piece::King => &mut self.king_file,
             _ => unreachable!(),
         }
     }
@@ -84,17 +87,9 @@ impl Features {
                 }
 
                 match piece {
-                    Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen => {
-                        let quad = (square.file() > File::D) as usize * 2
-                            + (square.rank() > Rank::Fourth) as usize;
-                        if quad != 0 {
-                            self.quad(piece)[quad - 1] += inc;
-                        }
-                        self.quad_pst(piece)[quadrant_feature(square)] += inc;
-                    }
-                    Piece::King => {
-                        self.king_pst
-                            [square.rank() as usize / 2 * 4 + square.file() as usize / 2] += inc
+                    Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen | Piece::King => {
+                        self.rank(piece)[square.rank() as usize] += inc;
+                        self.file(piece)[square.file() as usize] += inc;
                     }
                     Piece::Pawn => {
                         self.pawn_pst[match board.king(color).file() > File::D {
@@ -225,16 +220,4 @@ impl Features {
             }
         }
     }
-}
-
-fn quadrant_feature(square: Square) -> usize {
-    let square = match square.file() > File::D {
-        true => square.flip_file(),
-        false => square,
-    };
-    let square = match square.rank() > Rank::Fourth {
-        true => square.flip_rank(),
-        false => square,
-    };
-    square.rank() as usize * 4 + square.file() as usize
 }

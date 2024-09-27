@@ -39,24 +39,6 @@ def to_evalcpp(last_loss, train_id, param_map):
 
     defines = []
 
-    mg_off = round(mg_stringer.add([mg.popleft() for _ in range(48)]))
-    eg_off = round(eg_stringer.add([eg.popleft() for _ in range(48)]))
-    defines.append(("PAWN_OFFSET", mg_off, eg_off))
-
-    mg_stringer.add([mg.popleft() for _ in range(16)])
-    eg_stringer.add([eg.popleft() for _ in range(16)])
-
-    print("int QUADRANTS[] = {", end="")
-    for _ in range(4):
-        mg_off = mg_stringer.add([mg.popleft() for _ in range(16)])
-        eg_off = eg_stringer.add([eg.popleft() for _ in range(16)])
-        mg_quad_offset = [0] + [mg.popleft() for _ in range(3)]
-        eg_quad_offset = [0] + [eg.popleft() for _ in range(3)]
-        for j, (mg_q, eg_q) in enumerate(zip(mg_quad_offset, eg_quad_offset)):
-            if j % 4 == 0: print("\n   ", end="")
-            print(f" S({round(mg_off + mg_q)}, {round(eg_off + eg_q)})", end=",")
-    print("\n};")
-
     def define_param(name, *, sign=1):
         defines.append((
             name,
@@ -79,6 +61,19 @@ def to_evalcpp(last_loss, train_id, param_map):
         mg_off = mg_stringer.add([mg.popleft() for _ in range(size)], round_smallest=True)
         eg_off = eg_stringer.add([eg.popleft() for _ in range(size)], round_smallest=True)
         defines.append((name, mg_off * scale, eg_off * scale))
+
+    print("int MATERIAL[] = {0", end="")
+    mg_off = mg_stringer.add([mg.popleft() for _ in range(48)], round_smallest=True)
+    eg_off = eg_stringer.add([eg.popleft() for _ in range(48)], round_smallest=True)
+    print(f", S({mg_off}, {eg_off})", end="")
+    for i in range(5):
+        mg_off = mg_stringer.add([mg.popleft() for _ in range(8)], round_smallest=True)
+        mg_off += mg_stringer.add([mg.popleft() for _ in range(8)], round_smallest=True)
+        eg_off = eg_stringer.add([eg.popleft() for _ in range(8)], round_smallest=True)
+        eg_off += eg_stringer.add([eg.popleft() for _ in range(8)], round_smallest=True)
+        if i == 4: mg_off = eg_off = 0
+        print(f", S({mg_off}, {eg_off})", end="")
+    print("};")
 
     define_param("BISHOP_PAIR")
     define_param("TEMPO")

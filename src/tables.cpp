@@ -35,20 +35,17 @@ uint64_t ZOBRIST[25][SQUARE_SPAN];
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
-            PST[BLACK | KING][70-10*rank+file] = -(
-                PST[WHITE | KING][10*rank+file] = get_data(rank/2*4+file/2+48)
-            );
-
             if (rank > 0 && rank < 7) {
                 PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file-8) + PAWN_OFFSET;
+                    get_data(rank*8+file-8) + MATERIAL[PAWN];
             }
 
-            for (int piece = KNIGHT; piece <= QUEEN; piece++) {
+            for (int piece = KNIGHT; piece <= KING; piece++) {
                 PST[BLACK | piece][70-10*rank+file] = -(
-                    PST[WHITE | piece][10*rank+file] = get_data(
-                        (rank & 4 ? rank ^ 7 : rank)*4 + (file & 4 ? file ^ 7 : file) + piece*16+32
-                    ) + QUADRANTS[piece*4-8+rank/4+file/4*2]
+                    PST[WHITE | piece][10*rank+file] =
+                        get_data(16 + 16*piece + rank) +
+                        get_data(24 + 16*piece + file) +
+                        MATERIAL[piece]
                 );
             }
         }
