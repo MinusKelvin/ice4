@@ -47,6 +47,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    uint8_t halfmoves;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -126,13 +127,18 @@ struct Board {
     int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
         #define NSTM (stm ^ INVALID)
+        if (board[mv.to]) {
+            halfmoves = 0;
+        }
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
+        halfmoves++;
 
         // handle en-passant
         zobrist ^= ZOBRIST[EMPTY][ep_square];
         int ep = stm != WHITE ? 10 : -10;
         if ((piece & 7) == PAWN) {
+            halfmoves = 0;
             if (mv.to == ep_square) {
                 edit(mv.to + ep, EMPTY);
             }
@@ -357,7 +363,7 @@ struct Board {
             }
         }
         stm_eval += stm == WHITE ? e : -e;
-        return ((int16_t)stm_eval * phase + ((stm_eval + 0x8000) >> 16) * (24 - phase)) / 24;
+        return ((int16_t)stm_eval * phase + ((stm_eval + 0x8000) >> 16) * (24 - phase)) * (200 - halfmoves) / 4800;
     }
 } ROOT;
 

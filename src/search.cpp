@@ -45,7 +45,7 @@ struct Searcher {
             if (depth > 0 || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
-            if (depth <= tt.depth && (
+            if (depth <= tt.depth && board.halfmoves < 75 && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
@@ -207,7 +207,7 @@ struct Searcher {
             int v;
             int next_depth = depth - 1 + mkmove.check;
 
-            if (is_rep) {
+            if (is_rep || mkmove.halfmoves == 101) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
