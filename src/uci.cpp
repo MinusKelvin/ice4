@@ -106,7 +106,7 @@ void uci() {
 #endif
                 int time_alotment = ROOT.stm == WHITE ? wtime : btime;
                 ABORT = 0;
-                FINISHED_DEPTH = 0;
+                FINISHED_DEPTH_AND_SCORE = 0;
 #ifdef OPENBENCH
                 vector<thread> threads(THREADS);
 #else

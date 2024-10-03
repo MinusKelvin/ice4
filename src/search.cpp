@@ -12,8 +12,7 @@ double now() {
 
 atomic_bool ABORT;
 mutex MUTEX;
-int FINISHED_DEPTH;
-int FINISHED_SCORE;
+int FINISHED_DEPTH_AND_SCORE;
 Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
@@ -339,12 +338,11 @@ struct Searcher {
                     delta *= 1.8;
                 }
                 lock_guard lock(MUTEX);
-                if (FINISHED_DEPTH < depth || FINISHED_DEPTH == depth && v > FINISHED_SCORE) {
-                    FINISHED_SCORE = v;
+                if (FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
+                    FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
                     BEST_MOVE = mv;
                     printf("info depth %d score cp %d pv ", depth, v);
                     mv.put_with_newline();
-                    FINISHED_DEPTH = depth;
                     if (now() > soft_limit) {
                         break;
                     }
