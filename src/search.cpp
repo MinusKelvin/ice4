@@ -336,15 +336,15 @@ struct Searcher {
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 1.8;
-                }
-                lock_guard lock(MUTEX);
-                if (FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
-                    FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
-                    BEST_MOVE = mv;
-                    printf("info depth %d score cp %d pv ", depth, v);
-                    mv.put_with_newline();
-                    if (now() > soft_limit) {
-                        break;
+                    lock_guard lock(MUTEX);
+                    if (v > lower && FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
+                        FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
+                        BEST_MOVE = mv;
+                        printf("info depth %d score cp %d pv ", depth, v);
+                        mv.put_with_newline();
+                        if (now() > soft_limit) {
+                            return;
+                        }
                     }
                 }
             }
