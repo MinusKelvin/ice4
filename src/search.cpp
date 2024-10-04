@@ -289,7 +289,7 @@ struct Searcher {
                 tt.mv = bestmv;
             }
             slot.store(tt, {});
-            if (!board.board[bestmv.to] && (
+            if (depth > 0 && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
