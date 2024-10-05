@@ -36,8 +36,8 @@ int IID_REDUCTION = 6;
 double COUNTER_HIST_FACTOR = 2;
 double FOLLOWUP_HIST_FACTOR = 2.2;
 int LMP_CONSTANT = 12;
-double LMR_MOVES = 0.155;
-double LMR_DEPTH = 0.165;
+double LMR_FACTOR = 1.0;
+double LMR_CONSTANT = 0.5;
 int LMR_HISTORY = 2764;
 double HIST_QUAD_UPDATE = 4;
 double HIST_LINEAR_UPDATE = 0;
@@ -249,7 +249,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * LMR_MOVES + depth * LMR_DEPTH;
+                int reduction = LOG[legals] * LOG[max(depth, 0)] * LMR_FACTOR + LMR_CONSTANT;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte

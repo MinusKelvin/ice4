@@ -9,6 +9,8 @@ int LAYOUT[] = { ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK };
 int RAYS[] = {-1, 1, -10, 10, 11, -11, 9, -9, -21, 21, -19, 19, -12, 12, -8, 8};
 int DELTAS[] = {717, 100, 423, 569, 755, 1280, 0};
 
+double LOG[256];
+
 int get_data(int i) {
     auto data = DATA_STRING;
     return data[i] + 0x10000 * data[i+EG_OFFSET] - S(32, 32);
@@ -52,6 +54,10 @@ void init_tables() {
                 );
             }
         }
+    }
+
+    for (int i = 1; i < 256; i++) {
+        LOG[i] = log(i);
     }
     
     // Zobrist keys

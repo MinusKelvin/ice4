@@ -41,8 +41,8 @@ void uci() {
         "option name qCOUNTER_HIST_FACTOR type string default 2\n"
         "option name rFOLLOWUP_HIST_FACTOR type string default 2.2\n"
         "option name sLMP_CONSTANT type string default 12\n"
-        "option name tLMR_MOVES type string default 0.155\n"
-        "option name uLMR_DEPTH type string default 0.165\n"
+        "option name tLMR_FACTOR type string default 1.0\n"
+        "option name uLMR_CONSTANT type string default 0.5\n"
         "option name vLMR_HISTORY type string default 2764\n"
         "option name wHIST_QUAD_UPDATE type string default 4\n"
         "option name xHIST_LINEAR_UPDATE type string default 0\n"
@@ -104,8 +104,8 @@ void uci() {
                     case 'q': COUNTER_HIST_FACTOR = value; break;
                     case 'r': FOLLOWUP_HIST_FACTOR = value; break;
                     case 's': LMP_CONSTANT = value; break;
-                    case 't': LMR_MOVES = value; break;
-                    case 'u': LMR_DEPTH = value; break;
+                    case 't': LMR_FACTOR = value; break;
+                    case 'u': LMR_CONSTANT = value; break;
                     case 'v': LMR_HISTORY = value; break;
                     case 'w': HIST_QUAD_UPDATE = value; break;
                     case 'x': HIST_LINEAR_UPDATE = value; break;
