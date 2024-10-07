@@ -44,7 +44,7 @@ struct Searcher {
         TtData tt = slot.load({});
         int tt_good = upper_key == tt.key;
         if (tt_good) {
-            if (depth > 0 || board.board[tt.mv.to]) {
+            if (depth || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
             }
             if (depth <= tt.depth && (
@@ -63,7 +63,7 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth > 0, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 184
@@ -78,7 +78,7 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && !board.check && depth > 0 && depth < 7 && eval >= beta + 45 * depth) {
+        if (!pv && !board.check && depth && depth < 7 && eval >= beta + 45 * depth) {
             return eval;
         }
 
@@ -101,7 +101,7 @@ struct Searcher {
             }
         }
 
-        if (!pv && !board.check && depth > 0 && depth < 5 && eval <= alpha - 49 * depth - 198) {
+        if (!pv && !board.check && depth && depth < 5 && eval <= alpha - 49 * depth - 198) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -144,7 +144,7 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
-        int best = depth > 0 ? LOST + ply : eval;
+        int best = depth ? LOST + ply : eval;
         if (best >= beta) {
             return best;
         }
@@ -171,7 +171,7 @@ struct Searcher {
             int pawn_attacked =
                 board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
                 board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN);
-            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + max(0, depth) / 2) {
+            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + depth / 2) {
                 continue;
             }
 
@@ -185,7 +185,7 @@ struct Searcher {
             // Delta Pruning: 37 bytes (v4)
             // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
             // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
-            if (depth <= 0 && eval + DELTAS[victim] <= alpha) {
+            if (!depth && eval + DELTAS[victim] <= alpha) {
                 continue;
             }
 
@@ -200,10 +200,10 @@ struct Searcher {
             }
 
             int is_rep = 0;
-            for (int i = ply-1; depth > 0 && !is_rep && i >= 0; i -= 2) {
+            for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                 is_rep |= rep_list[i] == mkmove.zobrist;
             }
-            for (int i = 0; depth > 0 && !is_rep && i < PREHISTORY_LENGTH; i++) {
+            for (int i = 0; depth && !is_rep && i < PREHISTORY_LENGTH; i++) {
                 is_rep |= PREHISTORY[i] == mkmove.zobrist;
             }
 
@@ -278,14 +278,14 @@ struct Searcher {
             }
         }
 
-        if (depth > 0 && legals == 0 && !board.check) {
+        if (depth && legals == 0 && !board.check) {
             return 0;
         }
 
-        if ((depth > 0 || best != eval) && best > LOST + ply) {
+        if ((depth || best != eval) && best > LOST + ply) {
             tt.key = upper_key;
             tt.eval = best;
-            tt.depth = depth > 0 ? depth : 0;
+            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
