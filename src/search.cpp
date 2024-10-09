@@ -250,7 +250,7 @@ struct Searcher {
             }
             if (v >= beta) {
                 if (!victim) {
-                    int bonus = 5.6 * depth * depth + 0.5 * depth;
+                    int bonus = 5.6 * depth * depth;
                     bonus <<= ((eval <= alpha) + (eval <= alpha - 34));
                     int16_t *hist;
                     for (int j = 0; j < i; j++) {
