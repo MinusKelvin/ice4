@@ -1,5 +1,5 @@
 #define MAX_HIST 4096
-#define CORR_HIST_SIZE 16384
+#define CORR_HIST_SIZE 65536
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_DIV 456
 #define CORR_HIST_MAX 72
@@ -22,7 +22,7 @@ struct Searcher {
     double hard_limit;
     double soft_limit;
     int16_t evals[256];
-    int64_t corr_hist[2][CORR_HIST_SIZE];
+    int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
