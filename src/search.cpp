@@ -2,7 +2,7 @@
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_DIV 456
-#define CORR_HIST_MAX 72
+#define CORR_HIST_MAX 128
 
 double now() {
     timespec t;
