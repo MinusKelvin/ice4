@@ -65,7 +65,8 @@ struct Searcher {
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 184
             + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / 174
-            + (*conthist_stack[ply+1])[0][0] / 121;
+            + (*conthist_stack[ply+1])[0][0] / 121
+            + (*conthist_stack[ply])[1][0] / 200;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -303,6 +304,9 @@ struct Searcher {
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 (*conthist_stack[ply+1])[0][0] =
                     (*conthist_stack[ply+1])[0][0] * (1 - weight) +
+                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                (*conthist_stack[ply])[1][0] =
+                    (*conthist_stack[ply])[1][0] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
             }
         }
