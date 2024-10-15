@@ -23,7 +23,7 @@ struct Searcher {
     double soft_limit;
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
-    HTable history;
+    int16_t history[2][SQUARE_SPAN][SQUARE_SPAN];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -128,7 +128,7 @@ struct Searcher {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from]][moves[j].to]
+                score[j] = history[board.stm != WHITE][moves[j].from][moves[j].to]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
@@ -261,14 +261,14 @@ struct Searcher {
                         if (board.board[moves[j].to]) {
                             continue;
                         }
-                        hist = &history[board.board[moves[j].from]][moves[j].to];
+                        hist = &history[board.stm != WHITE][moves[j].from][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
-                    hist = &history[board.board[moves[i].from]][moves[i].to];
+                    hist = &history[board.stm != WHITE][moves[i].from][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
