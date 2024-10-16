@@ -262,14 +262,14 @@ struct Searcher {
                             continue;
                         }
                         hist = &history[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                        *hist -= 64*depth + 64*depth * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
                     hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
+                    *hist += 64*depth - 64*depth * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
