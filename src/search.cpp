@@ -220,7 +220,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = legals * 0.13 + depth * 0.175;
+                int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
