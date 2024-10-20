@@ -35,7 +35,7 @@ struct Searcher {
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         for (int j = 0; j < mvcount; j++) {
-            score[j] = 0;
+            score[j] = board.board[moves[j].to];
         }
 
         rep_list[ply] = board.zobrist;

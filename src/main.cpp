@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
             ROOT = Board();
             parse_fen();
             Searcher s{};
-            s.iterative_deepening(INT_MAX, 4);
+            s.iterative_deepening(INT_MAX, 5);
             nodes += s.nodes;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);
