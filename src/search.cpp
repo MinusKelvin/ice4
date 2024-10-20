@@ -1,4 +1,4 @@
-#define MAX_HIST 4096
+#define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_DIV 456
@@ -18,11 +18,12 @@ Move BEST_MOVE;
 typedef int16_t HTable[23][SQUARE_SPAN];
 
 struct Searcher {
-    uint64_t nodes;
     double hard_limit;
     double soft_limit;
+    uint64_t nodes;
     uint64_t rep_list[256];
     int mobilities[256];
+    HTable history;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch, hashmv{};
@@ -37,7 +38,11 @@ struct Searcher {
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         for (int j = 0; j < mvcount; j++) {
-            score[j] = board.board[moves[j].to];
+            if (board.board[moves[j].to]) {
+                score[j] = 1e5 * board.board[moves[j].to];
+            } else {
+                score[j] = history[board.board[moves[j].from]][moves[j].to];
+            }
         }
 
         rep_list[ply] = board.zobrist;
@@ -95,6 +100,17 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
+                if (!board.board[moves[i].to]) {
+                    int bonus = 64 * depth;
+                    for (int j = 0; j < i; j++) {
+                        if (!board.board[moves[j].to]) {
+                            history[board.board[moves[j].from]][moves[j].to] -=
+                                bonus + bonus * history[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
+                        }
+                    }
+                    history[board.board[moves[i].from]][moves[i].to] +=
+                        bonus - bonus * history[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
+                }
                 break;
             }
         }
