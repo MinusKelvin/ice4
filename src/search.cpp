@@ -17,6 +17,27 @@ Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
+uint32_t murmur_32_scramble(uint32_t k) {
+    k *= 0xcc9e2d51;
+    k = (k << 15) | (k >> 17);
+    k *= 0x1b873593;
+    return k;
+}
+uint32_t murmur3_32(uint32_t k, uint32_t seed) {
+    uint32_t h = seed;
+    h ^= murmur_32_scramble(k);
+    h = (h << 13) | (h >> 19);
+    h = h * 5 + 0xe6546b64;
+    h ^= murmur_32_scramble(k);
+    h ^= 4;
+    h ^= h >> 16;
+    h *= 0x85ebca6b;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >> 16;
+    return h;
+}
+
 struct Searcher {
     uint64_t nodes;
     double hard_limit;
@@ -152,6 +173,8 @@ struct Searcher {
 
         int quiets_to_check = pv ? -1 : (depth*depth + 10) >> (!improving + 1);
 
+        int do_fake_nonpv_reduction_increase = murmur3_32(nodes, board.zobrist) > 78868484;
+
         int raised_alpha = 0;
         int legals = 0;
         for (int i = 0; i < mvcount; i++) {
@@ -221,7 +244,7 @@ struct Searcher {
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[legals] * LOG[max(depth, 0)] * 0.65 + 0.33;
-                reduction -= pv;
+                reduction += do_fake_nonpv_reduction_increase;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
