@@ -30,6 +30,8 @@ struct Searcher {
         int score[256];
         int mvcount;
 
+        depth = depth < 0 ? 0 : depth;
+
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
@@ -40,13 +42,15 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
-        if (depth == 0) {
-            return eval;
-        }
-
-        int best = LOST + ply;
+        int best = depth ? LOST + ply : eval;
         int raised_alpha = 0;
         int legals = 0;
+
+        // Quiescence search stand-pat
+        if (best >= beta) {
+            return best;
+        }
+
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
