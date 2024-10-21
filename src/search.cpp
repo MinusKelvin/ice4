@@ -50,7 +50,7 @@ struct Searcher {
             depth--;
         }
 
-        board.movegen(moves, mvcount, depth, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth || board.check, mobilities[ply+1]);
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
@@ -93,7 +93,7 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
 
-        int best = depth ? LOST + ply : eval;
+        int best = depth || board.check ? LOST + ply : eval;
         int raised_alpha = 0;
         int legals = 0;
         int quiets_to_check = pv || board.check ? 999 : depth * depth + 6;
