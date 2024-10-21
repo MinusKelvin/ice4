@@ -81,6 +81,7 @@ struct Searcher {
         int best = depth ? LOST + ply : eval;
         int raised_alpha = 0;
         int legals = 0;
+        int quiets_to_check = pv || board.check ? 999 : depth * depth + 6;
 
         // Quiescence search stand-pat
         if (best >= beta) {
@@ -96,6 +97,10 @@ struct Searcher {
             }
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
+
+            if (!board.board[moves[i].to] && quiets_to_check-- < 0 && best > -20000) {
+                continue;
+            }
 
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
