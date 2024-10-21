@@ -119,7 +119,17 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                int r = legals > 3;
+
+                if (r < 0 || board.board[moves[i].to]) {
+                    r = 0;
+                }
+
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1 - r, ply + 1);
+
+                if (v > alpha && r) {
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+                }
 
                 if (pv && v > alpha) {
                     v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
