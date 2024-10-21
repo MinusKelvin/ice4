@@ -94,7 +94,6 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
 
         int best = depth || board.check ? LOST + ply : eval;
-        int raised_alpha = 0;
         int legals = 0;
         int quiets_to_check = pv || board.check ? 999 : depth * depth + 6;
 
@@ -162,11 +161,10 @@ struct Searcher {
             legals++;
             if (v > best) {
                 best = v;
-                bestmv = moves[i];
             }
             if (v > alpha) {
                 alpha = v;
-                raised_alpha = 1;
+                bestmv = moves[i];
             }
             if (v >= beta) {
                 if (!board.board[moves[i].to]) {
@@ -200,8 +198,10 @@ struct Searcher {
             tt.key = board.zobrist / TT_SIZE;
             tt.score = best;
             tt.depth = depth;
-            tt.bound = best >= beta ? BOUND_LOWER : raised_alpha ? BOUND_EXACT : BOUND_UPPER;
-            tt.mv = bestmv;
+            tt.bound = best >= beta ? BOUND_LOWER : bestmv.from ? BOUND_EXACT : BOUND_UPPER;
+            if (!tt_good || bestmv.from) {
+                tt.mv = bestmv;
+            }
             TT[board.zobrist % TT_SIZE].store(tt, {});
         }
 
