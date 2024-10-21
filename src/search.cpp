@@ -24,6 +24,8 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
     HTable history;
+    HTable conthist[14][SQUARE_SPAN];
+    HTable *conthist_stack[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch;
@@ -62,6 +64,8 @@ struct Searcher {
             mkmove.stm ^= INVALID;
             mkmove.ep_square = 0;
 
+            conthist_stack[ply + 2] = &conthist[0][0];
+
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 4, ply + 1);
             if (v >= beta) {
                 return v;
@@ -74,7 +78,8 @@ struct Searcher {
             } else if (board.board[moves[j].to]) {
                 score[j] = 1e5 * board.board[moves[j].to];
             } else {
-                score[j] = history[board.board[moves[j].from]][moves[j].to];
+                score[j] = history[board.board[moves[j].from]][moves[j].to]
+                    + (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -108,6 +113,8 @@ struct Searcher {
             if (mkmove.make_move(moves[i])) {
                 continue;
             }
+
+            conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
 
             if (!(++nodes & 0xFFF) && (ABORT || now() > hard_limit)) {
                 throw 0;
@@ -160,10 +167,14 @@ struct Searcher {
                         if (!board.board[moves[j].to]) {
                             history[board.board[moves[j].from]][moves[j].to] -=
                                 bonus + bonus * history[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
+                            (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to] -=
+                                bonus + bonus * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
                         }
                     }
                     history[board.board[moves[i].from]][moves[i].to] +=
                         bonus - bonus * history[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
+                    (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to] +=
+                        bonus - bonus * (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
                 }
                 break;
             }
@@ -192,6 +203,8 @@ struct Searcher {
     void iterative_deepening(int time_alotment) {
     #define MAX_DEPTH 200
 #endif
+        conthist_stack[0] = &conthist[0][1];
+        conthist_stack[1] = &conthist[0][1];
         hard_limit = now() + time_alotment * 0.0004;
         soft_limit = now() + time_alotment * 0.00005;
         Move mv;
