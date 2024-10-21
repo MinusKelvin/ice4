@@ -20,7 +20,7 @@ Move create_move(uint8_t from, uint8_t to, uint8_t promo) {
 
 struct TtData {
     uint16_t key;
-    int16_t eval;
+    int16_t score;
     Move mv;
     uint8_t depth;
     uint8_t bound;

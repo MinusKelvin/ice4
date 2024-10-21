@@ -26,19 +26,25 @@ struct Searcher {
     HTable history;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
-        Move scratch, hashmv{};
+        Move scratch;
         Move moves[256];
         int score[256];
         int mvcount;
 
         depth = depth < 0 ? 0 : depth;
+        bestmv = Move{};
+
+        TtData tt = TT[board.zobrist % TT_SIZE].load({});
+        int tt_good = tt.key == (uint16_t) (board.zobrist / TT_SIZE);
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         for (int j = 0; j < mvcount; j++) {
-            if (board.board[moves[j].to]) {
+            if (tt_good && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
+                score[j] = 1e7;
+            } else if (board.board[moves[j].to]) {
                 score[j] = 1e5 * board.board[moves[j].to];
             } else {
                 score[j] = history[board.board[moves[j].from]][moves[j].to];
@@ -117,6 +123,15 @@ struct Searcher {
 
         if (depth && legals == 0 && !board.check) {
             return 0;
+        }
+
+        if (best > LOST + ply) {
+            tt.key = board.zobrist / TT_SIZE;
+            tt.score = best;
+            tt.depth = depth;
+            tt.bound = best >= beta ? BOUND_LOWER : raised_alpha ? BOUND_EXACT : BOUND_UPPER;
+            tt.mv = bestmv;
+            TT[board.zobrist % TT_SIZE].store(tt, {});
         }
 
         return best;
