@@ -54,6 +54,18 @@ struct Searcher {
             return eval;
         }
 
+        if (!board.check && depth > 2) {
+            Board mkmove = board;
+            mkmove.zobrist ^= ZOBRIST[EMPTY][0];
+            mkmove.stm ^= INVALID;
+            mkmove.ep_square = 0;
+
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 4, ply + 1);
+            if (v >= beta) {
+                return v;
+            }
+        }
+
         for (int j = 0; j < mvcount; j++) {
             if (tt_good && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
