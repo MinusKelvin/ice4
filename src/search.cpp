@@ -86,7 +86,8 @@ struct Searcher {
                 score[j] = 1e5 * board.board[moves[j].to];
             } else {
                 score[j] = history[board.board[moves[j].from]][moves[j].to]
-                    + (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
+                    + (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -176,12 +177,16 @@ struct Searcher {
                                 bonus + bonus * history[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
                             (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to] -=
                                 bonus + bonus * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
+                            (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to] -=
+                                bonus + bonus * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to] / MAX_HIST;
                         }
                     }
                     history[board.board[moves[i].from]][moves[i].to] +=
                         bonus - bonus * history[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
                     (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to] +=
                         bonus - bonus * (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
+                    (*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to] +=
+                        bonus - bonus * (*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to] / MAX_HIST;
                 }
                 break;
             }
