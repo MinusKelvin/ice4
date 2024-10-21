@@ -37,6 +37,14 @@ struct Searcher {
 
         TtData tt = TT[board.zobrist % TT_SIZE].load({});
         int tt_good = tt.key == (uint16_t) (board.zobrist / TT_SIZE);
+        if (tt_good && !pv && depth <= tt.depth) {
+            if (
+                tt.score >= beta && (tt.bound & BOUND_LOWER) ||
+                tt.score <= alpha && (tt.bound & BOUND_UPPER)
+            ) {
+                return tt.score;
+            }
+        }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
