@@ -8,12 +8,8 @@ int THREADS = 1;
 
 void uci() {
     setbuf(stdout, 0);
-    char buf[4096], *move;
+    char buf[4096], *token;
     int wtime, btime;
-#ifdef OPENBENCH
-    int opt, value;
-    TtData empty{};
-#endif
     fgets(buf, 4096, stdin); // uci
     printf(
 #ifdef OPENBENCH
@@ -35,23 +31,20 @@ void uci() {
 #ifdef OPENBENCH
             case 'u': // ucinewgame
                 for (int i = 0; i < TT_SIZE; i++) {
-                    TT[i] = empty;
+                    TT[i] = TtData{};
                 }
                 break;
             case 's': // setoption
                 strtok(0, " \n"); // name
-                opt = *strtok(0, " \n");
+                token = strtok(0, " \n");
                 strtok(0, " \n"); // value
-                value = atoi(strtok(0, " \n"));
-                switch (opt) {
-                    case 'H':
-                        delete[] TT;
-                        TT_SIZE = value * 131072;
-                        TT = new atomic<TtData>[TT_SIZE]();
-                        break;
-                    case 'T':
-                        THREADS = value;
-                        break;
+                if (!strcmp(token, "Hash")) {
+                    delete[] TT;
+                    TT_SIZE = atoi(strtok(0, " \n")) * 131072;
+                    TT = new atomic<TtData>[TT_SIZE]();
+                }
+                if (!strcmp(token, "Threads")) {
+                    THREADS = atoi(strtok(0, " \n"));
                 }
                 break;
 #endif
@@ -66,12 +59,12 @@ void uci() {
 #endif
                 strtok(0, " \n"); // moves
                 PREHISTORY_LENGTH = 0;
-                while (move = strtok(0, " \n")) {
+                while ((token = strtok(0, " \n"))) {
                     PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     BEST_MOVE = create_move(
-                        move[1] * 10 + move[0] - 566,
-                        move[3] * 10 + move[2] - 566,
-                        !!move[4]
+                        token[1] * 10 + token[0] - 566,
+                        token[3] * 10 + token[2] - 566,
+                        !!token[4]
                     );
                     if ((ROOT.board[BEST_MOVE.from] & 7) == PAWN || ROOT.board[BEST_MOVE.to]) {
                         PREHISTORY_LENGTH = 0;
@@ -83,18 +76,17 @@ void uci() {
                     // * 5   35     40     225    20     0
                     // % 6   5      4      3      2      0
                     // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
-                    ROOT.make_move(BEST_MOVE, move[4] % 53 * 5 % 6);
+                    ROOT.make_move(BEST_MOVE, token[4] % 53 * 5 % 6);
                 }
                 break;
             case 'g': // go
 #ifdef OPENBENCH
-                char *w;
                 wtime = 1 << 30;
                 btime = 1 << 30;
-                while (w = strtok(0, " \n")) {
-                    if (!strcmp(w, "wtime")) {
+                while ((token = strtok(0, " \n"))) {
+                    if (!strcmp(token, "wtime")) {
                         wtime = atoi(strtok(0, " \n"));
-                    } else if (!strcmp(w, "btime")) {
+                    } else if (!strcmp(token, "btime")) {
                         btime = atoi(strtok(0, " \n"));
                     }
                 }
