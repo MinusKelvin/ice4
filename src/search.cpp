@@ -50,7 +50,7 @@ struct Searcher {
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
-        if (!board.check && depth < 4 && eval - 50 * depth >= beta) {
+        if (!pv && !board.check && depth < 4 && eval - 50 * depth >= beta) {
             return eval;
         }
 
