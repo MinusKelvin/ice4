@@ -50,7 +50,7 @@ void init_tables() {
             }
         }
     }
-    
+
     // Zobrist keys
 #ifdef OPENBENCH
     for (int i = 0; i < 25; i++) {

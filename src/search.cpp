@@ -119,7 +119,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int r = legals > 3;
+                int r = 0.5 + 0.5 * log(legals) * log(depth);
 
                 if (r < 0 || board.board[moves[i].to]) {
                     r = 0;
