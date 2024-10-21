@@ -72,6 +72,13 @@ struct Searcher {
             }
         }
 
+        if (!pv && !board.check && depth && depth < 4 && eval <= alpha - 50 * depth - 200) {
+            int v = negamax(board, scratch, alpha, beta, 0, ply);
+            if (v <= alpha) {
+                return v;
+            }
+        }
+
         for (int j = 0; j < mvcount; j++) {
             if (tt_good && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
