@@ -30,6 +30,7 @@ struct Searcher {
         Move moves[256];
         int score[256];
         int mvcount;
+        int pv = beta != alpha + 1;
 
         depth = depth < 0 ? 0 : depth;
         bestmv = Move{};
@@ -93,6 +94,12 @@ struct Searcher {
 
             if (is_rep) {
                 v = 0;
+            } else if (legals) {
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, depth - 1, ply + 1);
+
+                if (pv && v > alpha) {
+                    v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
+                }
             } else {
                 v = -negamax(mkmove, scratch, -beta, -alpha, depth - 1, ply + 1);
             }
