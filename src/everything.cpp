@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "consts.cpp"
+#include "params.cpp"
 #include "eval.cpp"
 #include "tables.cpp"
 #include "board.cpp"
