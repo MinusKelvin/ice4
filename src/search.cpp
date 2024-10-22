@@ -52,7 +52,8 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth || board.check, mobilities[ply+1]);
 
-        int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        int eval = tt_good && abs(tt.score) < 20000 ? tt.score
+            : board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         if (!pv && !board.check && depth < 4 && eval - 50 * depth >= beta) {
             return eval;
