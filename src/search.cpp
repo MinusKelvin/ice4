@@ -1,4 +1,4 @@
-#define MAX_HIST 4096
+#define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
 #define CORR_HIST_UNIT 228
 #define CORR_HIST_DIV 456
