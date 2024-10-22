@@ -10,6 +10,7 @@ static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
 static UNDEF: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#undef (\w+)"#).unwrap());
+static PARAM: Lazy<Regex> = Lazy::new(|| Regex::new(r#"PARAM\(([^,]*),[^,]*,([^,]*),[^\)]*\)"#).unwrap());
 
 #[derive(Default)]
 pub struct Preprocessed {
@@ -62,9 +63,22 @@ fn process(
             defines.insert(text, replacement.to_owned());
         } else if let Some(captures) = UNDEF.captures(line) {
             defines.remove(captures.get(1).unwrap().as_str());
-        } else if !openbench && line == "#ifdef OPENBENCH" || line == "#ifdef AVOID_ADJUDICATION" {
+        } else if let Some(captures) = PARAM.captures(line) {
+            let name = captures.get(1).unwrap().as_str().trim();
+            let value = captures.get(2).unwrap().as_str().trim();
+            defines.insert(name.to_owned(), value.to_owned());
+        } else if !openbench && line == "#ifdef OPENBENCH" || line == "#ifdef TUNABLE" {
             // munch until end of block
-            while !matches!(lines.next(), Some("#endif" | "#else")) {}
+            let mut level = 1;
+            while level > 0 {
+                match lines.next() {
+                    Some(line) if line.starts_with("#ifdef") => level += 1,
+                    Some("#else") if level == 1 => level -= 1,
+                    Some("#endif") => level -= 1,
+                    None => panic!("Unclosed ifdef block"),
+                    _ => {}
+                }
+            }
         } else if openbench && line == "#ifdef OPENBENCH" {
             skip_else = true;
         } else if skip_else && line == "#else" {
@@ -73,7 +87,7 @@ fn process(
             skip_else = false;
         } else if line == "#endif" {
             // ignore, probably just the end of the #else of above case
-        } else if line.starts_with("#define S") {
+        } else if line.starts_with("#define S") || line.starts_with("#define PARAM") {
             // ignore, we'll hack this back in later
         } else if line.starts_with('#') {
             panic!(

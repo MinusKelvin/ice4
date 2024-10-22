@@ -26,6 +26,9 @@ $(EXE): $(DEPS)
 ice4-min-ob: $(DEPS)
 	cargo run --release openbench | g++ -O3 -pthread -xc++ -o "$@" -
 
+ice4-tunable: $(DEPS)
+	g++ -DOPENBENCH -DTUNABLE -g -O3 -pthread src/main.cpp -o "$@"
+
 ice4-asan: $(DEPS)
 	g++ -DOPENBENCH -g -fsanitize=address -pthread src/main.cpp -o "$@"
 
