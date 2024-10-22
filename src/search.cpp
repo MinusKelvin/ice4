@@ -1,8 +1,7 @@
 #define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 228
-#define CORR_HIST_DIV 456
-#define CORR_HIST_MAX 72
+#define CORR_HIST_UNIT 192
+#define CORR_HIST_MAX 160
 
 double now() {
     timespec t;
@@ -26,6 +25,7 @@ struct Searcher {
     HTable history;
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
+    int64_t corr_hist[2][CORR_HIST_SIZE];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         Move scratch;
@@ -52,7 +52,8 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth || board.check, mobilities[ply+1]);
 
-        int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 192;
 
         if (!pv && !board.check && depth < 4 && eval - 50 * depth >= beta) {
             return eval;
@@ -203,6 +204,15 @@ struct Searcher {
                 tt.mv = bestmv;
             }
             TT[board.zobrist % TT_SIZE].store(tt, {});
+            if (!board.board[bestmv.to] && (
+                tt.bound == BOUND_UPPER && best < eval ||
+                tt.bound == BOUND_LOWER && best > eval
+            )) {
+                double weight = min(depth * depth, 96) / 600.0;
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
+                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
+                    clamp(best - eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+            }
         }
 
         return best;
