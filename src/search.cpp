@@ -102,7 +102,7 @@ struct Searcher {
             }
         }
 
-        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
+        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * (depth + improving) - 195) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
