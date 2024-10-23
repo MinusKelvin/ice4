@@ -29,7 +29,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, Move excluded = {}) {
         if (depth < 0) {
             depth = 0;
         }
@@ -44,7 +44,7 @@ struct Searcher {
         auto& slot = TT[board.zobrist % TT_SIZE];
         uint16_t upper_key = board.zobrist / TT_SIZE;
         TtData tt = slot.load({});
-        int tt_good = upper_key == tt.key;
+        int tt_good = !excluded.from && upper_key == tt.key;
         if (tt_good) {
             if (depth || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
@@ -79,14 +79,14 @@ struct Searcher {
         // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
-        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
+        if (!pv && !excluded.from && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
             return eval;
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && !board.check && eval >= beta && beta > -20000 && depth > 2) {
+        if (!pv && !excluded.from && !board.check && eval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.zobrist ^= ZOBRIST[EMPTY][0];
             mkmove.stm ^= INVALID;
@@ -102,7 +102,7 @@ struct Searcher {
             }
         }
 
-        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
+        if (!pv && !excluded.from && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -112,7 +112,7 @@ struct Searcher {
         // Internal Iterative Deepening: 16 bytes (v4)
         // 8.0+0.08: -7.38 +- 2.97    -0.46 elo/byte
         // 60.0+0.6:  9.13 +- 2.63     0.57 elo/byte
-        if (depth > 3 && pv && (!tt_good || tt.bound != BOUND_EXACT)) {
+        if (depth > 3 && pv && !excluded.from && (!tt_good || tt.bound != BOUND_EXACT)) {
             negamax(board, hashmv, alpha, beta, depth - 7, ply);
         }
 
@@ -163,6 +163,10 @@ struct Searcher {
             }
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
+
+            if (moves[i].from == excluded.from && moves[i].to == excluded.to) {
+                continue;
+            }
 
             int victim = board.board[moves[i].to] & 7;
 
@@ -240,6 +244,17 @@ struct Searcher {
                     v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
                 }
             } else {
+                if (
+                    ply && tt_good && score[i] == 1e7 && depth > 7 &&
+                    tt.depth > depth - 4 && tt.bound != BOUND_UPPER && abs(tt.eval) < 20000
+                ) {
+                    int s_beta = tt.eval - depth;
+                    int score = negamax(board, scratch, s_beta - 1, s_beta, depth / 2, ply, moves[i]);
+                    if (score < s_beta) {
+                        next_depth++;
+                    }
+                }
+
                 // first legal move is always searched with full window
                 v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
             }
@@ -280,10 +295,10 @@ struct Searcher {
         }
 
         if (depth && legals == 0 && !board.check) {
-            return 0;
+            return excluded.from ? best : 0;
         }
 
-        if ((depth || best != eval) && best > LOST + ply) {
+        if (!excluded.from && (depth || best != eval) && best > LOST + ply) {
             tt.key = upper_key;
             tt.eval = best;
             tt.depth = depth;
