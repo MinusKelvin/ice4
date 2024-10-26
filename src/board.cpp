@@ -180,6 +180,9 @@ struct Board {
             castle_rights |= BLACK_SHORT_CASTLE;
         }
         zobrist ^= ZOBRIST[EMPTY][castle_rights];
+        zobrist ^= ZOBRIST[EMPTY][0];
+
+        __builtin_prefetch(&TT[zobrist % TT_SIZE]);
 
         if (attacked(king_sq[stm != WHITE], NSTM)) {
             return 1;
@@ -187,7 +190,6 @@ struct Board {
 
         check = attacked(king_sq[stm == WHITE], stm);
         stm ^= INVALID;
-        zobrist ^= ZOBRIST[EMPTY][0];
         return 0;
 
         #undef NSTM
