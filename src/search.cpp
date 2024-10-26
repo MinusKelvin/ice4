@@ -298,16 +298,13 @@ struct Searcher {
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
-                double weight = min(depth * depth + 2, 93) / 591.0;
-                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                (*conthist_stack[ply+1])[0][0] =
-                    (*conthist_stack[ply+1])[0][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                int bonus = min(depth * depth + 2, 93) * clamp(best - evals[ply], -72, 72);
+                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] +=
+                    bonus - abs(bonus) * corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / MAX_HIST;
+                corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] +=
+                    bonus - abs(bonus) * corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / MAX_HIST;
+                (*conthist_stack[ply+1])[0][0] +=
+                    bonus - abs(bonus) * (*conthist_stack[ply+1])[0][0] / MAX_HIST;
             }
         }
 
