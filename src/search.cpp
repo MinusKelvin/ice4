@@ -190,6 +190,10 @@ struct Searcher {
                 continue;
             }
 
+            if (score[i] < -1024 * depth * depth) {
+                break;
+            }
+
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
