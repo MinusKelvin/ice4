@@ -272,7 +272,6 @@ struct Board {
     }
 
     void calculate_pawn_eval(int ci, int color, int pawndir, int first_rank) {
-        int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
         // King on (semi-)open file: 23 bytes (v5)
@@ -322,15 +321,6 @@ struct Board {
                     pawn_eval += PST[own_pawn][sq-A1];
                 }
             }
-        }
-        // Pawn shield: 66 bytes (v5)
-        // 8.0+0.08: 12.76 +- 4.75 [337, 1368, 1862, 1191, 242] 0.19 elo/byte
-        for (int dx = -1; dx < 2; dx++) {
-            shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
-                || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
-        }
-        if (king_sq[ci] / 10 == first_rank / 10) {
-            pawn_eval += get_data(PAWN_SHIELD_INDEX + shield_pawns) + PAWN_SHIELD;
         }
     }
 

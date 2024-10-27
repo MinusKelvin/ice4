@@ -23,7 +23,6 @@ pub struct Features {
     protected_pawn: f32,
     rook_on_open_file: f32,
     rook_on_semiopen_file: f32,
-    shield_pawns: [f32; 4],
     king_on_open_file: f32,
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
@@ -200,23 +199,6 @@ impl Features {
                 & !File::A.bitboard();
             for phalanx in phalanx_pawns {
                 self.phalanx_pawn_rank[phalanx.rank().relative_to(color) as usize - 1] += inc;
-            }
-
-            let king = board.king(color);
-            if king.rank() == Rank::First.relative_to(color) {
-                let pawns = board.colored_pieces(color, Piece::Pawn);
-                let mut shield_pawns = 0;
-                for dx in -1..=1 {
-                    for dy in 1..3 {
-                        if let Some(sq) = king.try_offset(dx, dy * inc as i8) {
-                            if pawns.has(sq) {
-                                shield_pawns += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-                self.shield_pawns[shield_pawns] += inc;
             }
         }
     }
