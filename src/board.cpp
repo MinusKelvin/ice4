@@ -316,6 +316,9 @@ struct Board {
                     if (board[sq - 1] == own_pawn) {
                         pawn_eval += get_data(PHALANX_RANK_INDEX + rank) + PHALANX_RANK;
                     }
+                    if (abs(king_sq[!ci] % 10 - file) < 2) {
+                        pawn_eval += STORM_PAWN_RANK[rank];
+                    }
                     if (king_sq[ci] % 10 > 4) {
                         sq += 9 - file - file;
                     }
