@@ -81,7 +81,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("PROTECTED_PAWN")
     define_param("ROOK_OPEN")
     define_param("ROOK_SEMIOPEN")
-    datastring_param("PAWN_SHIELD", 4)
+    datastring_param("PAWN_SHIELD", 8)
     define_param("KING_OPEN")
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)

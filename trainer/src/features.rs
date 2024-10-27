@@ -23,7 +23,7 @@ pub struct Features {
     protected_pawn: f32,
     rook_on_open_file: f32,
     rook_on_semiopen_file: f32,
-    shield_pawns: [f32; 4],
+    shield_pawns: [f32; 8],
     king_on_open_file: f32,
     king_on_semiopen_file: f32,
     mobility: [f32; 6],
@@ -204,19 +204,19 @@ impl Features {
 
             let king = board.king(color);
             if king.rank() == Rank::First.relative_to(color) {
-                let pawns = board.colored_pieces(color, Piece::Pawn);
                 let mut shield_pawns = 0;
+                let mut storming_pawn = false;
                 for dx in -1..=1 {
+                    let mut file_has_shield = false;
                     for dy in 1..3 {
                         if let Some(sq) = king.try_offset(dx, dy * inc as i8) {
-                            if pawns.has(sq) {
-                                shield_pawns += 1;
-                                break;
-                            }
+                            file_has_shield |= board.colored_pieces(color, Piece::Pawn).has(sq);
+                            storming_pawn |= board.colored_pieces(!color, Piece::Pawn).has(sq);
                         }
                     }
+                    shield_pawns += file_has_shield as usize;
                 }
-                self.shield_pawns[shield_pawns] += inc;
+                self.shield_pawns[shield_pawns + 4 * storming_pawn as usize] += inc;
             }
         }
     }
