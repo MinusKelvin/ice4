@@ -1,24 +1,24 @@
-// loss: 0.07868    train id: 2024-09-27-23-34-34-frzn-big3
+// loss: 0.07867    train id: 2024-10-28-17-25-57-frzn-big3
 
 #define S(a, b) (a + (b * 0x10000))
 
-int MATERIAL[] = {0, S(23, 69), S(139, 265), S(189, 302), S(300, 552), S(657, 1042), S(0, 0)};
-int MOBILITY[] = {0, S(4, 8), S(1, -1), S(4, 5), S(2, 2), S(1, 4), S(-3, 0)};
+int MATERIAL[] = {0, S(24, 69), S(138, 264), S(189, 301), S(300, 551), S(657, 1043), S(0, 0)};
+int MOBILITY[] = {0, S(4, 8), S(1, -1), S(4, 5), S(2, 3), S(1, 4), S(-3, -2)};
 
-#define DATA_STRING L"9SP:84.\"<I>973'$>ENKI=/)DPXYRD>1R[{iebO?( DVM=?7lx£  -4:<=5,MXZWS[M  ))$'%.&,!# +:9; #*0610+4;6-(1'  !\"##%)&`\\= \"O^pEJ9 1-QN ),2# %01h]_WX\\boi] _]bedX9GIV²  '.3&*(*$%--,''&(,%$!&,*43)#\")/5CL5'!+:;VYT3256; 5JT\\J=9#5HLJD7  !./2/0;%)(-*-(   &/21::,-.*#&# # @Wegpb ,6=>>8:(1=FPWN %8@HAA4 :\" \" 0MmË>f\\MFHGF> ;Q]flp $2LƟ"
+#define DATA_STRING L"7QM863-!:F;762'#=ENJH<.(DOXYQC=0Q[zhd`M>' DUL<>6my¥  -4:<=5,MXZWS[M  ))$'&/&-!# +:9: #*0510+4;6-(1'  !\"##%)&gb?  O_rHI9 1-PP -3;# %02h]^WX\\boi] ^]bdeX9GIV´  '/3')')%(0/,&&&'+$# %+*32(\"!(.4BK5'!+:;UYS3256; 5KU]K>:#6HLJD7  !/03/1=%)(-)-( ! &032:;,-.)#&# \" @Xfgpc +6<==8:#=@JV\\T $>FNGG; B+#  0MnË>f\\MFHHF> ;Q]fkp $1MƟ"
 
 #define EG_OFFSET 160
 
 #define BISHOP_PAIR S(22, 47)
 #define TEMPO S(10, 13)
 #define ISOLATED_PAWN S(8, 7)
-#define PROTECTED_PAWN S(12, 13)
+#define PROTECTED_PAWN S(12, 14)
 #define ROOK_OPEN S(24, 2)
 #define ROOK_SEMIOPEN S(9, 11)
 #define PAWN_SHIELD_INDEX 128
-#define PAWN_SHIELD S(-11, -19)
-#define KING_OPEN S(-45, -1)
-#define KING_SEMIOPEN S(-10, 11)
+#define PAWN_SHIELD S(-13, -27)
+#define KING_OPEN S(-44, -2)
+#define KING_SEMIOPEN S(-9, 9)
 #define KING_RING_ATTACKS S(13, -5)
 #define PASSER_RANK_INDEX 131
 #define PASSER_RANK S(-12, -48)

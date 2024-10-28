@@ -326,10 +326,10 @@ struct Board {
         // Pawn shield: 66 bytes (v5)
         // 8.0+0.08: 12.76 +- 4.75 [337, 1368, 1862, 1191, 242] 0.19 elo/byte
         for (int dx = -1; dx < 2; dx++) {
-            shield_pawns += board[king_sq[ci]+dx+pawndir] == own_pawn
-                || board[king_sq[ci]+dx+pawndir*2] == own_pawn;
+            shield_pawns += board[king_sq[ci] % 10 + first_rank + dx + pawndir] == own_pawn
+                || board[king_sq[ci] % 10 + first_rank + dx + pawndir * 2] == own_pawn;
         }
-        if (king_sq[ci] / 10 == first_rank / 10) {
+        if (king_sq[ci] / 10 - 2 ^ 7 * ci <= 1) {
             pawn_eval += get_data(PAWN_SHIELD_INDEX + shield_pawns) + PAWN_SHIELD;
         }
     }

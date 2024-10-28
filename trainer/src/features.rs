@@ -1,6 +1,6 @@
 use cozy_chess::{
     get_bishop_moves, get_king_moves, get_knight_moves, get_pawn_attacks, get_pawn_quiets,
-    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank,
+    get_rook_moves, BitBoard, Board, Color, File, Piece, Rank, Square,
 };
 
 #[derive(Debug)]
@@ -203,12 +203,13 @@ impl Features {
             }
 
             let king = board.king(color);
-            if king.rank() == Rank::First.relative_to(color) {
+            if king.rank().relative_to(color) <= Rank::Second {
+                let shield_basis = Square::new(king.file(), Rank::First.relative_to(color));
                 let pawns = board.colored_pieces(color, Piece::Pawn);
                 let mut shield_pawns = 0;
                 for dx in -1..=1 {
                     for dy in 1..3 {
-                        if let Some(sq) = king.try_offset(dx, dy * inc as i8) {
+                        if let Some(sq) = shield_basis.try_offset(dx, dy * inc as i8) {
                             if pawns.has(sq) {
                                 shield_pawns += 1;
                                 break;
