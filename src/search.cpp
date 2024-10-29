@@ -172,7 +172,7 @@ struct Searcher {
             int pawn_attacked =
                 board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
                 board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN);
-            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + depth / 2) {
+            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + depth / (2 << !improving)) {
                 continue;
             }
 
