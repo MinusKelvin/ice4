@@ -184,6 +184,10 @@ struct Searcher {
                 break;
             }
 
+            if (!pv && !board.check && depth == 1 && score[i] < 0) {
+                break;
+            }
+
             // Delta Pruning: 37 bytes (v4)
             // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
             // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
