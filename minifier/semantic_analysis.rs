@@ -167,7 +167,7 @@ pub fn analyze(ast: &mut [TopLevel]) -> Symbols {
                     *name = format!("${id}");
                 }
             }
-            TopLevel::Struct(name, members, vars) => {
+            TopLevel::Struct(_, name, members, vars) => {
                 let id = symbols.declare_type();
                 scope.in_scope(|id2| {
                     symbols.symbols[id].others_in_scope.push(id2);

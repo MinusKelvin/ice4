@@ -5,7 +5,7 @@ pub enum TopLevel {
     Declaration(Declaration),
     Using(String),
     Function(Function),
-    Struct(String, Vec<MemberItem>, Vec<DeclExpr>),
+    Struct(bool, String, Vec<MemberItem>, Vec<DeclExpr>),
     TypeDef(BaseType, DeclForm),
 }
 

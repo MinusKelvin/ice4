@@ -23,7 +23,10 @@ impl TopLevel {
                 Semicolon,
             ]),
             TopLevel::Function(f) => f.tokenize(result),
-            TopLevel::Struct(name, members, decls) => {
+            TopLevel::Struct(tl, name, members, decls) => {
+                if tl {
+                    result.push(Keyword("__thread"));
+                }
                 result.extend([Keyword("struct"), Typename(name), LeftBrace]);
                 for item in members {
                     item.tokenize(result);

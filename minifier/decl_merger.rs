@@ -12,7 +12,7 @@ pub fn merge_decls(ast: &mut Vec<TopLevel>) {
     for tl in ast {
         match tl {
             TopLevel::Function(f) => merge_decls_stmt(&mut f.body),
-            TopLevel::Struct(_, i, _) => merge_decls_item(i),
+            TopLevel::Struct(_, _, i, _) => merge_decls_item(i),
             _ => {}
         }
     }

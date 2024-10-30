@@ -5,7 +5,7 @@ pub fn fold_constants(ast: &mut [TopLevel]) {
         match tl {
             TopLevel::Declaration(declaration) => fold_declaration(declaration),
             TopLevel::Function(function) => fold_function(function),
-            TopLevel::Struct(_, member_items, decls) => {
+            TopLevel::Struct(_, _, member_items, decls) => {
                 for member in member_items {
                     match member {
                         MemberItem::Field(declaration) => fold_declaration(declaration),

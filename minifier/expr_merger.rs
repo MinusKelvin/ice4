@@ -4,7 +4,7 @@ pub fn merge_exprs(ast: &mut [TopLevel]) {
     for tl in ast {
         match tl {
             TopLevel::Function(f) => merge_exprs_stmt(&mut f.body),
-            TopLevel::Struct(_, i, _) => merge_exprs_item(i),
+            TopLevel::Struct(_, _, i, _) => merge_exprs_item(i),
             _ => {}
         }
     }

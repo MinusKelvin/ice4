@@ -17,7 +17,7 @@ Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
-struct Searcher {
+__thread struct Searcher {
     uint64_t nodes;
     double hard_limit;
     double soft_limit;
@@ -358,4 +358,4 @@ struct Searcher {
             }
         } catch (...) {}
     }
-};
+} SEARCHER;

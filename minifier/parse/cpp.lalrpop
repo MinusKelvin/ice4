@@ -10,7 +10,7 @@ TopLevel: TopLevel = {
         Err(f) => TopLevel::Function(f),
     },
     "using" "namespace" <Identifier> ";" => TopLevel::Using(<>),
-    "struct" <Identifier> "{" <MemberDeclaration*> "}" <Comma<DeclExpr>> ";" => TopLevel::Struct(<>),
+    <tl:"__thread"?> "struct" <name:Identifier> "{" <members:MemberDeclaration*> "}" <decls:Comma<DeclExpr>> ";" => TopLevel::Struct(tl.is_some(), name, members, decls),
     "typedef" <BaseType> <DeclForm> ";" => TopLevel::TypeDef(<>),
 };
 
@@ -491,5 +491,6 @@ extern {
         "while" => Token::Keyword("while"),
         "xor" => Token::Keyword("xor"),
         "xor_eq" => Token::Keyword("xor_eq"),
+        "__thread" => Token::Keyword("__thread"),
     }
 }

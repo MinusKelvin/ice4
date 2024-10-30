@@ -114,7 +114,7 @@ void uci() {
 #endif
                 for (int i = 0; i < THREADS; i++) {
                     threads[i] = thread([time_alotment]() {
-                        Searcher().iterative_deepening(time_alotment);
+                        SEARCHER.iterative_deepening(time_alotment);
                         ABORT = 1;
                     });
                 }
