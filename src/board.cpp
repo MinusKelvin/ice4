@@ -49,6 +49,7 @@ struct Board {
     uint8_t check;
     int32_t inc_eval;
     int32_t pawn_eval;
+    uint64_t color_bbs[4];
     uint64_t zobrist;
     uint64_t pawn_hash;
     uint64_t material_hash;
@@ -69,6 +70,7 @@ struct Board {
             nonpawn_hash[board[square] >> 3] ^= ZOBRIST[board[square]][square];
             inc_eval -= PST[board[square]][square-A1];
         }
+        color_bbs[board[square] >> 3] ^= SQ_TO_BB[square];
         phase -= PHASE[board[square] & 7];
         board[square] = piece;
         zobrist ^= ZOBRIST[board[square]][square];
@@ -82,6 +84,7 @@ struct Board {
             nonpawn_hash[board[square] >> 3] ^= ZOBRIST[board[square]][square];
             inc_eval += PST[board[square]][square-A1];
         }
+        color_bbs[board[square] >> 3] ^= SQ_TO_BB[square];
         phase += PHASE[board[square] & 7];
         if ((board[square] & 7) == KING) {
             king_sq[!(board[square] & WHITE)] = square;
@@ -210,12 +213,8 @@ struct Board {
         for (int i = 0; i < 8; i++) {
             king_ring[king_sq[stm == WHITE] + RAYS[i]] = 1;
         }
-        for (int sq = A1; sq <= H8; sq++) {
-            // skip empty squares & opponent squares (& border squares)
-            if ((board[sq] & INVALID) != stm) {
-                continue;
-            }
-
+        for (uint64_t bb = color_bbs[stm >> 3]; bb; bb &= bb - 1) {
+            int sq = BIT_TO_SQ[__builtin_ctzl(bb)];
             int piece = board[sq] & 7;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
