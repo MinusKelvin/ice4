@@ -165,6 +165,11 @@ struct Searcher {
             swap(moves[i], moves[best_so_far]);
             swap(score[i], score[best_so_far]);
 
+            // Base LMR: 10 bytes (v4)
+            // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
+            // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
+            int reduction = LOG[legals] * LOG[max(depth, 0)] * 0.65 + 0.33;
+
             int victim = board.board[moves[i].to] & 7;
 
             // Pawn Protected Pruning: 61 bytes (v4)
@@ -188,6 +193,10 @@ struct Searcher {
             // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
             // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
             if (!depth && eval + DELTAS[victim] <= alpha) {
+                continue;
+            }
+
+            if (!pv && !board.check && !victim && depth - reduction <= 1 && eval + 50 <= alpha) {
                 continue;
             }
 
@@ -218,10 +227,6 @@ struct Searcher {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte
-                // Base LMR: 10 bytes (v4)
-                // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
-                // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = LOG[legals] * LOG[max(depth, 0)] * 0.65 + 0.33;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
