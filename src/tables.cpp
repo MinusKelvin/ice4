@@ -1,4 +1,5 @@
 int PST[25][SQUARE_SPAN];
+int BIT_TO_SQ[64];
 
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 int STARTS[] = {0,0,8,4,0,0,0};
@@ -33,10 +34,14 @@ uint64_t rng() {
 #endif
 
 uint64_t ZOBRIST[25][SQUARE_SPAN];
+uint64_t SQ_TO_BB[120];
 
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
+            SQ_TO_BB[10*rank+file+A1] = 1ull << 8*rank+file;
+            BIT_TO_SQ[8*rank+file] = 10*rank+file+A1;
+
             if (rank > 0 && rank < 7) {
                 PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
                     get_data(rank*8+file-8) + MATERIAL[PAWN];
