@@ -69,8 +69,8 @@ struct Searcher {
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 178
             + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / 198
-            + (*conthist_stack[ply+1])[0][0] / 102
-            + (*conthist_stack[ply])[1][0] / 200;
+            + (*conthist_stack[ply+3])[0][0] / 102
+            + (*conthist_stack[ply+2])[1][0] / 200;
         int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -93,7 +93,7 @@ struct Searcher {
             mkmove.stm ^= INVALID;
             mkmove.ep_square = 0;
 
-            conthist_stack[ply + 2] = &conthist[0][0];
+            conthist_stack[ply + 4] = &conthist[0][0];
 
             int reduction = (eval - beta + depth * 27 + 438) / 107;
 
@@ -136,11 +136,12 @@ struct Searcher {
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 2 * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + 2 * (*conthist_stack[ply + 3])[board.board[moves[j].from]][moves[j].to]
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.4 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + 2.4 * (*conthist_stack[ply + 2])[board.board[moves[j].from]][moves[j].to]
+                    + (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -196,7 +197,7 @@ struct Searcher {
                 continue;
             }
 
-            conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
+            conthist_stack[ply + 4] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
             if (!(++nodes & 0xFFF) && (ABORT || now() > hard_limit)) {
                 throw 0;
             }
@@ -264,14 +265,18 @@ struct Searcher {
                         }
                         hist = &history[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
-                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
+                        hist = &(*conthist_stack[ply + 3])[board.board[moves[j].from]][moves[j].to];
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                        hist = &(*conthist_stack[ply + 2])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
                     hist = &history[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
+                    hist = &(*conthist_stack[ply + 3])[board.board[moves[i].from]][moves[i].to];
+                    *hist += bonus - bonus * *hist / MAX_HIST;
+                    hist = &(*conthist_stack[ply + 2])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
@@ -327,6 +332,8 @@ struct Searcher {
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
+        conthist_stack[2] = &conthist[0][1];
+        conthist_stack[3] = &conthist[0][1];
         hard_limit = now() + time_alotment * 0.0004;
         soft_limit = now() + time_alotment * 0.000054;
         Move mv;
