@@ -64,6 +64,10 @@ struct Searcher {
             depth -= 2;
         }
 
+        if (tt_good && pv && depth > 3 && depth - 4 > tt.depth) {
+            depth--;
+        }
+
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
