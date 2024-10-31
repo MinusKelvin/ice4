@@ -1,16 +1,49 @@
 #ifdef TUNABLE
 
-map<string, variant<int*, float*>> tunableParams;
+map<string, variant<int*, double*>> tunableParams;
 
+template<typename T>
 struct RegisterParam {
-    RegisterParam(string name, variant<int*, float*> value) {
+    RegisterParam(string name, T* value) {
         tunableParams[name] = value;
     }
 };
 
-#define PARAM(NAME, TYPE, VALUE, MIN, MAX, STEP, LR) TYPE NAME = VALUE; \
-    static RegisterParam registerParam##NAME(#NAME, &NAME);
+#define PARAM(NAME, TYPE, VALUE, MIN, MAX, STEP, LR) auto NAME = VALUE; \
+    static RegisterParam<TYPE> registerParam##NAME(#NAME, &NAME);
 
 #else
 #define PARAM(NAME, TYPE, VALUE, MIN, MAX, STEP, LR) constexpr TYPE NAME = VALUE;
 #endif
+
+PARAM(IIR_MIN_DEPTH, int, 3, 0.0, 10.0, 1.0, 0.002)
+PARAM(IIR_REDUCTION, int, 2, 1.0, 5.0, 0.5, 0.002)
+PARAM(CORRHIST_PAWN_DIV, int, 178, 10.0, 1024.0, 50.0, 0.002)
+PARAM(CORRHIST_MATERIAL_DIV, int, 198, 10.0, 1024.0, 50.0, 0.002)
+PARAM(CORRHIST_COUNTERMOVE_DIV, int, 102, 10.0, 1024.0, 50.0, 0.002)
+PARAM(RFP_MARGIN, int, 43, 1.0, 100.0, 10.0, 0.002)
+PARAM(RFP_MAX_DEPTH, int, 8, 1.0, 10.0, 1.0, 0.002)
+PARAM(NMP_MIN_DEPTH, int, 2, 0.0, 10.0, 1.0, 0.002)
+PARAM(NMP_FACTOR, int, 27, 0.0, 100.0, 10.0, 0.002)
+PARAM(NMP_CONSTANT, int, 438, 0.0, 500.0, 50.0, 0.002)
+PARAM(NMP_DIVISOR, int, 107, 1.0, 200.0, 20.0, 0.002)
+PARAM(RAZOR_MAX_DEPTH, int, 6, 0.0, 10.0, 1.0, 0.002)
+PARAM(RAZOR_MARGIN, int, 65, 1.0, 100.0, 15.0, 0.002)
+PARAM(RAZOR_CONSTANT, int, 195, 0.0, 500.0, 50.0, 0.002)
+PARAM(IID_MIN_DEPTH, int, 3, 0.0, 10.0, 1.0, 0.002)
+PARAM(IID_REDUCTION, int, 7, 1.0, 10.0, 1.0, 0.002)
+PARAM(COUNTER_HIST_FACTOR, double, 2.0, 0.0, 5.0, 0.5, 0.002)
+PARAM(FOLLOWUP_HIST_FACTOR, double, 2.4, 0.0, 5.0, 0.5, 0.002)
+PARAM(LMP_CONSTANT, int, 10, 4.0, 25.0, 2.0, 0.002)
+PARAM(LMR_FACTOR, double, 0.65, 0.0, 2.0, 0.2, 0.002)
+PARAM(LMR_CONSTANT, double, 0.33, -1.0, 2.0, 0.2, 0.002)
+PARAM(LMR_HISTORY, int, 3842, 100.0, 5000.0, 500.0, 0.002)
+PARAM(HIST_QUAD_UPDATE, double, 5.6, 0.0, 10.0, 1.0, 0.002)
+PARAM(HIST_EVAL_MARGIN, int, 42, 0.0, 100.0, 10.0, 0.002)
+PARAM(CORRHIST_UPDATE_CONSTANT, int, 2, 0.0, 50.0, 5.0, 0.002)
+PARAM(CORRHIST_UPDATE_MAX, int, 93, 0.0, 150.0, 15.0, 0.002)
+PARAM(CORRHIST_UPDATE_DIVISOR, double, 591.0, 1.0, 1000.0, 100.0, 0.002)
+PARAM(TM_HARD, double, 0.0004, 0.0001, 0.0007, 8e-05, 0.002)
+PARAM(TM_SOFT, double, 0.000054, 1e-06, 0.0001, 1e-05, 0.002)
+PARAM(ASP_INITIAL, int, 9, 3.0, 22.0, 2.0, 0.002)
+PARAM(ASP_WIDEN, double, 1.8, 1.5, 2.5, 0.1, 0.002)

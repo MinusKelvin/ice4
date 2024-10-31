@@ -38,6 +38,10 @@ ice4-usan: $(DEPS)
 logo.png: ice4 logo_template.png
 	python3 make_ice4_logo.py < ice4
 
+.PHONY: spsa-input
+spsa-input:
+	@grep -oP '(?<=^PARAM\()[^\)]*' src/params.cpp | sed s/double/float/
+
 .PHONY: check
 check:
 	g++ -DOPENBENCH -Wall -Wextra -O -fdiagnostics-color=always -fsyntax-only src/main.cpp
