@@ -221,12 +221,16 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = LOG[legals] * LOG[max(depth, 0)] * LMR_FACTOR + LMR_CONSTANT;
-                reduction += hashmv.from && board.board[hashmv.to];
-                // History reduction: 9 bytes (v4)
-                // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
-                // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / LMR_HISTORY;
+                int reduction = LMR_CONSTANT
+                    + LMR_FACTOR * LOG[legals] * LOG[max(depth, 0)]
+                    + LMR_PV * pv
+                    + LMR_IMPROVING * improving
+                    + LMR_TT_CAPTURE * (hashmv.from && board.board[hashmv.to])
+                    + LMR_TT_PV * (tt_good && tt.bound == BOUND_EXACT)
+                    // History reduction: 9 bytes (v4)
+                    // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
+                    // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
+                    - score[i] / LMR_HISTORY;
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
