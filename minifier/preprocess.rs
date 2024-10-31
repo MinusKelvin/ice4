@@ -10,7 +10,7 @@ static LOCAL_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include "([^"]*)
 static LIB_INCLUDE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#include <([^>]*)>"#).unwrap());
 static DEFINE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#define (\w+) (.*)"#).unwrap());
 static UNDEF: Lazy<Regex> = Lazy::new(|| Regex::new(r#"#undef (\w+)"#).unwrap());
-static PARAM: Lazy<Regex> = Lazy::new(|| Regex::new(r#"PARAM\(([^,]*),[^,]*,([^,]*),[^\)]*\)"#).unwrap());
+static PARAM: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^PARAM\(([^,]*),[^,]*,([^,]*),[^\)]*\)"#).unwrap());
 
 #[derive(Default)]
 pub struct Preprocessed {
