@@ -81,7 +81,7 @@ struct Searcher {
         // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
         // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
         if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
-            return eval;
+            return beta + (eval - beta) / 2;
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
