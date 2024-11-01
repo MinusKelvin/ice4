@@ -167,16 +167,6 @@ struct Searcher {
 
             int victim = board.board[moves[i].to] & 7;
 
-            // Pawn Protected Pruning: 61 bytes (v4)
-            // 8.0+0.08: 34.43 +- 3.02     0.56 elo/byte
-            // 60.0+0.6: 22.55 +- 2.66     0.37 elo/byte
-            int pawn_attacked =
-                board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
-                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN);
-            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + depth / 2) {
-                continue;
-            }
-
             // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
             // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
             // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
