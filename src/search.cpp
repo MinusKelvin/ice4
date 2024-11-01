@@ -191,6 +191,10 @@ struct Searcher {
                 continue;
             }
 
+            if (!depth && !board.see_ge(moves[i], 0)) {
+                continue;
+            }
+
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;

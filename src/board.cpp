@@ -123,6 +123,80 @@ struct Board {
         return 0;
     }
 
+    int see_ge(Move mv, int threshold) {
+        int score = MATERIAL[board[mv.to] & 7] - (threshold << 16);
+
+        if (score < 0) {
+            return 0;
+        }
+
+        int next = mv.promo ? QUEEN : board[mv.from] & 7;
+        score -= MATERIAL[next];
+        if (score >= 0) {
+            return 1;
+        }
+
+        int rays[8] = { mv.to, mv.to, mv.to, mv.to, mv.to, mv.to, mv.to, mv.to };
+        int change_sqs[32];
+        int change_pieces[32];
+        int changes = 0;
+        int side = stm ^ INVALID;
+
+        auto rm = [&](int sq) {
+            change_sqs[changes] = sq;
+            change_pieces[changes++] = board[sq];
+            board[sq] = 0;
+        };
+
+        auto least_valuable_attacker = [&]() {
+            if (board[mv.to + (side & WHITE ? -10 : 10) + 1] == (PAWN | side)) {
+                rm(mv.to + (side & WHITE ? -10 : 10) + 1);
+                return PAWN;
+            }
+            if (board[mv.to + (side & WHITE ? -10 : 10) - 1] == (PAWN | side)) {
+                rm(mv.to + (side & WHITE ? -10 : 10) - 1);
+                return PAWN;
+            }
+            for (int i = 8; i < 16; i++) {
+                if (board[mv.to + RAYS[i]] == (KNIGHT | side)) {
+                    rm(mv.to + RAYS[i]);
+                    return KNIGHT;
+                }
+            }
+            int best = mv.to;
+            for (int i = 0; i < 8; i++) {
+                while (!board[rays[i]]) {
+                    rays[i] += RAYS[i];
+                }
+                if (board[rays[i]] > board[best] && (
+                    board[rays[i]] == (QUEEN | side) || board[rays[i]] == (SLIDER[i] | side)
+                )) {
+                    best = rays[i];
+                }
+            }
+            int piece = board[best] & 7;
+            rm(best);
+            return piece;
+        };
+
+        rm(mv.to);
+        rm(mv.from);
+
+        while (next = least_valuable_attacker()) {
+            score = -score - 1 - MATERIAL[next];
+            side ^= INVALID;
+            if (score >= 0) {
+                break;
+            }
+        }
+
+        while (changes--) {
+            board[change_sqs[changes]] = change_pieces[changes];
+        }
+
+        return side != stm;
+    }
+
     int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
         #define NSTM (stm ^ INVALID)
