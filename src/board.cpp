@@ -132,66 +132,53 @@ struct Board {
 
         int next = mv.promo ? QUEEN : board[mv.from] & 7;
         score -= MATERIAL[next];
-        if (score >= 0) {
-            return 1;
-        }
 
-        int rays[8] = { mv.to, mv.to, mv.to, mv.to, mv.to, mv.to, mv.to, mv.to };
-        int change_sqs[32];
-        int change_pieces[32];
-        int changes = 0;
-        int side = stm ^ INVALID;
+        uint8_t work_board[120];
+        uint8_t rays[8] = {};
+        uint8_t side = stm ^ INVALID;
+        memcpy(work_board, board, 120);
 
-        auto rm = [&](int sq) {
-            change_sqs[changes] = sq;
-            change_pieces[changes++] = board[sq];
-            board[sq] = 0;
-        };
+        work_board[mv.to] = 0;
+        work_board[mv.from] = 0;
 
-        auto least_valuable_attacker = [&]() {
-            if (board[mv.to + (side & WHITE ? -10 : 10) + 1] == (PAWN | side)) {
-                rm(mv.to + (side & WHITE ? -10 : 10) + 1);
-                return PAWN;
+        while (score < 0) {
+            next = 0;
+
+            if (work_board[mv.to + (side & WHITE ? -10 : 10) + 1] == (PAWN | side)) {
+                work_board[mv.to + (side & WHITE ? -10 : 10) + 1] = 0;
+                next = PAWN;
             }
-            if (board[mv.to + (side & WHITE ? -10 : 10) - 1] == (PAWN | side)) {
-                rm(mv.to + (side & WHITE ? -10 : 10) - 1);
-                return PAWN;
+            if (work_board[mv.to + (side & WHITE ? -10 : 10) - 1] == (PAWN | side)) {
+                work_board[mv.to + (side & WHITE ? -10 : 10) - 1] = 0;
+                next = PAWN;
             }
-            for (int i = 8; i < 16; i++) {
-                if (board[mv.to + RAYS[i]] == (KNIGHT | side)) {
-                    rm(mv.to + RAYS[i]);
-                    return KNIGHT;
+            for (int i = 8; i < 16 && !next; i++) {
+                if (work_board[mv.to + RAYS[i]] == (KNIGHT | side)) {
+                    work_board[mv.to + RAYS[i]] = 0;
+                    next = KNIGHT;
                 }
             }
             int best = mv.to;
-            for (int i = 0; i < 8; i++) {
-                while (!board[rays[i]]) {
-                    rays[i] += RAYS[i];
+            for (int i = 0; i < 8 && !next; i++) {
+                while (!work_board[mv.to + rays[i] * RAYS[i]]) {
+                    rays[i]++;
                 }
-                if (board[rays[i]] > board[best] && (
-                    board[rays[i]] == (QUEEN | side) || board[rays[i]] == (SLIDER[i] | side)
+                if (work_board[mv.to + rays[i] * RAYS[i]] > work_board[best] && (
+                    work_board[mv.to + rays[i] * RAYS[i]] == (QUEEN | side) || work_board[mv.to + rays[i] * RAYS[i]] == (SLIDER[i] | side)
                 )) {
-                    best = rays[i];
+                    best = mv.to + rays[i] * RAYS[i];
                 }
             }
-            int piece = board[best] & 7;
-            rm(best);
-            return piece;
-        };
+            if (!next) {
+                next = work_board[best] & 7;
+                work_board[best] = 0;
+                if (!next) {
+                    break;
+                }
+            }
 
-        rm(mv.to);
-        rm(mv.from);
-
-        while (next = least_valuable_attacker()) {
             score = -score - 1 - MATERIAL[next];
             side ^= INVALID;
-            if (score >= 0) {
-                break;
-            }
-        }
-
-        while (changes--) {
-            board[change_sqs[changes]] = change_pieces[changes];
         }
 
         return side != stm;
