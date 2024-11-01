@@ -223,6 +223,7 @@ struct Searcher {
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[legals] * LOG[max(depth, 0)] * 0.65 + 0.33;
                 reduction += hashmv.from && board.board[hashmv.to];
+                reduction -= tt_good && tt.bound == BOUND_EXACT;
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
