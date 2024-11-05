@@ -560,7 +560,11 @@ fn process_base_type(symbols: &mut Symbols, scope: &mut Scope, ty: &mut BaseType
         }
     }
     for ty in ty.template_parameters.iter_mut().flatten() {
-        process_base_type(symbols, scope, ty);
+        let ty_param = process_base_type(symbols, scope, ty);
+
+        if matches!(r, TypeOf::Unknown(Some(ref s)) if s == "vector") {
+            r = TypeOf::Pointer(Box::new(ty_param));
+        }
     }
     r
 }
