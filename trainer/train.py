@@ -65,7 +65,7 @@ class Model(torch.nn.Module):
 
 train_id = strftime("%Y-%m-%d-%H-%M-%S-") + os.path.splitext(os.path.basename(DATASET_PATH))[0]
 model = Model()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-6)
 
 print(train_id)
 
