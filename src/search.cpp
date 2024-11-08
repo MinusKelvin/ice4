@@ -23,7 +23,7 @@ struct Searcher {
     double soft_limit;
     int16_t evals[256];
     int64_t corr_hist[2][CORR_HIST_SIZE];
-    HTable history;
+    HTable history[23];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
@@ -124,12 +124,13 @@ struct Searcher {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
-                score[j] = board.board[moves[j].to] * 1e5 - board.board[moves[j].from];
+                score[j] = history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to]
+                    + (board.board[moves[j].to] & 7) * 1e5;
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
                 // 60.0+0.6: 52.37 +- 4.62 (3057 - 1561 - 5382) 1.87 elo/byte
-                score[j] = history[board.board[moves[j].from]][moves[j].to]
+                score[j] = history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to]
                     // Continuation histories: 87 bytes (af63703 vs 4cabdf1)
                     // 8.0+0.08: 22.93 +- 5.09 (3124 - 2465 - 4411) 0.26 elo/byte
                     // 60.0+0.6: 46.52 +- 4.57 (2930 - 1599 - 5471) 0.53 elo/byte
@@ -230,6 +231,9 @@ struct Searcher {
                 if (reduction < 0 || victim) {
                     reduction = 0;
                 }
+
+                reduction += victim && score[i] - victim * 1e5 < -5000;
+
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
@@ -254,23 +258,25 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                if (!victim) {
-                    int bonus = 5.6 * depth * depth;
-                    bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
-                    int16_t *hist;
-                    for (int j = 0; j < i; j++) {
-                        if (board.board[moves[j].to]) {
-                            continue;
-                        }
-                        hist = &history[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                int bonus = 5.6 * depth * depth;
+                bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
+                int16_t *hist;
+                for (int j = 0; j < i; j++) {
+                    if (victim && !board.board[moves[j].to]) {
+                        continue;
+                    }
+                    hist = &history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to];
+                    *hist -= bonus + bonus * *hist / MAX_HIST;
+                    if (!board.board[moves[j].to]) {
                         hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                         hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
-                    hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
+                }
+                hist = &history[board.board[moves[i].to]][board.board[moves[i].from]][moves[i].to];
+                *hist += bonus - bonus * *hist / MAX_HIST;
+                if (!victim) {
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
