@@ -31,40 +31,67 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
 - 10x12 board representation
 - Pseudolegal movegen
   - Underpromotions to rook & bishop not generated
+- Twofold repetition detection
 - Zobrist hashing
 - Transposition table
 - Lazy SMP
-- Twofold repetition detection
+  - Best move selected by depth tiebroken by score
 - Principal variation search
   - Quiescence search
-  - Delta pruning
-  - Null move pruning
-  - Reverse futility pruning
-  - Internal iterative deepening
-  - Internal iterative reductions
-  - Late move reductions
-  - Late move pruning
-  - History reductions
+  - Internal Iterative Reductions
+  - Improving
+  - Reverse Futility Pruning
+  - Null Move Pruning
+  - Razoring
+  - Internal Iterative Deepening
+  - Pawn Protected Pruning
+  - Late Move Pruning
+  - Delta Pruning
   - Check Extensions
-- Move Ordering
-  - TT move
-  - MVV-LVA captures before quiets
-  - History
-  - Countermove History
-- Iterative deepening
-- Soft limit + hard limit time management
+  - Late Move Reductions
+    - Logarithmic base formula based on move index and depth
+    - Increased reduction if TT move is capture
+    - Adjusted based on move history
+  - Correction Histories
+    - Updated using rolling average formula with squared depth 
+    - Pawn Correction History
+    - Material Correction History
+    - Countermove Correction History
+    - Followup Correction History
+  - Move Ordering
+    - TT move
+    - MVV-LVA
+    - Move Histories
+      - Updated using gravity formula with squared depth
+      - Plain History
+      - Continuation History
+      - Followup History
 - Evaluation
-  - Phased evaluation with 418 parameters
-  - Quadrant piece square tables for pieces
-  - Shrunken piece square table for king
-  - King-relative piece square tables for pawns and passed pawns
-  - Doubled pawns
-  - Isolated pawns
-  - Simplified pawn chain
-  - Rook on (semi-)open files
-  - Bishop pair
+  - King-relative pawn square table
+  - Piece rank tables for non-pawns
+  - Piece file tables for non-pawns
   - Tempo
-  - Basic king safety (open file, pawn shield)
+  - Mobility (approximated)
+  - Bishop pair
+  - Rook on open file
+  - Rook on semi-open file
+  - Additional pawn evaluation
+    - Isolated pawn
+    - Protected pawn
+    - Phalanx pawn rank table
+    - Passed pawn rank table
+    - Passed pawn distance to own king table
+    - Passed pawn distance to enemy king table
+  - King safety
+    - King on open file
+    - King on semi-open file
+    - Shield pawn count table
+    - King ring attacks (approximated)
+- Iterative deepening
+  - Soft limit + hard limit time management
+  - Aspiration windows
+    - Gradually widened
+    - Results used if exact or fail-high
 
 ## Acknowledgements
 
