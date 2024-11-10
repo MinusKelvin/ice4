@@ -5,7 +5,7 @@
 ice4 is a chess engine which fits in 4096 bytes.
 In particular, it is an executable shell script which automatically extracts C++ source code from itself using `xz`, compiles it using the default system C++ compiler, and executes the resulting binary.
 
-It support the following subset of UCI:
+It supports the following subset of UCI:
 - `uci`
 - `ucinewgame`
 - `isready`
@@ -23,75 +23,85 @@ OpenBench builds (`make EXE=<name>` or `make ice4-ob`) support some additional U
 - `position fen <fen> moves ...`
 - `setoption name Hash value <mb>`
 - `setoption name Threads value <threads>`
-- `go infinite` (the next message will be interpreted as `stop`)
+- `go infinite` (`stop` is additionally supported for this form)
+- `wtime` and `btime` are not subject to the location requirement mentioned above.
 
 ## Features
 
-- A single executable no more than 4 KiB large (notable dependencies: C++ compiler, `xz`)
+### High-level strategy
+
 - 10x12 board representation
-- Pseudolegal movegen
-  - Underpromotions to rook & bishop not generated
+- Pseudolegal move generation
+  - Underpromotions are not generated
 - Twofold repetition detection
 - Zobrist hashing
-- Transposition table
 - Lazy SMP
   - Best move selected by depth tiebroken by score
-- Principal variation search
-  - Quiescence search
-  - Internal Iterative Reductions
-  - Improving
-  - Reverse Futility Pruning
-  - Null Move Pruning
-  - Razoring
-  - Internal Iterative Deepening
-  - Pawn Protected Pruning
-  - Late Move Pruning
-  - Delta Pruning
-  - Check Extensions
-  - Late Move Reductions
-    - Logarithmic base formula based on move index and depth
-    - Increased reduction if TT move is capture
-    - Adjusted based on move history
-  - Correction Histories
-    - Updated using rolling average formula with squared depth 
-    - Pawn Correction History
-    - Material Correction History
-    - Countermove Correction History
-    - Followup Correction History
-  - Move Ordering
-    - TT move
-    - MVV-LVA
-    - Move Histories
-      - Updated using gravity formula with squared depth
-      - Plain History
-      - Continuation History
-      - Followup History
-- Evaluation
-  - King-relative pawn square table
-  - Piece rank tables for non-pawns
-  - Piece file tables for non-pawns
-  - Tempo
-  - Mobility (approximated)
-  - Bishop pair
-  - Rook on open file
-  - Rook on semi-open file
-  - Additional pawn evaluation
-    - Isolated pawn
-    - Protected pawn
-    - Phalanx pawn rank table
-    - Passed pawn rank table
-    - Passed pawn distance to own king table
-    - Passed pawn distance to enemy king table
-  - King safety
-    - King on open file
-    - King on semi-open file
-    - Shield pawn count table
-    - King ring attacks (approximated)
 - Iterative deepening
-  - Soft limit + hard limit time management
-  - Aspiration windows
-    - Gradually widened
-    - Results used if exact or fail-high
+- Soft limit + hard limit time management
+- Principal variation search
+- Aspiration windows
+  - Gradually widened
+  - Results used if exact or fail-high
+- Incremental evaluation
+
+### Search
+
+- Transposition table cutoffs
+- Quiescence search
+- Internal Iterative Reductions
+- Improving
+- Reverse Futility Pruning
+- Null Move Pruning
+- Razoring
+- Internal Iterative Deepening
+- Pawn Protected Pruning
+- Late Move Pruning
+- Delta Pruning
+- Check Extensions
+- Late Move Reductions
+  - Logarithmic base formula based on move index and depth
+  - Increased reduction if TT move is capture
+  - Adjusted based on move history
+- Correction Histories
+  - Updated using rolling average formula with squared depth 
+  - Pawn Correction History
+  - Material Correction History
+  - Countermove Correction History
+  - Followup Correction History
+- Move Ordering
+  - TT move
+  - MVV-LVA
+  - Move Histories
+    - Updated using gravity formula with squared depth
+    - Plain History
+    - Continuation History
+    - Followup History
+
+### Evaluation
+
+- King-relative pawn square table
+- Piece rank tables for non-pawns
+- Piece file tables for non-pawns
+- Tempo
+- Mobility (approximated)
+- Bishop pair
+- Rook on open file
+- Rook on semi-open file
+- Additional pawn evaluation
+  - Isolated pawn
+  - Protected pawn
+  - Phalanx pawn rank table
+  - Passed pawn rank table
+  - Passed pawn distance to own king table
+  - Passed pawn distance to enemy king table
+- King safety
+  - King on open file
+  - King on semi-open file
+  - Shield pawn count table
+  - King ring attacks (approximated)
+
+For performance reasons, mobility and king ring attack terms for the side not to move are approximated by using the value from the previous ply.
 
 ## Acknowledgements
 
