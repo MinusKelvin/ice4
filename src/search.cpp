@@ -125,7 +125,7 @@ struct Searcher {
                 // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
                 // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
                 score[j] = history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to]
-                    + (board.board[moves[j].to] & 7) * 1e5;
+                    + PHASE[board.board[moves[j].to] & 7] * 1e5 + 1e5;
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
                 // 8.0+0.08: 51.98 +- 5.13 (3566 - 2081 - 4353) 1.86 elo/byte
@@ -229,7 +229,7 @@ struct Searcher {
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
                 reduction -= score[i] / 3842;
                 if (victim) {
-                    reduction = (score[i] - victim * 1e5) / -3842;
+                    reduction = (score[i] - PHASE[victim] * 1e5 - 1e5) / -3842;
                 }
                 if (reduction < 0) {
                     reduction = 0;
