@@ -22,7 +22,7 @@ struct Searcher {
     double hard_limit;
     double soft_limit;
     int16_t evals[256];
-    int64_t corr_hist[2][CORR_HIST_SIZE];
+    int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[23];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
@@ -34,17 +34,17 @@ struct Searcher {
             depth = 0;
         }
 
+        auto& slot = TT[board.zobrist % TT_SIZE];
+        uint16_t upper_key = board.zobrist / TT_SIZE;
+        TtData tt = slot.load({});
+
         Move scratch, hashmv{};
         Move moves[256];
         int score[256];
         int mvcount;
-
         int pv = beta > alpha+1;
-
-        auto& slot = TT[board.zobrist % TT_SIZE];
-        uint16_t upper_key = board.zobrist / TT_SIZE;
-        TtData tt = slot.load({});
         int tt_good = upper_key == tt.key;
+
         if (tt_good) {
             if (depth || board.board[tt.mv.to]) {
                 hashmv = tt.mv;
@@ -147,14 +147,14 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
+        int quiets_to_check = pv ? -1 : (depth*depth + 10) >> (!improving + 1);
+        int raised_alpha = 0;
+        int legals = 0;
+
         if (best >= beta) {
             return best;
         }
 
-        int quiets_to_check = pv ? -1 : (depth*depth + 10) >> (!improving + 1);
-
-        int raised_alpha = 0;
-        int legals = 0;
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
             for (int j = i+1; j < mvcount; j++) {
@@ -170,10 +170,10 @@ struct Searcher {
             // Pawn Protected Pruning: 61 bytes (v4)
             // 8.0+0.08: 34.43 +- 3.02     0.56 elo/byte
             // 60.0+0.6: 22.55 +- 2.66     0.37 elo/byte
-            int pawn_attacked =
+            if (ply && (
                 board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
-                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN);
-            if (ply && pawn_attacked && (board.board[moves[i].from] & 7) > victim + depth / 2) {
+                board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN)
+            ) && (board.board[moves[i].from] & 7) > victim + depth / 2) {
                 continue;
             }
 
@@ -202,15 +202,15 @@ struct Searcher {
             }
 
             int is_rep = 0;
+            int v;
+            int next_depth = depth - 1 + mkmove.check;
+
             for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                 is_rep |= rep_list[i] == mkmove.zobrist;
             }
             for (int i = 0; depth && !is_rep && i < PREHISTORY_LENGTH; i++) {
                 is_rep |= PREHISTORY[i] == mkmove.zobrist;
             }
-
-            int v;
-            int next_depth = depth - 1 + mkmove.check;
 
             if (is_rep) {
                 v = 0;
@@ -221,7 +221,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = LOG[legals] * LOG[max(depth, 0)] * 0.65 + 0.33;
+                int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
                 reduction += hashmv.from && board.board[hashmv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
