@@ -229,7 +229,8 @@ struct Searcher {
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
                 reduction -= score[i] / 3842;
                 if (victim) {
-                    reduction = (score[i] - victim * 1e5) / -3842;
+                    reduction = pawn_attacked && (board.board[moves[i].from] & 7) > victim;
+                    reduction -= (score[i] - victim * 1e5) / 3842;
                 }
                 if (reduction < 0) {
                     reduction = 0;
