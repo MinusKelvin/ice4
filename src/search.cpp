@@ -178,13 +178,6 @@ struct Searcher {
                 continue;
             }
 
-            // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
-            // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
-            // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
-            if (!(quiets_to_check -= !victim)) {
-                break;
-            }
-
             // Delta Pruning: 37 bytes (v4)
             // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
             // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
@@ -195,6 +188,13 @@ struct Searcher {
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
+            }
+
+            // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
+            // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
+            // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
+            if (!(quiets_to_check -= !victim)) {
+                break;
             }
 
             conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
