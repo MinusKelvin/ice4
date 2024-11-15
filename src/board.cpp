@@ -370,10 +370,14 @@ uint64_t PREHISTORY[256];
 int PREHISTORY_LENGTH = 0;
 
 #ifdef OPENBENCH
-void parse_fen() {
+void parse_fen(istream& stream) {
+    const char *word;
+    string token;
+
     int rank = 7;
     int file = 0;
-    char *word = strtok(0, " \n");
+    stream >> token;
+    word = token.c_str();
     for (char c = *word++; c; c = *word++) {
         int sq = (rank * 10) + file + A1;
         file++;
@@ -427,12 +431,15 @@ void parse_fen() {
         }
     }
 
-    if (*strtok(0, " \n") == 'b') {
+    stream >> token;
+    word = token.c_str();
+    if (*word == 'b') {
         ROOT.stm = BLACK;
         ROOT.zobrist ^= ZOBRIST[EMPTY][0];
     }
 
-    word = strtok(0, " \n");
+    stream >> token;
+    word = token.c_str();
     int remove_white_short = 1;
     int remove_white_long = 1;
     int remove_black_short = 1;
@@ -468,13 +475,12 @@ void parse_fen() {
     }
     ROOT.zobrist ^= ZOBRIST[EMPTY][ROOT.castle_rights];
 
-    word = strtok(0, " \n");
+    stream >> token;
+    word = token.c_str();
     if (*word != '-') {
         ROOT.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
     }
 
-    strtok(0, " \n"); // halfmove clock
-
-    strtok(0, " \n"); // fullmove counter
+    stream >> token >> token; // halfmove clock and fullmove number
 }
 #endif

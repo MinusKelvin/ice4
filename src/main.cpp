@@ -35,7 +35,7 @@ int64_t perft(Board& board, int depth, int root=0) {
 }
 
 // same fens as frozenight
-char BENCH_FENS[] = "skipped\n"
+char BENCH_FENS[] =
     "r4rk1/5pb1/3R2p1/p2Q1qBp/8/7P/1P3PP1/2R3K1 w - - 4 29\n"
     "r2qkbnr/ppp2p2/2npb3/4p1p1/2P1P2p/1PN1N3/P2PBPPP/R1BQK2R w KQq - 0 10\n"
     "3k4/8/4Q3/P2P4/8/5K1P/8/8 b - - 14 68\n"
@@ -104,13 +104,13 @@ char BENCH_FENS[] = "skipped\n"
 int main(int argc, char *argv[]) {
     init_tables();
     if (argc == 2 && !strcmp(argv[1], "bench")) {
-        strtok(BENCH_FENS, " \n");
+        stringstream stream(BENCH_FENS);
         uint64_t nodes = 0;
         timespec start, end;
         clock_gettime(CLOCK_MONOTONIC, &start);
         for (int i = 0; i < 64; i++) {
             ROOT = Board();
-            parse_fen();
+            parse_fen(stream);
             Searcher s{};
             s.iterative_deepening(INT_MAX, 15);
             nodes += s.nodes;
@@ -122,12 +122,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     if (argc == 2 && !strcmp(argv[1], "perft")) {
-        char buf[4096];
-        buf[0] = 'a';
-        buf[1] = ' ';
-        fgets(buf+2, 4094, stdin);
-        strtok(buf, " \n");
-        parse_fen();
+        parse_fen(cin);
         double start = now();
         uint64_t nodes = perft(ROOT, 5, 1);
         double end = now();

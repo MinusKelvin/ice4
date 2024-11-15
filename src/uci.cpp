@@ -8,13 +8,10 @@ int THREADS = 1;
 
 void uci() {
     setbuf(stdout, 0);
-    char buf[4096], *move;
     int wtime, btime;
-#ifdef OPENBENCH
-    int opt, value;
-    TtData empty{};
-#endif
-    fgets(buf, 4096, stdin); // uci
+
+    string token;
+    getline(cin, token);
     printf(
 #ifdef OPENBENCH
         "id name ice4 v5\r\n"
@@ -24,9 +21,10 @@ void uci() {
 #endif
         "uciok\n"
     );
-    for (;;) {
-        fgets(buf, 4096, stdin);
-        switch (*strtok(buf, " \n")) {
+    while (getline(cin, token)) {
+        stringstream tokens(token);
+        tokens >> token;
+        switch (token[0]) {
             case 'i': // isready
                 printf("readyok\n");
                 break;
@@ -35,43 +33,40 @@ void uci() {
 #ifdef OPENBENCH
             case 'u': // ucinewgame
                 for (int i = 0; i < TT_SIZE; i++) {
-                    TT[i] = empty;
+                    TT[i] = TtData{};
                 }
                 break;
             case 's': // setoption
-                strtok(0, " \n"); // name
-                opt = *strtok(0, " \n");
-                strtok(0, " \n"); // value
-                value = atoi(strtok(0, " \n"));
-                switch (opt) {
-                    case 'H':
-                        delete[] TT;
-                        TT_SIZE = value * 131072;
-                        TT = new atomic<TtData>[TT_SIZE]();
-                        break;
-                    case 'T':
-                        THREADS = value;
-                        break;
+                tokens >> token >> token; // name <name>
+                if (token == "Hash") {
+                    delete[] TT;
+                    tokens >> token >> TT_SIZE; // value <value>
+                    TT_SIZE *= 131072;
+                    TT = new atomic<TtData>[TT_SIZE]();
+                }
+                if (token == "Threads") {
+                    tokens >> token >> THREADS; // value <value>
                 }
                 break;
 #endif
             case 'p': // position
                 ROOT = Board();
 #ifdef OPENBENCH
-                if (!strcmp(strtok(0, " \n"), "fen")) {
-                    parse_fen();
+                tokens >> token; // startpos | fen
+                if (token == "fen") {
+                    parse_fen(cin);
                 }
+                tokens >> token; // moves
 #else
-                strtok(0, " \n"); // startpos
+                tokens >> token >> token; // startpos moves
 #endif
-                strtok(0, " \n"); // moves
                 PREHISTORY_LENGTH = 0;
-                while (move = strtok(0, " \n")) {
+                while (tokens >> token) {
                     PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     BEST_MOVE = create_move(
-                        move[1] * 10 + move[0] - 566,
-                        move[3] * 10 + move[2] - 566,
-                        !!move[4]
+                        token[1] * 10 + token[0] - 566,
+                        token[3] * 10 + token[2] - 566,
+                        !!token[4]
                     );
                     if ((ROOT.board[BEST_MOVE.from] & 7) == PAWN || ROOT.board[BEST_MOVE.to]) {
                         PREHISTORY_LENGTH = 0;
@@ -83,26 +78,23 @@ void uci() {
                     // * 5   35     40     225    20     0
                     // % 6   5      4      3      2      0
                     // enum  QUEEN  ROOK   BISHOP KNIGHT EMPTY
-                    ROOT.make_move(BEST_MOVE, move[4] % 53 * 5 % 6);
+                    ROOT.make_move(BEST_MOVE, token[4] % 53 * 5 % 6);
                 }
                 break;
             case 'g': // go
 #ifdef OPENBENCH
-                char *w;
                 wtime = 1 << 30;
                 btime = 1 << 30;
-                while (w = strtok(0, " \n")) {
-                    if (!strcmp(w, "wtime")) {
-                        wtime = atoi(strtok(0, " \n"));
-                    } else if (!strcmp(w, "btime")) {
-                        btime = atoi(strtok(0, " \n"));
+                while (tokens >> token) {
+                    if (token == "wtime") {
+                        tokens >> wtime;
+                    }
+                    if (token == "btime") {
+                        tokens >> btime;
                     }
                 }
 #else
-                strtok(0, " \n"); // wtime
-                wtime = atoi(strtok(0, " \n"));
-                strtok(0, " \n"); // btime
-                btime = atoi(strtok(0, " \n"));
+                tokens >> token >> wtime >> token >> btime; // wtime <wtime> btime <btime>
 #endif
                 int time_alotment = ROOT.stm == WHITE ? wtime : btime;
                 ABORT = 0;
@@ -120,16 +112,14 @@ void uci() {
                 }
 #ifdef OPENBENCH
                 if (wtime == 1 << 30) {
-                    while (1) {
-                        fgets(buf, 4096, stdin);
-                        if (buf[0] == 's') {
-                            // stop
+                    while (getline(cin, token)) {
+                        if (token == "stop") {
                             break;
-                        } else if (buf[0] == 'i') {
-                            // isready
+                        }
+                        if (token == "isready") {
                             printf("readyok\n");
-                        } else if (buf[0] == 'q') {
-                            // quit
+                        }
+                        if (token == "quit") {
                             ABORT = 1;
                             for (auto& t : threads) {
                                 t.join();

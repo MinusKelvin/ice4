@@ -17,3 +17,6 @@ uint32_t
 uint64_t
 uint8_t
 vector
+string
+stringstream
+istream
