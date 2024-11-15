@@ -370,7 +370,9 @@ uint64_t PREHISTORY[256];
 int PREHISTORY_LENGTH = 0;
 
 #ifdef OPENBENCH
-void parse_fen(istream& stream) {
+Board parse_fen(istream& stream) {
+    Board board;
+
     const char *word;
     string token;
 
@@ -383,40 +385,40 @@ void parse_fen(istream& stream) {
         file++;
         switch (c) {
             case 'P':
-                ROOT.edit(sq, WHITE | PAWN);
+                board.edit(sq, WHITE | PAWN);
                 break;
             case 'N':
-                ROOT.edit(sq, WHITE | KNIGHT);
+                board.edit(sq, WHITE | KNIGHT);
                 break;
             case 'B':
-                ROOT.edit(sq, WHITE | BISHOP);
+                board.edit(sq, WHITE | BISHOP);
                 break;
             case 'R':
-                ROOT.edit(sq, WHITE | ROOK);
+                board.edit(sq, WHITE | ROOK);
                 break;
             case 'Q':
-                ROOT.edit(sq, WHITE | QUEEN);
+                board.edit(sq, WHITE | QUEEN);
                 break;
             case 'K':
-                ROOT.edit(sq, WHITE | KING);
+                board.edit(sq, WHITE | KING);
                 break;
             case 'p':
-                ROOT.edit(sq, BLACK | PAWN);
+                board.edit(sq, BLACK | PAWN);
                 break;
             case 'n':
-                ROOT.edit(sq, BLACK | KNIGHT);
+                board.edit(sq, BLACK | KNIGHT);
                 break;
             case 'b':
-                ROOT.edit(sq, BLACK | BISHOP);
+                board.edit(sq, BLACK | BISHOP);
                 break;
             case 'r':
-                ROOT.edit(sq, BLACK | ROOK);
+                board.edit(sq, BLACK | ROOK);
                 break;
             case 'q':
-                ROOT.edit(sq, BLACK | QUEEN);
+                board.edit(sq, BLACK | QUEEN);
                 break;
             case 'k':
-                ROOT.edit(sq, BLACK | KING);
+                board.edit(sq, BLACK | KING);
                 break;
             case '/':
                 file = 0;
@@ -425,7 +427,7 @@ void parse_fen(istream& stream) {
             default:
                 file += c - '1';
                 for (int i = 0; i < c - '0'; i++) {
-                    ROOT.edit(sq+i, 0);
+                    board.edit(sq+i, 0);
                 }
                 break;
         }
@@ -434,8 +436,8 @@ void parse_fen(istream& stream) {
     stream >> token;
     word = token.c_str();
     if (*word == 'b') {
-        ROOT.stm = BLACK;
-        ROOT.zobrist ^= ZOBRIST[EMPTY][0];
+        board.stm = BLACK;
+        board.zobrist ^= ZOBRIST[EMPTY][0];
     }
 
     stream >> token;
@@ -460,27 +462,29 @@ void parse_fen(istream& stream) {
                 break;
         }
     }
-    ROOT.zobrist ^= ZOBRIST[EMPTY][ROOT.castle_rights];
+    board.zobrist ^= ZOBRIST[EMPTY][board.castle_rights];
     if (remove_white_short) {
-        ROOT.castle_rights |= WHITE_SHORT_CASTLE;
+        board.castle_rights |= WHITE_SHORT_CASTLE;
     }
     if (remove_white_long) {
-        ROOT.castle_rights |= WHITE_LONG_CASTLE;
+        board.castle_rights |= WHITE_LONG_CASTLE;
     }
     if (remove_black_short) {
-        ROOT.castle_rights |= BLACK_SHORT_CASTLE;
+        board.castle_rights |= BLACK_SHORT_CASTLE;
     }
     if (remove_black_long) {
-        ROOT.castle_rights |= BLACK_LONG_CASTLE;
+        board.castle_rights |= BLACK_LONG_CASTLE;
     }
-    ROOT.zobrist ^= ZOBRIST[EMPTY][ROOT.castle_rights];
+    board.zobrist ^= ZOBRIST[EMPTY][board.castle_rights];
 
     stream >> token;
     word = token.c_str();
     if (*word != '-') {
-        ROOT.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
+        board.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
     }
 
     stream >> token >> token; // halfmove clock and fullmove number
+
+    return board;
 }
 #endif

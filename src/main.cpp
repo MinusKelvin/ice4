@@ -109,8 +109,7 @@ int main(int argc, char *argv[]) {
         timespec start, end;
         clock_gettime(CLOCK_MONOTONIC, &start);
         for (int i = 0; i < 64; i++) {
-            ROOT = Board();
-            parse_fen(stream);
+            ROOT = parse_fen(stream);
             Searcher s{};
             s.iterative_deepening(INT_MAX, 15);
             nodes += s.nodes;
@@ -122,7 +121,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     if (argc == 2 && !strcmp(argv[1], "perft")) {
-        parse_fen(cin);
+        ROOT = parse_fen(cin);
         double start = now();
         uint64_t nodes = perft(ROOT, 5, 1);
         double end = now();
