@@ -255,7 +255,7 @@ struct Board {
             } else {
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
-                    for (int j = 0; j < LIMITS[piece]; j++) {
+                    for (;;) {
                         raysq += RAYS[i];
                         if (board[raysq] & stm) {
                             break;
@@ -266,6 +266,16 @@ struct Board {
                             break;
                         } else if (quiets) {
                             list[count++] = create_move(sq, raysq, 0);
+                        }
+
+                        // breaks loop for non-sliders
+                        //       PAWN   KNIGHT BISHOP ROOK   QUEEN  KING
+                        // repr  1      2      3      4      5      6
+                        // / 3   0      0      1      1      1      2
+                        // - 1   -1     -1     0      0      0      1
+                        // bool  true   true   false  false  false  true
+                        if (piece / 3 - 1) {
+                            break;
                         }
                     }
                 }
