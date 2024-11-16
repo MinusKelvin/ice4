@@ -372,15 +372,12 @@ int PREHISTORY_LENGTH = 0;
 #ifdef OPENBENCH
 Board parse_fen(istream& stream) {
     Board board;
-
-    const char *word;
     string token;
 
+    stream >> token;
     int rank = 7;
     int file = 0;
-    stream >> token;
-    word = token.c_str();
-    for (char c = *word++; c; c = *word++) {
+    for (char c : token) {
         int sq = (rank * 10) + file + A1;
         file++;
         switch (c) {
@@ -434,56 +431,38 @@ Board parse_fen(istream& stream) {
     }
 
     stream >> token;
-    word = token.c_str();
-    if (*word == 'b') {
+    if (token == "b") {
         board.stm = BLACK;
         board.zobrist ^= ZOBRIST[EMPTY][0];
     }
 
     stream >> token;
-    word = token.c_str();
-    int remove_white_short = 1;
-    int remove_white_long = 1;
-    int remove_black_short = 1;
-    int remove_black_long = 1;
-    for (char c = *word++; c; c = *word++) {
+    board.zobrist ^= ZOBRIST[EMPTY][board.castle_rights];
+    board.castle_rights = WHITE_SHORT_CASTLE | WHITE_LONG_CASTLE | BLACK_SHORT_CASTLE | BLACK_LONG_CASTLE;
+    for (char c : token) {
         switch (c) {
             case 'K':
-                remove_white_short = 0;
+                board.castle_rights ^= WHITE_SHORT_CASTLE;
                 break;
             case 'Q':
-                remove_white_long = 0;
+                board.castle_rights ^= WHITE_LONG_CASTLE;
                 break;
             case 'k':
-                remove_black_short = 0;
+                board.castle_rights ^= BLACK_SHORT_CASTLE;
                 break;
             case 'q':
-                remove_black_long = 0;
+                board.castle_rights ^= BLACK_LONG_CASTLE;
                 break;
         }
     }
     board.zobrist ^= ZOBRIST[EMPTY][board.castle_rights];
-    if (remove_white_short) {
-        board.castle_rights |= WHITE_SHORT_CASTLE;
-    }
-    if (remove_white_long) {
-        board.castle_rights |= WHITE_LONG_CASTLE;
-    }
-    if (remove_black_short) {
-        board.castle_rights |= BLACK_SHORT_CASTLE;
-    }
-    if (remove_black_long) {
-        board.castle_rights |= BLACK_LONG_CASTLE;
-    }
-    board.zobrist ^= ZOBRIST[EMPTY][board.castle_rights];
 
     stream >> token;
-    word = token.c_str();
-    if (*word != '-') {
-        board.ep_square = (word[1] - '1') * 10 + word[0] - 'a' + A1;
+    if (token != "-") {
+        board.ep_square = (token[1] - '1') * 10 + token[0] - 'a' + A1;
     }
 
-    stream >> token >> token; // halfmove clock and fullmove number
+    stream >> token >> token; // ignore halfmove clock and fullmove number
 
     return board;
 }
