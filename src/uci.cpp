@@ -7,26 +7,24 @@ int THREADS = 1;
 #endif
 
 void uci() {
-    setbuf(stdout, 0);
     int wtime, btime;
 
     string token;
     getline(cin, token);
-    printf(
+    cout << unitbuf <<
 #ifdef OPENBENCH
         "id name ice4 v5\r\n"
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
         "option name Threads type spin default 1 min 1 max 999\n"
 #endif
-        "uciok\n"
-    );
+        "uciok\n";
     while (getline(cin, token)) {
         stringstream tokens(token);
         tokens >> token;
         switch (token[0]) {
             case 'i': // isready
-                printf("readyok\n");
+                cout << "readyok\n";
                 break;
             case 'q': // quit
                 return;
@@ -117,7 +115,7 @@ void uci() {
                             break;
                         }
                         if (token == "isready") {
-                            printf("readyok\n");
+                            cout << "readyok\n";
                         }
                         if (token == "quit") {
                             ABORT = 1;
@@ -133,7 +131,7 @@ void uci() {
                 for (int i = 0; i < THREADS; i++) {
                     threads[i].join();
                 }
-                printf("bestmove ");
+                cout << "bestmove ";
                 BEST_MOVE.put_with_newline();
         }
     }

@@ -22,7 +22,7 @@ int64_t perft(Board& board, int depth, int root=0) {
                 uint64_t n = perft(mkmove, depth - 1);
                 count += n;
                 if (root) {
-                    printf("%ld - ", n);
+                    cout << n << " - ";
                     moves[i].put_with_newline();
                 }
             }
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
         clock_gettime(CLOCK_MONOTONIC, &end);
         double start_s = start.tv_sec + start.tv_nsec / 1000000000.0;
         double end_s = end.tv_sec + end.tv_nsec / 1000000000.0;
-        printf("%ld nodes %d nps\n", nodes, (int) (nodes / (end_s - start_s)));
+        cout << nodes << " nodes " << (int)(nodes / (end_s - start_s)) << " nps\n";
         return 0;
     }
     if (argc == 2 && !strcmp(argv[1], "perft")) {
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         double start = now();
         uint64_t nodes = perft(ROOT, 5, 1);
         double end = now();
-        printf("%ld nodes %ld nps\n", nodes, (uint64_t) ((double) nodes / (end - start)));
+        cout << nodes << " nodes " << (uint64_t)((double)nodes / (end - start)) << " nps\n";
         return 0;
     }
     uci();

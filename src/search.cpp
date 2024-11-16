@@ -362,7 +362,7 @@ struct Searcher {
                     if (v > lower && FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
                         FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
                         BEST_MOVE = mv;
-                        printf("info depth %d score cp %d pv ", depth, v);
+                        cout << "info depth " << depth << " score cp " << v << " pv ";
                         mv.put_with_newline();
                         if (now() > soft_limit) {
                             return;

@@ -4,12 +4,12 @@ struct Move {
     uint8_t promo : 1;
 
     void put_with_newline() {
-        putchar(from%10+96);
-        putchar(from/10+47);
-        putchar(to%10+96);
-        putchar(to/10+47);
-        putchar(promo ? 'q' : ' ');
-        putchar('\n');
+        cout.put(from%10+96)
+            .put(from/10+47)
+            .put(to%10+96)
+            .put(to/10+47)
+            .put(promo ? 'q' : ' ')
+            .put('\n');
     }
 };
 
