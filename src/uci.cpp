@@ -29,7 +29,7 @@ void uci() {
                 printf("readyok\n");
                 break;
             case 'q': // quit
-                exit(0);
+                return;
 #ifdef OPENBENCH
             case 'u': // ucinewgame
                 for (int i = 0; i < TT_SIZE; i++) {
