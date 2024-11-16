@@ -54,7 +54,7 @@ void uci() {
 #ifdef OPENBENCH
                 tokens >> token; // startpos | fen
                 if (token == "fen") {
-                    parse_fen(cin);
+                    parse_fen(tokens);
                 }
                 tokens >> token; // moves
 #else
