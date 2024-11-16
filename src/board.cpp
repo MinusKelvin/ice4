@@ -459,7 +459,9 @@ Board parse_fen(istream& stream) {
 
     stream >> token;
     if (token != "-") {
+        board.zobrist ^= ZOBRIST[EMPTY][board.ep_square];
         board.ep_square = (token[1] - '1') * 10 + token[0] - 'a' + A1;
+        board.zobrist ^= ZOBRIST[EMPTY][board.ep_square];
     }
 
     stream >> token >> token; // ignore halfmove clock and fullmove number
