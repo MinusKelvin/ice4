@@ -9,7 +9,7 @@ struct Move {
             .put(to%10+96)
             .put(to/10+47)
             .put(promo ? 'q' : ' ')
-            .put('\n');
+            << endl;
     }
 };
 

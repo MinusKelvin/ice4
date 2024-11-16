@@ -11,20 +11,22 @@ void uci() {
 
     string token;
     getline(cin, token);
-    cout << unitbuf <<
+    
 #ifdef OPENBENCH
+    cout <<
         "id name ice4 v5\r\n"
         "id author MinusKelvin\n"
         "option name Hash type spin default 8 min 1 max 99999\n"
-        "option name Threads type spin default 1 min 1 max 999\n"
+        "option name Threads type spin default 1 min 1 max 999\n";
 #endif
-        "uciok\n";
+
+    cout << "uciok" << endl;
     while (getline(cin, token)) {
         stringstream tokens(token);
         tokens >> token;
         switch (token[0]) {
             case 'i': // isready
-                cout << "readyok\n";
+                cout << "readyok" << endl;
                 break;
             case 'q': // quit
                 return;
@@ -115,7 +117,7 @@ void uci() {
                             break;
                         }
                         if (token == "isready") {
-                            cout << "readyok\n";
+                            cout << "readyok" << endl;
                         }
                         if (token == "quit") {
                             ABORT = 1;
