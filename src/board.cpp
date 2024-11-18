@@ -347,7 +347,7 @@ struct Board {
         }
     }
 
-    int eval(int stm_eval) {
+    int raw_eval() {
         if (pawn_eval_dirty) {
             pawn_eval = 0;
             calculate_pawn_eval(1, BLACK, -10, 90);
@@ -371,7 +371,10 @@ struct Board {
                     * piece_file_counts[BLACK_ROOK][file];
             }
         }
-        stm_eval += stm == WHITE ? e : -e;
+        return stm == WHITE ? e : -e;
+    }
+
+    int mix_eval(int stm_eval) {
         return ((int16_t)stm_eval * phase + ((stm_eval + 0x8000) >> 16) * (24 - phase)) / 24;
     }
 } ROOT;

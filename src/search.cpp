@@ -64,10 +64,15 @@ struct Searcher {
             depth -= 2;
         }
 
+        int raw_eval = board.raw_eval() - mobilities[ply];
+        if (!depth && board.mix_eval(raw_eval) >= beta) {
+            return board.mix_eval(raw_eval);
+        }
+
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         rep_list[ply] = board.zobrist;
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+        evals[ply] = board.mix_eval(raw_eval + mobilities[ply+1] + TEMPO)
             + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 178
             + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / 198
             + corr_hist[board.stm != WHITE][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
