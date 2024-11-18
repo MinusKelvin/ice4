@@ -65,8 +65,12 @@ struct Searcher {
         }
 
         int raw_eval = board.raw_eval() - mobilities[ply];
-        if (!depth && board.mix_eval(raw_eval) >= beta) {
-            return board.mix_eval(raw_eval);
+        int eval = board.mix_eval(raw_eval);
+        if (
+            !depth && eval >= beta ||
+            !pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth
+        ) {
+            return eval;
         }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
@@ -79,7 +83,7 @@ struct Searcher {
             + corr_hist[board.stm != WHITE][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 102
             + (*conthist_stack[ply])[1][0] / 200;
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
