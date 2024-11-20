@@ -260,7 +260,7 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                int bonus = 5.6 * depth * depth;
+                int bonus = 2.8 * depth * depth;
                 bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
                 int16_t *hist;
                 for (int j = 0; j < i; j++) {
@@ -276,6 +276,7 @@ struct Searcher {
                         *hist -= bonus + bonus * *hist / MAX_HIST;
                     }
                 }
+                bonus *= 2;
                 hist = &history[board.board[moves[i].to]][board.board[moves[i].from]][moves[i].to];
                 *hist += bonus - bonus * *hist / MAX_HIST;
                 if (!victim) {
