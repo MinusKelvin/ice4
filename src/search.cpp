@@ -293,16 +293,18 @@ struct Searcher {
         }
 
         if ((depth || best != eval) && best > LOST + ply) {
-            tt.key = upper_key;
-            tt.eval = best;
-            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
             if (!tt_good || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
-            slot.store(tt, {});
+            if (!tt_good || tt.bound != BOUND_UPPER || depth > tt.depth - 3) {
+                tt.key = upper_key;
+                tt.eval = best;
+                tt.depth = depth;
+                slot.store(tt, {});
+            }
             if (!board.board[bestmv.to] && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
