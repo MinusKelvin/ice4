@@ -57,6 +57,7 @@ struct Searcher {
                 bestmv = tt.mv;
                 return tt.eval;
             }
+            depth -= depth > 3 && tt.depth + 4 < depth;
         } else if (depth > 3) {
             // Internal Iterative Reductions: 6 bytes (v4)
             // 8.0+0.08: 36.52 +- 3.00    6.09 elo/byte
