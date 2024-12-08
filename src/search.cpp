@@ -46,9 +46,7 @@ struct Searcher {
         int tt_good = upper_key == tt.key;
 
         if (tt_good) {
-            if (depth || board.board[tt.mv.to]) {
-                hashmv = tt.mv;
-            }
+            hashmv = tt.mv;
             if (depth <= tt.depth && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
