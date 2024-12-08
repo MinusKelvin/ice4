@@ -147,7 +147,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
-        int quiets_to_check = pv ? -1 : (depth*depth + 10) >> (!improving + 1);
+        int quiets_to_check = (depth*depth + 10) >> (!improving + !pv);
         int raised_alpha = 0;
         int legals = 0;
 
