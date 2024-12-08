@@ -59,7 +59,7 @@ struct Searcher {
             // Internal Iterative Reductions: 6 bytes (v4)
             // 8.0+0.08: 36.52 +- 3.00    6.09 elo/byte
             // 60.0+0.6: 40.34 +- 2.64    6.72 elo/byte
-            depth -= 2;
+            depth--;
         }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
@@ -109,6 +109,10 @@ struct Searcher {
             if (v <= alpha) {
                 return v;
             }
+        }
+
+        if (!tt_good && depth > 3) {
+            depth--;
         }
 
         // Internal Iterative Deepening: 16 bytes (v4)
