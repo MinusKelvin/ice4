@@ -39,6 +39,7 @@ pub struct Features {
 #[repr(C)]
 struct KingSafety {
     king_attack_weight: [f32; 5],
+    queenless_attack: f32,
 }
 
 impl Features {
@@ -68,6 +69,8 @@ impl Features {
     }
 
     pub fn extract(&mut self, board: &Board) {
+        let mut queenless_attack = [true; 2];
+
         for &piece in &Piece::ALL {
             for unflipped_square in board.pieces(piece) {
                 let color = board.color_on(unflipped_square).unwrap();
@@ -124,12 +127,17 @@ impl Features {
                 let mob = mob - board.colors(color);
                 self.mobility[piece as usize] += inc * mob.len() as f32;
 
-                if piece != Piece::King {
-                    let king_ring_attacks = (get_king_moves(board.king(!color)) & mob).len();
+                let king_ring_attacks = (get_king_moves(board.king(!color)) & mob).len();
+                if piece != Piece::King && king_ring_attacks != 0 {
                     self.ks[!color as usize].king_attack_weight[piece as usize] +=
                         king_ring_attacks as f32;
+                    queenless_attack[!color as usize] &= piece != Piece::Queen;
                 }
             }
+        }
+
+        for (&qa, feat) in queenless_attack.iter().zip(&mut self.ks) {
+            feat.queenless_attack += qa as i32 as f32;
         }
 
         for &color in &Color::ALL {

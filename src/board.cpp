@@ -205,6 +205,7 @@ struct Board {
         // 8.0+0.08: 103.92 +- 5.26 [970, 1765, 1563, 604, 98] 4.00 elo/byte
         uint8_t king_ring[120] = {};
         int attack = 0;
+        int queenless = 1;
         #define OTHER (stm ^ INVALID)
         count = 0;
         mobility = 0;
@@ -267,6 +268,7 @@ struct Board {
                         }
                         mobility += MOBILITY[piece];
                         attack += king_ring[raysq] * KING_ATTACK_WEIGHT[piece];
+                        queenless &= !king_ring[raysq] || piece != QUEEN;
                         if (board[raysq] & OTHER) {
                             list[count++] = create_move(sq, raysq, 0);
                             break;
@@ -287,6 +289,7 @@ struct Board {
                 }
             }
         }
+        attack -= queenless * QUEENLESS_ATTACK;
         mobility += max(attack, 0) * attack / 160;
         #undef OTHER
     }
