@@ -310,15 +310,15 @@ struct Board {
                 int sq = file + first_rank + rank * pawndir;
                 if (board[sq] == own_pawn) {
                     pawn_eval += get_data(PASSER_RANK_INDEX + rank)
-                        + get_data(KING_PASSER_DIST_INDEX + max(
+                        + get_data(OWN_KING_PASSER_DIST_INDEX + max(
                             abs(sq / 10 - king_sq[ci] / 10),
                             abs(file - king_sq[ci] % 10)
                         ))
-                        + get_data(KING_PASSER_DIST_INDEX + 8 + max(
+                        + get_data(OPP_KING_PASSER_DIST_INDEX + max(
                             abs(sq / 10 - king_sq[!ci] / 10),
                             abs(file - king_sq[!ci] % 10)
                         ))
-                        + (PASSER_RANK + KING_PASSER_DIST);
+                        + (PASSER_RANK + OWN_KING_PASSER_DIST + OPP_KING_PASSER_DIST);
                     break;
                 }
                 if (board[sq] == opp_pawn || board[sq-1] == opp_pawn || board[sq+1] == opp_pawn) {

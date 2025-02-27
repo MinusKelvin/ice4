@@ -56,11 +56,11 @@ def to_evalcpp(last_loss, train_id, param_map):
         ), end="")
         print("};")
 
-    def datastring_param(name, size, *, scale=1, adjust=0):
+    def datastring_param(name, size, *, adjust=0):
         defines.append((f"{name}_INDEX", mg_stringer.len + adjust))
         mg_off = mg_stringer.add([mg.popleft() for _ in range(size)], round_smallest=True)
         eg_off = eg_stringer.add([eg.popleft() for _ in range(size)], round_smallest=True)
-        defines.append((name, mg_off * scale, eg_off * scale))
+        defines.append((name, mg_off, eg_off))
 
     print("int MATERIAL[] = {0", end="")
     mg_off = mg_stringer.add([mg.popleft() for _ in range(48)], round_smallest=True)
@@ -86,7 +86,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     define_param("KING_SEMIOPEN")
     array_param("MOBILITY", 6, leading_zero=True)
     datastring_param("PASSER_RANK", 6, adjust=-1)
-    datastring_param("KING_PASSER_DIST", 16, scale=2)
+    datastring_param("OWN_KING_PASSER_DIST", 8)
+    datastring_param("OPP_KING_PASSER_DIST", 8)
     datastring_param("PHALANX_RANK", 6, adjust=-1)
 
     print("int KING_ATTACK_WEIGHT[] = {0", end="")
