@@ -55,7 +55,7 @@ class Model(torch.nn.Module):
         torch.nn.init.zeros_(self.mg.weight)
         self.eg = torch.nn.Linear(FEATURE_COUNT - 2*KS_COUNT, 1, bias=False)
         torch.nn.init.zeros_(self.eg.weight)
-        self.king_safety = torch.nn.Linear(KS_COUNT, 1, bias=False)
+        self.king_safety = torch.nn.Linear(KS_COUNT, 1)
         torch.nn.init.ones_(self.king_safety.weight)
 
     def forward(self, features, phase):

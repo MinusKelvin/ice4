@@ -204,7 +204,7 @@ struct Board {
         // Mobility: 26 bytes (v5)
         // 8.0+0.08: 103.92 +- 5.26 [970, 1765, 1563, 604, 98] 4.00 elo/byte
         uint8_t king_ring[120] = {};
-        int attack = 0;
+        int attack = KING_ATTACK_BIAS;
         #define OTHER (stm ^ INVALID)
         count = 0;
         mobility = 0;
