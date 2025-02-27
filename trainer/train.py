@@ -12,6 +12,7 @@ PARSELIB = ctypes.cdll.LoadLibrary("../target/release/libtrainer.so")
 PARSELIB.feature_count.argtypes = []
 PARSELIB.feature_count.restype = ctypes.c_ulong
 FEATURE_COUNT: int = PARSELIB.feature_count()
+KS_COUNT: int = PARSELIB.king_safety_count()
 
 # PARSELIB.decode_data.argtypes = [
 #     ctypes.POINTER(ctypes.c_ubyte),
@@ -50,24 +51,24 @@ def batch_loader():
 class Model(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.mg = torch.nn.Linear(FEATURE_COUNT - 10, 1, bias=False)
+        self.mg = torch.nn.Linear(FEATURE_COUNT - 2*KS_COUNT, 1, bias=False)
         torch.nn.init.zeros_(self.mg.weight)
-        self.eg = torch.nn.Linear(FEATURE_COUNT - 10, 1, bias=False)
+        self.eg = torch.nn.Linear(FEATURE_COUNT - 2*KS_COUNT, 1, bias=False)
         torch.nn.init.zeros_(self.eg.weight)
-        self.king_attack = torch.nn.Linear(5, 1, bias=False)
-        torch.nn.init.ones_(self.king_attack.weight)
+        self.king_safety = torch.nn.Linear(KS_COUNT, 1, bias=False)
+        torch.nn.init.ones_(self.king_safety.weight)
 
     def forward(self, features, phase):
-        linear = features[:, :-10]
-        king_safety = features[:, -10:].reshape((-1, 2, 5))
+        linear = features[:, :-2*KS_COUNT]
+        king_safety = features[:, -2*KS_COUNT:].reshape((-1, 2, KS_COUNT))
 
         mg = self.mg(linear)
         eg = self.eg(linear)
 
-        king_attack = self.king_attack(king_safety) ** 2
-        king_attack = king_attack[:, 0] - king_attack[:, 1]
+        king_safety = -self.king_safety(king_safety).clamp(0) ** 2
+        king_safety = king_safety[:, 0] - king_safety[:, 1]
 
-        score = torch.lerp(eg, mg + king_attack, phase)
+        score = torch.lerp(eg, mg + king_safety, phase)
 
         return torch.sigmoid(score)
 
