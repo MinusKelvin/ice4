@@ -186,6 +186,7 @@ struct Board {
         zobrist ^= ZOBRIST[EMPTY][0];
 
         __builtin_prefetch(&TT[zobrist % TT_SIZE]);
+        __builtin_prefetch(&TT[(zobrist ^ ZOBRIST[EMPTY][ep_square]) % TT_SIZE]);
 
         if (attacked(king_sq[stm != WHITE], NSTM)) {
             return 1;
