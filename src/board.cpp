@@ -263,6 +263,9 @@ struct Board {
                     for (;;) {
                         raysq += RAYS[i];
                         if (board[raysq] & stm) {
+                            if (piece == ROOK && (board[raysq] & 7) == ROOK && raysq > sq) {
+                                mobility += CONNECTED_ROOKS;
+                            }
                             break;
                         }
                         mobility += MOBILITY[piece];
