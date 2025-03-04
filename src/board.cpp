@@ -258,11 +258,14 @@ struct Board {
                     list[count++] = create_move(sq, sq + dir+1, promo);
                 }
             } else {
+                int attacks_bishop = 0;
+                int orig_attack = attack;
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
                     int raysq = sq;
                     for (;;) {
                         raysq += RAYS[i];
                         if (board[raysq] & stm) {
+                            attacks_bishop |= i > 3 && (board[raysq] & 7) == BISHOP;
                             break;
                         }
                         mobility += MOBILITY[piece];
@@ -284,6 +287,9 @@ struct Board {
                             break;
                         }
                     }
+                }
+                if (piece == QUEEN && attacks_bishop && attack != orig_attack) {
+                    mobility += BATTERY;
                 }
             }
         }

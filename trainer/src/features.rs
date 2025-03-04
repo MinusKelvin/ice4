@@ -31,6 +31,7 @@ pub struct Features {
     passer_own_king_dist: [f32; 8],
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
+    battery: f32,
     king_attack_weight: [[f32; 5]; Color::NUM],
 }
 
@@ -113,12 +114,20 @@ impl Features {
                     }
                     Piece::King => get_king_moves(unflipped_square),
                 };
+                let attacking_own_bishop = !board
+                    .colored_pieces(color, Piece::Bishop)
+                    .is_disjoint(get_bishop_moves(unflipped_square, board.occupied()));
                 let mob = mob - board.colors(color);
                 self.mobility[piece as usize] += inc * mob.len() as f32;
 
                 let king_ring_attacks = (get_king_moves(board.king(!color)) & mob).len();
                 if piece != Piece::King {
-                    self.king_attack_weight[color as usize][piece as usize] += king_ring_attacks as f32;
+                    self.king_attack_weight[color as usize][piece as usize] +=
+                        king_ring_attacks as f32;
+                }
+
+                if attacking_own_bishop && piece == Piece::Queen && king_ring_attacks > 0 {
+                    self.battery += inc;
                 }
             }
         }
