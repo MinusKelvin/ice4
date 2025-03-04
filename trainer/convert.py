@@ -46,7 +46,7 @@ def to_evalcpp(last_loss, train_id, param_map):
             round(eg.popleft()) * sign
         ))
 
-    def array_param(name, size, *, leading_zero=False, sign=1):
+    def array_param(name, size, *, leading_zero=False, trailing_zero=0, sign=1):
         print(f"int {name}[] = {{", end="")
         if leading_zero:
             print("0, ", end="")
@@ -54,6 +54,8 @@ def to_evalcpp(last_loss, train_id, param_map):
             f"S({sign * round(mg.popleft())}, {sign * round(eg.popleft())})"
             for _ in range(size)
         ), end="")
+        for _ in range(trailing_zero):
+            print(", 0", end="")
         print("};")
 
     def datastring_param(name, size, *, adjust=0):
@@ -89,6 +91,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     datastring_param("OWN_KING_PASSER_DIST", 8)
     datastring_param("OPP_KING_PASSER_DIST", 8)
     datastring_param("PHALANX_RANK", 6, adjust=-1)
+    array_param("KING_DEFEND", 5, leading_zero=True, trailing_zero=1)
 
     print("int KING_ATTACK_WEIGHT[] = {0", end="")
     for i, weight in enumerate(param_map["king_attack.weight"][0]):
