@@ -32,6 +32,7 @@ pub struct Features {
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
     king_attack_weight: [[f32; 5]; Color::NUM],
+    pawns: [f32; Color::NUM],
 }
 
 impl Features {
@@ -60,6 +61,11 @@ impl Features {
     }
 
     pub fn extract(&mut self, board: &Board) {
+        self.pawns = [
+            board.colored_pieces(Color::White, Piece::Pawn).len() as f32,
+            board.colored_pieces(Color::Black, Piece::Pawn).len() as f32,
+        ];
+
         for &piece in &Piece::ALL {
             for unflipped_square in board.pieces(piece) {
                 let color = board.color_on(unflipped_square).unwrap();

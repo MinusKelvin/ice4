@@ -50,16 +50,17 @@ def batch_loader():
 class Model(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.mg = torch.nn.Linear(FEATURE_COUNT - 10, 1, bias=False)
+        self.mg = torch.nn.Linear(FEATURE_COUNT - 12, 1, bias=False)
         torch.nn.init.zeros_(self.mg.weight)
-        self.eg = torch.nn.Linear(FEATURE_COUNT - 10, 1, bias=False)
+        self.eg = torch.nn.Linear(FEATURE_COUNT - 12, 1, bias=False)
         torch.nn.init.zeros_(self.eg.weight)
         self.king_attack = torch.nn.Linear(5, 1, bias=False)
         torch.nn.init.ones_(self.king_attack.weight)
 
     def forward(self, features, phase):
-        linear = features[:, :-10]
-        king_safety = features[:, -10:].reshape((-1, 2, 5))
+        linear = features[:, :-12]
+        king_safety = features[:, -12:-2].reshape((-1, 2, 5))
+        pawns = features[:, -2:].reshape((-1, 2))
 
         mg = self.mg(linear)
         eg = self.eg(linear)
@@ -67,7 +68,10 @@ class Model(torch.nn.Module):
         king_attack = self.king_attack(king_safety) ** 2
         king_attack = king_attack[:, 0] - king_attack[:, 1]
 
-        score = torch.lerp(eg, mg + king_attack, phase)
+        stronger_side_pawns = torch.gather(pawns, -1, (eg < 0).long())
+        eg_scale = (128 - (8 - stronger_side_pawns) ** 2) / 128
+
+        score = torch.lerp(eg * eg_scale, mg + king_attack, phase)
 
         return torch.sigmoid(score)
 
