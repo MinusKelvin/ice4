@@ -218,6 +218,7 @@ struct Board {
             }
 
             int piece = board[sq] & 7;
+            int mob = get_data(MOBILITY_INDEX + piece) + MOBILITY;
 
             if (piece == KING && sq == (stm == WHITE ? E1 : E8) && quiets) {
                 if (!(castle_rights >> 2*(stm != WHITE) & SHORT_CASTLE) &&
@@ -234,13 +235,13 @@ struct Board {
                 int dir = stm == WHITE ? 10 : -10;
                 int promo = board[sq + dir + dir] == INVALID;
                 if (!board[sq + dir]) {
-                    mobility += MOBILITY[piece];
+                    mobility += mob;
                     attack += king_ring[sq + dir] * KING_ATTACK_WEIGHT[piece];
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
                         list[count++] = create_move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
-                        mobility += MOBILITY[piece];
+                        mobility += mob;
                         attack += king_ring[sq + dir+dir] * KING_ATTACK_WEIGHT[piece];
                         if (quiets) {
                             list[count++] = create_move(sq, sq + dir+dir, promo);
@@ -248,12 +249,12 @@ struct Board {
                     }
                 }
                 if (ep_square == sq + dir-1 || board[sq + dir-1] & OTHER && ~board[sq + dir-1] & stm) {
-                    mobility += MOBILITY[piece];
+                    mobility += mob;
                     attack += king_ring[sq + dir-1] * KING_ATTACK_WEIGHT[piece];
                     list[count++] = create_move(sq, sq + dir-1, promo);
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & OTHER && ~board[sq + dir+1] & stm) {
-                    mobility += MOBILITY[piece];
+                    mobility += mob;
                     attack += king_ring[sq + dir+1] * KING_ATTACK_WEIGHT[piece];
                     list[count++] = create_move(sq, sq + dir+1, promo);
                 }
@@ -265,7 +266,7 @@ struct Board {
                         if (board[raysq] & stm) {
                             break;
                         }
-                        mobility += MOBILITY[piece];
+                        mobility += mob;
                         attack += king_ring[raysq] * KING_ATTACK_WEIGHT[piece];
                         if (board[raysq] & OTHER) {
                             list[count++] = create_move(sq, raysq, 0);
