@@ -69,7 +69,7 @@ class Model(torch.nn.Module):
         king_attack = king_attack[:, 0] - king_attack[:, 1]
 
         stronger_side_pawns = torch.gather(pawns, -1, (eg < 0).long())
-        eg_scale = (128 - (8 - stronger_side_pawns) ** 2) / 128
+        eg_scale = (96 - (8 - stronger_side_pawns) ** 2) / 96
 
         score = torch.lerp(eg * eg_scale, mg + king_attack, phase)
 
