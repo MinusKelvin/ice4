@@ -203,7 +203,7 @@ struct Searcher {
                 is_rep |= PREHISTORY[i] == mkmove.zobrist;
             }
 
-            if (is_rep || mkmove.sufficient_material < 2) {
+            if (is_rep || mkmove.sufficient_material < 98) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
