@@ -38,7 +38,7 @@ struct Searcher {
         uint16_t upper_key = board.zobrist / TT_SIZE;
         TtData tt = slot.load({});
 
-        Move scratch, hashmv{};
+        Move scratch;
         Move moves[256];
         int score[256];
         int mvcount;
@@ -46,7 +46,6 @@ struct Searcher {
         int tt_good = upper_key == tt.key;
 
         if (tt_good) {
-            hashmv = tt.mv;
             if (depth <= tt.depth && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
@@ -112,7 +111,7 @@ struct Searcher {
         }
 
         for (int j = 0; j < mvcount; j++) {
-            if (hashmv.from == moves[j].from && hashmv.to == moves[j].to) {
+            if (tt_good && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
@@ -215,7 +214,7 @@ struct Searcher {
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
-                reduction += hashmv.from && board.board[hashmv.to];
+                reduction += tt_good && board.board[tt.mv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
