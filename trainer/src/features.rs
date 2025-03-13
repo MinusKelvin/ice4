@@ -31,6 +31,7 @@ pub struct Features {
     passer_own_king_dist: [f32; 8],
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
+    bishop_long_diagonal: f32,
     king_attack_weight: [[f32; 5]; Color::NUM],
     pawns: [f32; Color::NUM],
 }
@@ -73,6 +74,15 @@ impl Features {
                     Color::White => (unflipped_square, 1.0),
                     Color::Black => (unflipped_square.flip_rank(), -1.0),
                 };
+
+                if piece == Piece::Bishop {
+                    if unflipped_square.rank() as usize == unflipped_square.file() as usize
+                        || unflipped_square.rank() as usize
+                            == unflipped_square.file().flip() as usize
+                    {
+                        self.bishop_long_diagonal += inc;
+                    }
+                }
 
                 if piece == Piece::Rook {
                     let file = square.file().bitboard();
@@ -124,7 +134,8 @@ impl Features {
 
                 let king_ring_attacks = (get_king_moves(board.king(!color)) & mob).len();
                 if piece != Piece::King {
-                    self.king_attack_weight[color as usize][piece as usize] += king_ring_attacks as f32;
+                    self.king_attack_weight[color as usize][piece as usize] +=
+                        king_ring_attacks as f32;
                 }
             }
         }

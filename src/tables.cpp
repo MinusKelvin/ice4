@@ -46,7 +46,8 @@ void init_tables() {
                     PST[WHITE | piece][10*rank+file] =
                         get_data(16 + 16*piece + rank) +
                         get_data(24 + 16*piece + file) +
-                        MATERIAL[piece]
+                        MATERIAL[piece] +
+                        BISHOP_LONG_DIAGONAL * (piece == BISHOP && (rank == file || rank == 7 - file))
                 );
             }
         }
