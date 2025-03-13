@@ -37,10 +37,10 @@ void uci() {
             case 's': // setoption
                 tokens >> token >> token; // name <name>
                 if (token == "Hash") {
-                    delete[] TT;
+                    free(TT);
                     tokens >> token >> TT_SIZE; // value <value>
                     TT_SIZE *= 131072;
-                    TT = new atomic<TtData>[TT_SIZE]();
+                    TT = (atomic<TtData>* ) calloc(TT_SIZE, sizeof(TtData));
                 }
                 if (token == "Threads") {
                     tokens >> token >> THREADS; // value <value>

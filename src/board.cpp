@@ -28,7 +28,7 @@ struct TtData {
 
 // 8MB. Replaced for TCEC builds by the minifier.
 #define HASH_SIZE 1048576ull
-auto TT = new atomic<TtData>[HASH_SIZE]();
+auto TT = (atomic<TtData> *) calloc(HASH_SIZE, sizeof(TtData));
 
 #ifdef OPENBENCH
 uint64_t TT_SIZE = HASH_SIZE;
