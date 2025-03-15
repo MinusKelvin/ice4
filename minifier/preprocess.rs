@@ -53,9 +53,9 @@ fn process(
             into.lib_includes.push(file.to_owned());
         } else if let Some(captures) = DEFINE.captures(line) {
             let text = regex::escape(captures.get(1).unwrap().as_str());
-            // TCEC builds use 64 GB hash and 256 threads
+            // TCEC builds use 256 GB hash and 256 threads
             let replacement = match &*text {
-                "HASH_SIZE" if tcec => "0x200000000ull",
+                "HASH_SIZE" if tcec => "0x800000000ull",
                 "THREADS" if tcec => "256",
                 _ => captures.get(2).unwrap().as_str(),
             };
