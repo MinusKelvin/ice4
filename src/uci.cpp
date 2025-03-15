@@ -11,13 +11,13 @@ void uci() {
 
     string token;
     getline(cin, token);
-    
+
 #ifdef OPENBENCH
     cout <<
         "id name ice4 v5\r\n"
         "id author MinusKelvin\n"
-        "option name Hash type spin default 8 min 1 max 99999\n"
-        "option name Threads type spin default 1 min 1 max 999\n";
+        "option name Hash type spin default 8 min 1 max 67108864\n"
+        "option name Threads type spin default 1 min 1 max 2048\n";
 #endif
 
     cout << "uciok" << endl;
@@ -32,9 +32,7 @@ void uci() {
                 return;
 #ifdef OPENBENCH
             case 'u': // ucinewgame
-                for (int i = 0; i < TT_SIZE; i++) {
-                    TT[i] = TtData{};
-                }
+                memset(TT, 0, sizeof(TtData) * TT_SIZE);
                 break;
             case 's': // setoption
                 tokens >> token >> token; // name <name>
@@ -104,8 +102,8 @@ void uci() {
 #else
                 thread threads[THREADS];
 #endif
-                for (int i = 0; i < THREADS; i++) {
-                    threads[i] = thread([time_alotment]() {
+                for (thread& t : threads) {
+                    t = thread([time_alotment]() {
                         Searcher().iterative_deepening(time_alotment);
                         ABORT = 1;
                     });
@@ -121,7 +119,7 @@ void uci() {
                         }
                         if (token == "quit") {
                             ABORT = 1;
-                            for (auto& t : threads) {
+                            for (thread& t : threads) {
                                 t.join();
                             }
                             return;
@@ -130,8 +128,8 @@ void uci() {
                     ABORT = 1;
                 }
 #endif
-                for (int i = 0; i < THREADS; i++) {
-                    threads[i].join();
+                for (thread& t : threads) {
+                    t.join();
                 }
                 cout << "bestmove ";
                 BEST_MOVE.put_with_newline();
