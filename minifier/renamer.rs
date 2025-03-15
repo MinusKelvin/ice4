@@ -101,11 +101,11 @@ fn group(symbols: &Symbols, blockers: &mut [usize]) -> (usize, Vec<usize>) {
     (size1, coloring1)
 }
 
-const IDENT_CHARACTERS: &str = "0123456789_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const IDENT_CHARACTERS: &str = "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 pub fn generate_variable_names(count: usize) -> Vec<String> {
     let mut idents = vec![];
-    let mut ident_state = vec![11];
+    let mut ident_state = vec![1];
     for _ in 0..count {
         let mut ident = String::new();
         for &i in ident_state.iter() {
@@ -121,7 +121,7 @@ pub fn generate_variable_names(count: usize) -> Vec<String> {
             }
         }
         if ident_state[0] == 0 {
-            ident_state[0] = 11;
+            ident_state[0] = 1;
             ident_state.push(0);
         }
     }
