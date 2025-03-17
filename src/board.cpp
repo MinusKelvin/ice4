@@ -28,7 +28,7 @@ struct TtData {
 
 // 8MB. Replaced for TCEC builds by the minifier.
 #define DEFAULT_TT_BITS 20
-auto TT = (atomic<TtData> *) calloc(1ull << DEFAULT_TT_BITS, sizeof(TtData));
+auto TT = (atomic<TtData> *) calloc(1ull << DEFAULT_TT_BITS, 8);
 
 #ifdef OPENBENCH
 int TT_BITS = DEFAULT_TT_BITS;
