@@ -27,13 +27,13 @@ struct TtData {
 };
 
 // 8MB. Replaced for TCEC builds by the minifier.
-#define HASH_SIZE 1048576ull
-auto TT = (atomic<TtData> *) calloc(HASH_SIZE, sizeof(TtData));
+#define DEFAULT_TT_BITS 20
+auto TT = (atomic<TtData> *) calloc(1ull << DEFAULT_TT_BITS, sizeof(TtData));
 
 #ifdef OPENBENCH
-uint64_t TT_SIZE = HASH_SIZE;
+int TT_BITS = DEFAULT_TT_BITS;
 #else
-#define TT_SIZE HASH_SIZE
+#define TT_BITS DEFAULT_TT_BITS
 #endif
 
 struct Board {
@@ -185,7 +185,7 @@ struct Board {
         zobrist ^= ZOBRIST[EMPTY][castle_rights];
         zobrist ^= ZOBRIST[EMPTY][0];
 
-        __builtin_prefetch(&TT[zobrist % TT_SIZE]);
+        __builtin_prefetch(&TT[zobrist >> (64 - TT_BITS)]);
 
         if (attacked(king_sq[stm != WHITE], NSTM)) {
             return 1;

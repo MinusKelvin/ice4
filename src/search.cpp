@@ -34,8 +34,8 @@ struct Searcher {
             depth = 0;
         }
 
-        auto& slot = TT[board.zobrist % TT_SIZE];
-        uint16_t upper_key = board.zobrist / TT_SIZE;
+        auto& slot = TT[board.zobrist >> (64 - TT_BITS)];
+        uint16_t lower_key = board.zobrist;
         TtData tt = slot.load({});
 
         Move scratch;
@@ -43,7 +43,7 @@ struct Searcher {
         int score[256];
         int mvcount;
         int pv = beta > alpha+1;
-        int tt_good = upper_key == tt.key;
+        int tt_good = lower_key == tt.key;
 
         if (tt_good) {
             if (depth <= tt.depth && (
@@ -283,7 +283,7 @@ struct Searcher {
         }
 
         if ((depth || best != eval) && best > LOST + ply) {
-            tt.key = upper_key;
+            tt.key = lower_key;
             tt.eval = best;
             tt.depth = depth;
             tt.bound =

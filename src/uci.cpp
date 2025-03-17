@@ -32,15 +32,18 @@ void uci() {
                 return;
 #ifdef OPENBENCH
             case 'u': // ucinewgame
-                memset(TT, 0, sizeof(TtData) * TT_SIZE);
+                memset(TT, 0, sizeof(TtData) * (1ull << TT_BITS));
                 break;
             case 's': // setoption
                 tokens >> token >> token; // name <name>
                 if (token == "Hash") {
+                    uint64_t tt_size;
+                    tokens >> token >> tt_size; // value <value>
+                    tt_size *= 1024 * 1024 / sizeof(TtData);
+
                     free(TT);
-                    tokens >> token >> TT_SIZE; // value <value>
-                    TT_SIZE *= 131072;
-                    TT = (atomic<TtData>* ) calloc(TT_SIZE, sizeof(TtData));
+                    TT_BITS = 63 - __builtin_clzll(tt_size);
+                    TT = (atomic<TtData>* ) calloc(1ull << TT_BITS, sizeof(TtData));
                 }
                 if (token == "Threads") {
                     tokens >> token >> THREADS; // value <value>
