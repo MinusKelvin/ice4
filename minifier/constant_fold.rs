@@ -229,6 +229,22 @@ fn fold_expr(expr: &mut Expr) {
                 }
             }
         }
+        Expr::Sub(lhs, rhs) => {
+            if let (Expr::Number(Ok(lhs)), Expr::Number(Ok(rhs))) = (&**lhs, &**rhs) {
+                let mut num = lhs.clone();
+                if lhs.suffix.is_empty() {
+                    num.suffix = rhs.suffix.clone();
+                }
+                num.value = lhs.value - rhs.value;
+                *expr = Expr::Number(Ok(num));
+            } else if let Expr::Number(Ok(rhs)) = &**rhs {
+                if rhs.value < 0 {
+                    let mut num = rhs.clone();
+                    num.value = -num.value;
+                    *expr = Expr::Add(take(lhs), Box::new(Expr::Number(Ok(num))));
+                }
+            }
+        }
         Expr::Negate(operand) => {
             if let Expr::Number(Ok(num)) = &**operand {
                 let mut num = num.clone();
