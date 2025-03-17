@@ -42,9 +42,9 @@ struct Searcher {
         int score[256];
         int mvcount;
         int pv = beta > alpha+1;
-        int tt_good = (uint16_t)board.zobrist == tt.key;
 
-        if (tt_good) {
+        tt.key ^= board.zobrist;
+        if (!tt.key) {
             if (depth <= tt.depth && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
@@ -70,7 +70,7 @@ struct Searcher {
             + corr_hist[board.stm != WHITE][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 102
             + (*conthist_stack[ply])[1][0] / 200;
-        int eval = tt_good && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
@@ -110,7 +110,7 @@ struct Searcher {
         }
 
         for (int j = 0; j < mvcount; j++) {
-            if (tt_good && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
+            if (!tt.key && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
@@ -213,7 +213,7 @@ struct Searcher {
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
-                reduction += tt_good && board.board[tt.mv.to];
+                reduction += !tt.key && board.board[tt.mv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
@@ -282,15 +282,15 @@ struct Searcher {
         }
 
         if ((depth || best != eval) && best > LOST + ply) {
-            tt.key = board.zobrist;
             tt.eval = best;
             tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
-            if (!tt_good || tt.bound != BOUND_UPPER) {
+            if (tt.key || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
+            tt.key = board.zobrist;
             slot.store(tt, {});
             if (!board.board[bestmv.to] && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
