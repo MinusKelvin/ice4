@@ -64,10 +64,10 @@ struct Searcher {
 
         rep_list[ply] = board.zobrist;
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            + corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] / 178
-            + corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] / 198
-            + corr_hist[board.stm != WHITE][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
-            + corr_hist[board.stm != WHITE][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
+            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 178
+            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 198
+            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
+            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 102
             + (*conthist_stack[ply])[1][0] / 200;
         int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
@@ -297,17 +297,17 @@ struct Searcher {
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
                 double weight = min(depth * depth + 2, 93) / 591.0;
-                corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
+                corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
+                    corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
+                corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] =
+                    corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[board.stm != WHITE][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
+                corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
+                    corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[board.stm != WHITE][board.nonpawn_hash[2] % CORR_HIST_SIZE] =
-                    corr_hist[board.stm != WHITE][board.nonpawn_hash[2] % CORR_HIST_SIZE] * (1 - weight) +
+                corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] =
+                    corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 (*conthist_stack[ply+1])[0][0] =
                     (*conthist_stack[ply+1])[0][0] * (1 - weight) +
