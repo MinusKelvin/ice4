@@ -32,7 +32,8 @@ void uci() {
                 return;
 #ifdef OPENBENCH
             case 'u': // ucinewgame
-                memset(TT, 0, sizeof(TtData) * TT_SIZE);
+                free(TT);
+                TT = (atomic<TtData>* ) calloc(TT_SIZE, sizeof(TtData));
                 break;
             case 's': // setoption
                 tokens >> token >> token; // name <name>
