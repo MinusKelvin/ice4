@@ -20,13 +20,13 @@ void uci() {
         "option name Threads type spin default 1 min 1 max 2048\n";
 #endif
 
-    cout << "uciok" << endl;
+    cout << "uciok\n";
     while (getline(cin, token)) {
         stringstream tokens(token);
         tokens >> token;
         switch (token[0]) {
             case 'i': // isready
-                cout << "readyok" << endl;
+                cout << "readyok\n";
                 break;
             case 'q': // quit
                 return;
