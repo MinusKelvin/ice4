@@ -252,6 +252,16 @@ fn fold_expr(expr: &mut Expr) {
                 *expr = Expr::Number(Ok(num));
             }
         }
+        Expr::Mul(lhs, rhs) => {
+            if let (Expr::Number(Ok(lhs)), Expr::Number(Ok(rhs))) = (&**lhs, &**rhs) {
+                let mut num = lhs.clone();
+                if lhs.suffix.is_empty() {
+                    num.suffix = rhs.suffix.clone();
+                }
+                num.value = lhs.value * rhs.value;
+                *expr = Expr::Number(Ok(num));
+            }
+        }
         _ => {}
     }
 }

@@ -388,7 +388,7 @@ struct Board {
         int eg = (stm_eval + 0x8000) >> 16;
         int inv_stronger_side_pawns = 8 - piece_counts[stm ^ PAWN ^ (eg < 0) * INVALID];
         int eg_scale = 128 - inv_stronger_side_pawns * inv_stronger_side_pawns;
-        return ((int16_t)stm_eval * phase + eg * (24 - phase) * eg_scale / 128) / 24;
+        return (200 - halfmove_clock) * ((int16_t)stm_eval * phase + eg * (24 - phase) * eg_scale / 128) / (24 * 200);
     }
 } ROOT;
 
