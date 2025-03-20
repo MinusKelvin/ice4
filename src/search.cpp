@@ -60,6 +60,8 @@ struct Searcher {
             depth -= 2;
         }
 
+        bestmv = Move{};
+
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         rep_list[ply] = board.zobrist;
@@ -281,7 +283,7 @@ struct Searcher {
             return 0;
         }
 
-        if ((depth || best != eval) && best > LOST + ply) {
+        if (best > LOST + ply) {
             tt.eval = best;
             tt.depth = depth;
             tt.bound =
