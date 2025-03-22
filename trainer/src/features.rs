@@ -31,12 +31,21 @@ pub struct Features {
     passer_own_king_dist: [f32; 8],
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
-    king_attack_weight: [[f32; 5]; Color::NUM],
+    king_attack: [KingAttackFeatures; Color::NUM],
     pawns: [f32; Color::NUM],
+}
+
+#[derive(Debug)]
+#[repr(C)]
+pub struct KingAttackFeatures {
+    piece_attacks: [f32; 5],
+    defender_pawns: f32,
 }
 
 impl Features {
     pub const COUNT: usize = std::mem::size_of::<Self>() / std::mem::size_of::<f32>();
+    pub const KING_ATTACK_COUNT: usize =
+        std::mem::size_of::<KingAttackFeatures>() / std::mem::size_of::<f32>();
 
     fn rank(&mut self, piece: Piece) -> &mut [f32; 8] {
         match piece {
@@ -124,7 +133,8 @@ impl Features {
 
                 let king_ring_attacks = (get_king_moves(board.king(!color)) & mob).len();
                 if piece != Piece::King {
-                    self.king_attack_weight[color as usize][piece as usize] += king_ring_attacks as f32;
+                    self.king_attack[color as usize].piece_attacks[piece as usize] +=
+                        king_ring_attacks as f32;
                 }
             }
         }
@@ -227,6 +237,9 @@ impl Features {
                 }
                 self.shield_pawns[shield_pawns] += inc;
             }
+
+            self.king_attack[!color as usize].defender_pawns +=
+                (board.colored_pieces(color, Piece::Pawn) & get_king_moves(king)).len() as f32;
         }
     }
 }

@@ -13,6 +13,11 @@ pub unsafe extern "C" fn feature_count() -> c_ulong {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn king_attack_count() -> c_ulong {
+    Features::KING_ATTACK_COUNT as c_ulong
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn decode_data(
     board: *const PackedBoard,
     features: *mut Features,

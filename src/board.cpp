@@ -203,13 +203,14 @@ struct Board {
         // 8.0+0.08: 7.47 +- 4.89 [382, 1239, 1891, 1190, 299] 0.25 elo/byte
         // Mobility: 26 bytes (v5)
         // 8.0+0.08: 103.92 +- 5.26 [970, 1765, 1563, 604, 98] 4.00 elo/byte
+        #define OTHER (stm ^ INVALID)
         uint8_t king_ring[120] = {};
         int attack = 0;
-        #define OTHER (stm ^ INVALID)
         count = 0;
         mobility = 0;
         for (int i = 0; i < 8; i++) {
             king_ring[king_sq[stm == WHITE] + RAYS[i]] = 1;
+            attack += DEFENDER_PAWNS * (board[king_sq[stm != WHITE] + RAYS[i]] == (PAWN | OTHER));
         }
         for (int sq = A1; sq <= H8; sq++) {
             // skip empty squares & opponent squares (& border squares)
@@ -288,7 +289,7 @@ struct Board {
                 }
             }
         }
-        mobility += attack * attack / 160;
+        mobility += max(attack, 0) * attack / 160;
         #undef OTHER
     }
 
