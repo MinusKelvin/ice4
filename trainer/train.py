@@ -50,22 +50,22 @@ def batch_loader():
 class Model(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.mg = torch.nn.Linear(FEATURE_COUNT - 12, 1, bias=False)
+        self.mg = torch.nn.Linear(FEATURE_COUNT - 14, 1, bias=False)
         torch.nn.init.zeros_(self.mg.weight)
-        self.eg = torch.nn.Linear(FEATURE_COUNT - 12, 1, bias=False)
+        self.eg = torch.nn.Linear(FEATURE_COUNT - 14, 1, bias=False)
         torch.nn.init.zeros_(self.eg.weight)
-        self.king_attack = torch.nn.Linear(5, 1, bias=False)
+        self.king_attack = torch.nn.Linear(6, 1, bias=False)
         torch.nn.init.ones_(self.king_attack.weight)
 
     def forward(self, features, phase):
-        linear = features[:, :-12]
-        king_safety = features[:, -12:-2].reshape((-1, 2, 5))
+        linear = features[:, :-14]
+        king_safety = features[:, -14:-2].reshape((-1, 2, 6))
         pawns = features[:, -2:].reshape((-1, 2))
 
         mg = self.mg(linear)
         eg = self.eg(linear)
 
-        king_attack = self.king_attack(king_safety) ** 2
+        king_attack = torch.clamp(self.king_attack(king_safety), 0) ** 2
         king_attack = king_attack[:, 0] - king_attack[:, 1]
 
         stronger_side_pawns = torch.gather(pawns, -1, (eg < 0).long())

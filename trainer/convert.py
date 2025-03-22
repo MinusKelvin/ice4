@@ -31,8 +31,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     print("#define S(a, b) (a + (b * 0x10000))")
     print()
 
-    mg = deque(v * 160 for v in param_map["mg.weight"][0])
-    eg = deque(v * 160 for v in param_map["eg.weight"][0])
+    mg = deque(v * 160 for v in param_map["mg.weight"][0] + param_map["king_attack.weight"][0])
+    eg = deque(v * 160 for v in param_map["eg.weight"][0] + [0] * len(param_map["king_attack.weight"][0]))
 
     mg_stringer = DataStringer()
     eg_stringer = DataStringer()
@@ -46,7 +46,7 @@ def to_evalcpp(last_loss, train_id, param_map):
             round(eg.popleft()) * sign
         ))
 
-    def array_param(name, size, *, leading_zero=False, sign=1):
+    def array_param(name, size, *, leading_zero=False, trailing_zeros=0, sign=1):
         print(f"int {name}[] = {{", end="")
         if leading_zero:
             print("0, ", end="")
@@ -54,6 +54,7 @@ def to_evalcpp(last_loss, train_id, param_map):
             f"S({sign * round(mg.popleft())}, {sign * round(eg.popleft())})"
             for _ in range(size)
         ), end="")
+        print(", 0" * trailing_zeros, end="")
         print("};")
 
     def datastring_param(name, size, *, adjust=0):
@@ -90,10 +91,8 @@ def to_evalcpp(last_loss, train_id, param_map):
     datastring_param("OPP_KING_PASSER_DIST", 8)
     datastring_param("PHALANX_RANK", 6, adjust=-1)
 
-    print("int KING_ATTACK_WEIGHT[] = {0", end="")
-    for i, weight in enumerate(param_map["king_attack.weight"][0]):
-        print(f", S({round(weight * 160)}, 0)", end="")
-    print(", 0};")
+    array_param("KING_ATTACK_WEIGHT", 5, leading_zero=True, trailing_zeros=1)
+    define_param("ATTACKER_NO_QUEEN")
 
     print()
     print(f"#define DATA_STRING L\"{mg_stringer.data + eg_stringer.data}\"")
