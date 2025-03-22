@@ -89,6 +89,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     datastring_param("OWN_KING_PASSER_DIST", 8)
     datastring_param("OPP_KING_PASSER_DIST", 8)
     datastring_param("PHALANX_RANK", 6, adjust=-1)
+    define_param("QUEEN_NEAR_KING")
 
     print("int KING_ATTACK_WEIGHT[] = {0", end="")
     for i, weight in enumerate(param_map["king_attack.weight"][0]):

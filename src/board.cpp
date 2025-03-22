@@ -378,6 +378,10 @@ struct Board {
                 e -= (piece_file_counts[WHITE_PAWN][file] ? ROOK_SEMIOPEN : ROOK_OPEN)
                     * piece_file_counts[BLACK_ROOK][file];
             }
+            e += (
+                (board[king_sq[0] + RAYS[file - 1]] == (WHITE | QUEEN))
+                - (board[king_sq[1] + RAYS[file - 1]] == (BLACK | QUEEN))
+            ) * QUEEN_NEAR_KING;
         }
         stm_eval += stm == WHITE ? e : -e;
 
