@@ -40,6 +40,7 @@ pub struct Features {
 pub struct KingAttackFeatures {
     piece_attacks: [f32; 5],
     attacker_no_queen: f32,
+    defender_no_queen: f32,
 }
 
 impl Features {
@@ -206,6 +207,9 @@ impl Features {
 
             if board.colored_pieces(color, Piece::Queen).is_empty() {
                 self.king_attack[color as usize].attacker_no_queen += 1.0;
+            }
+            if board.colored_pieces(!color, Piece::Queen).is_empty() {
+                self.king_attack[color as usize].defender_no_queen += 1.0;
             }
 
             for sq in board.colored_pieces(color, Piece::Pawn) {

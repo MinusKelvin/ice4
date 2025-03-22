@@ -205,7 +205,8 @@ struct Board {
         // 8.0+0.08: 103.92 +- 5.26 [970, 1765, 1563, 604, 98] 4.00 elo/byte
         #define OTHER (stm ^ INVALID)
         uint8_t king_ring[120] = {};
-        int attack = ATTACKER_NO_QUEEN * !piece_counts[QUEEN | stm];
+        int attack = ATTACKER_NO_QUEEN * !piece_counts[QUEEN | stm]
+            + DEFENDER_NO_QUEEN * !piece_counts[QUEEN | OTHER];
         count = 0;
         mobility = 0;
         for (int i = 0; i < 8; i++) {
