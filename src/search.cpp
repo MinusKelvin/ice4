@@ -110,7 +110,12 @@ struct Searcher {
         }
 
         for (int j = 0; j < mvcount; j++) {
-            if (!tt.key && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
+            if (
+                !tt.key &&
+                tt.mv.from == moves[j].from &&
+                tt.mv.to == moves[j].to &&
+                tt.mv.promo == moves[j].promo
+            ) {
                 score[j] = 1e7;
             } else if (board.board[moves[j].to]) {
                 // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
