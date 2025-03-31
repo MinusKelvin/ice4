@@ -1,14 +1,14 @@
 struct Move {
-    uint8_t from;
-    uint8_t to : 7;
-    uint8_t promo : 1;
+    uint16_t from : 7;
+    uint16_t to : 7;
+    uint16_t promo : 2;
 
     void put_with_newline() {
         cout.put(from%10+96)
             .put(from/10+47)
             .put(to%10+96)
             .put(to/10+47)
-            .put(promo ? 'q' : ' ')
+            .put(promo ? promo == 1 ? 'q' : 'n' : ' ')
             << endl;
     }
 };
@@ -127,7 +127,7 @@ struct Board {
     }
 
     int make_move(Move mv, int promo = QUEEN) {
-        int piece = mv.promo ? promo | stm : board[mv.from];
+        int piece = mv.promo ? (mv.promo == 1 ? promo : KNIGHT) | stm : board[mv.from];
         #define NSTM (stm ^ INVALID)
         edit(mv.to, piece);
         edit(mv.from, EMPTY);
@@ -239,12 +239,18 @@ struct Board {
                     attack += king_ring[sq + dir] * KING_ATTACK_WEIGHT[piece];
                     if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
                         list[count++] = create_move(sq, sq + dir, promo);
+                        if (promo) {
+                            list[count++] = create_move(sq, sq + dir, 2);
+                        }
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {
                         mobility += mob;
                         attack += king_ring[sq + dir+dir] * KING_ATTACK_WEIGHT[piece];
                         if (quiets) {
                             list[count++] = create_move(sq, sq + dir+dir, promo);
+                            if (promo) {
+                                list[count++] = create_move(sq, sq + dir+dir, 2);
+                            }
                         }
                     }
                 }
@@ -252,11 +258,17 @@ struct Board {
                     mobility += mob;
                     attack += king_ring[sq + dir-1] * KING_ATTACK_WEIGHT[piece];
                     list[count++] = create_move(sq, sq + dir-1, promo);
+                    if (promo) {
+                        list[count++] = create_move(sq, sq + dir-1, 2);
+                    }
                 }
                 if (ep_square == sq + dir+1 || board[sq + dir+1] & OTHER && ~board[sq + dir+1] & stm) {
                     mobility += mob;
                     attack += king_ring[sq + dir+1] * KING_ATTACK_WEIGHT[piece];
                     list[count++] = create_move(sq, sq + dir+1, promo);
+                    if (promo) {
+                        list[count++] = create_move(sq, sq + dir+1, 2);
+                    }
                 }
             } else {
                 for (int i = STARTS[piece]; i < ENDS[piece]; i++) {
