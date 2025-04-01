@@ -20,7 +20,6 @@ typedef int16_t HTable[23][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double hard_limit;
-    double soft_limit;
     int16_t evals[256];
     int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[23];
@@ -29,7 +28,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, int &second_best) {
         if (depth < 0) {
             depth = 0;
         }
@@ -42,7 +41,9 @@ struct Searcher {
         int score[256];
         int mvcount;
         int pv = beta > alpha+1;
+        int scratch_int;
 
+        second_best = LOST + ply;
         tt.key ^= board.zobrist;
         if (!tt.key) {
             if (depth <= tt.depth && (
@@ -96,14 +97,14 @@ struct Searcher {
 
             int reduction = (eval - beta + depth * 27 + 438) / 107;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1, scratch_int);
             if (v >= beta) {
                 return v;
             }
         }
 
         if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
-            int v = negamax(board, scratch, alpha, beta, 0, ply);
+            int v = negamax(board, scratch, alpha, beta, 0, ply, scratch_int);
             if (v <= alpha) {
                 return v;
             }
@@ -225,24 +226,27 @@ struct Searcher {
                     reduction = 0;
                 }
 
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1, scratch_int);
                 if (v > alpha && reduction) {
                     // reduced search failed high, re-search at full depth
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1, scratch_int);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1, scratch_int);
                 }
             } else {
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1, scratch_int);
             }
             legals++;
             if (v > best) {
+                second_best = best;
                 best = v;
                 bestmv = moves[i];
+            } else if (v > second_best) {
+                second_best = v;
             }
             if (v > alpha) {
                 alpha = v;
@@ -330,10 +334,13 @@ struct Searcher {
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        hard_limit = now() + time_alotment * 0.0004;
-        soft_limit = now() + time_alotment * 0.000054;
+        double start = now();
+        double soft_limit = time_alotment * 0.000054;
+        double easiness = 1;
+        hard_limit = start + time_alotment * 0.0004;
         Move mv;
         int v = 0;
+        int second_best;
         try {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 // Aspiration windows: 23 bytes (v4)
@@ -345,15 +352,18 @@ struct Searcher {
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0, second_best);
                     delta *= 1.8;
                     lock_guard lock(MUTEX);
                     if (v > lower && FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
+                        if (v < upper) {
+                            easiness = second_best < v - 200 ? 0.75 * easiness : 1.0;
+                        }
                         FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
                         BEST_MOVE = mv;
                         cout << "info depth " << depth << " score cp " << v << " pv ";
                         mv.put_with_newline();
-                        if (now() > soft_limit) {
+                        if (now() > start + soft_limit * easiness) {
                             return;
                         }
                     }
