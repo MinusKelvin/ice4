@@ -388,9 +388,6 @@ struct Board {
     }
 } ROOT;
 
-uint64_t PREHISTORY[256];
-int PREHISTORY_LENGTH = 0;
-
 #ifdef OPENBENCH
 Board parse_fen(istream& stream) {
     Board board;

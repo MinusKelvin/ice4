@@ -26,7 +26,6 @@ struct Searcher {
     HTable history[23];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
-    uint64_t rep_list[256];
     int mobilities[256];
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
@@ -62,7 +61,6 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
-        rep_list[ply] = board.zobrist;
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 178
             + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 198
@@ -192,20 +190,10 @@ struct Searcher {
                 throw 0;
             }
 
-            int is_rep = 0;
             int v;
             int next_depth = depth - 1 + mkmove.check;
 
-            for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
-                is_rep |= rep_list[i] == mkmove.zobrist;
-            }
-            for (int i = 0; depth && !is_rep && i < PREHISTORY_LENGTH; i++) {
-                is_rep |= PREHISTORY[i] == mkmove.zobrist;
-            }
-
-            if (is_rep) {
-                v = 0;
-            } else if (legals) {
+            if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
                 // 8.0+0.08: 184.70 +- 6.16 (5965 - 1099 - 2936) 4.50 elo/byte
                 // 60.0+0.6: 213.11 +- 6.04 (6132 - 667 - 3201) 5.20 elo/byte

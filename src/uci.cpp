@@ -61,17 +61,12 @@ void uci() {
 #else
                 tokens >> token >> token; // startpos moves
 #endif
-                PREHISTORY_LENGTH = 0;
                 while (tokens >> token) {
-                    PREHISTORY[PREHISTORY_LENGTH++] = ROOT.zobrist;
                     BEST_MOVE = create_move(
                         token[1] * 10 + token[0] - 566,
                         token[3] * 10 + token[2] - 566,
                         !!token[4]
                     );
-                    if ((ROOT.board[BEST_MOVE.from] & 7) == PAWN || ROOT.board[BEST_MOVE.to]) {
-                        PREHISTORY_LENGTH = 0;
-                    }
                     // maps promotion chars to piece enums
                     //       'q'    'r'    'b'    'n'    '\0' 
                     // cast  113    114    98     110    0
