@@ -102,6 +102,9 @@ struct Searcher {
             }
         }
 
+        // Razoring: 32 bytes (v6)
+        // 8.0+0.08: 12.92 +- 4.68     0.40 elo/byte
+        // 60.0+0.6:  7.19 +- 4.18     0.22 elo/byte
         if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
@@ -113,10 +116,14 @@ struct Searcher {
             if (!tt.key && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
             } else if (board.board[moves[j].to]) {
-                // MVV-LVA capture ordering: 3 bytes (78a3963 vs 35f9b66)
-                // 8.0+0.08: 289.03 +- 7.40 (7378 - 563 - 2059) 96.34 elo/byte
-                // 60.0+0.6: 237.53 +- 6.10 (6384 - 445 - 3171) 79.18 elo/byte
-                score[j] = history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to]
+                score[j] =
+                    // Capture history ordering: 2 bytes (v6)
+                    // 8.0+0.08: 19.37 +- 4.67      9.69 elo/byte
+                    // 60.0+0.6: 29.98 +- 4.19     14.99 elo/byte
+                    history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to]
+                    // MVV ordering: 4 bytes (v6)
+                    // 8.0+0.08: 144.33 +- 5.45     36.08 elo/byte
+                    // 60.0+0.6: 146.82 +- 5.08     36.71 elo/byte
                     + (board.board[moves[j].to] & 7) * 1e5;
             } else {
                 // Plain history: 28 bytes (676e7fa vs 4cabdf1)
@@ -158,9 +165,9 @@ struct Searcher {
 
             int victim = board.board[moves[i].to] & 7;
 
-            // Pawn Protected Pruning: 61 bytes (v4)
-            // 8.0+0.08: 34.43 +- 3.02     0.56 elo/byte
-            // 60.0+0.6: 22.55 +- 2.66     0.37 elo/byte
+            // Pawn Protected Pruning: 45 bytes (v6)
+            // 8.0+0.08: 37.82 +- 4.78     0.84 elo/byte
+            // 60.0+0.6: 19.79 +- 4.26     0.44 elo/byte
             if (ply && (
                 board.board[moves[i].to + (board.stm & WHITE ? 11 : -11)] == ((board.stm ^ INVALID) | PAWN) ||
                 board.board[moves[i].to + (board.stm & WHITE ? 9 : -9)] == ((board.stm ^ INVALID) | PAWN)
@@ -168,16 +175,16 @@ struct Searcher {
                 continue;
             }
 
-            // Late Move Pruning (incl. improving): 66 bytes (ee0073a vs b5fdb00)
-            // 8.0+0.08: 101.80 +- 5.40 (4464 - 1615 - 3921) 1.54 elo/byte
-            // 60.0+0.6: 97.13 +- 4.79 (3843 - 1118 - 5039) 1.47 elo/byte
+            // Late Move Pruning (incl. improving): 44 bytes (v6)
+            // 8.0+0.08: 122.96 +- 5.14     2.79 elo/byte
+            // 60.0+0.6: 134.91 +- 4.71     3.07 elo/byte
             if (!(quiets_to_check -= !victim)) {
                 break;
             }
 
-            // Delta Pruning: 37 bytes (v4)
-            // 8.0+0.08: 25.73 +- 2.98     0.70 elo/byte
-            // 60.0+0.6: 22.45 +- 2.62     0.61 elo/byte
+            // Delta Pruning: 31 bytes (v6)
+            // 8.0+0.08: 32.78 +- 4.79     1.06 elo/byte
+            // 60.0+0.6: 22.33 +- 4.23     0.72 elo/byte
             if (!depth && eval + DELTAS[victim] <= alpha) {
                 continue;
             }
