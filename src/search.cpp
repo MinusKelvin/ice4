@@ -288,6 +288,10 @@ struct Searcher {
             return 0;
         }
 
+        if (!ply && legals == 1 && best < beta) {
+            soft_limit = 0;
+        }
+
         if ((depth || best != eval) && best > LOST + ply) {
             tt.eval = best;
             tt.depth = depth;
