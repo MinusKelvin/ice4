@@ -28,6 +28,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
+    int optimism;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         if (depth < 0) {
@@ -69,7 +70,8 @@ struct Searcher {
             + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
             + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 102
-            + (*conthist_stack[ply])[1][0] / 200;
+            + (*conthist_stack[ply])[1][0] / 200
+            + (ply & 1 ? -optimism : optimism);
         int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -349,6 +351,7 @@ struct Searcher {
                 int delta = 9;
                 int lower = v;
                 int upper = v;
+                optimism = 50 * v / (abs(v) + 100);
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
