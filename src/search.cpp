@@ -21,6 +21,7 @@ struct Searcher {
     uint64_t nodes;
     double hard_limit;
     double soft_limit;
+    int8_t capture_sq[256];
     int16_t evals[256];
     int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[23];
@@ -93,6 +94,7 @@ struct Searcher {
             mkmove.ep_square = 0;
 
             conthist_stack[ply + 2] = &conthist[0][0];
+            capture_sq[ply + 1] = 0;
 
             int reduction = (eval - beta + depth * 27 + 438) / 107;
 
@@ -195,13 +197,14 @@ struct Searcher {
             }
 
             conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
+            capture_sq[ply + 1] = victim ? moves[i].to : 0;
             if (!(++nodes & 0xFFF) && (ABORT || now() > hard_limit)) {
                 throw 0;
             }
 
             int is_rep = 0;
             int v;
-            int next_depth = depth - 1 + mkmove.check;
+            int next_depth = depth - 1 + mkmove.check + (capture_sq[ply] == moves[i].to);
 
             for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                 is_rep |= rep_list[i] == mkmove.zobrist;
