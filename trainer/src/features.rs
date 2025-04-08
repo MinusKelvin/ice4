@@ -6,17 +6,7 @@ use cozy_chess::{
 #[derive(Debug)]
 #[repr(C)]
 pub struct Features {
-    pawn_pst: [f32; 48],
-    knight_rank: [f32; 8],
-    knight_file: [f32; 8],
-    bishop_rank: [f32; 8],
-    bishop_file: [f32; 8],
-    rook_rank: [f32; 8],
-    rook_file: [f32; 8],
-    queen_rank: [f32; 8],
-    queen_file: [f32; 8],
-    king_rank: [f32; 8],
-    king_file: [f32; 8],
+    pst: [[f32; 64]; 6],
     bishop_pair: f32,
     tempo: f32,
     isolated_pawn: f32,
@@ -46,28 +36,6 @@ impl Features {
     pub const COUNT: usize = std::mem::size_of::<Self>() / std::mem::size_of::<f32>();
     pub const KING_ATTACK_COUNT: usize =
         std::mem::size_of::<KingAttackFeatures>() / std::mem::size_of::<f32>();
-
-    fn rank(&mut self, piece: Piece) -> &mut [f32; 8] {
-        match piece {
-            Piece::Knight => &mut self.knight_rank,
-            Piece::Bishop => &mut self.bishop_rank,
-            Piece::Rook => &mut self.rook_rank,
-            Piece::Queen => &mut self.queen_rank,
-            Piece::King => &mut self.king_rank,
-            _ => unreachable!(),
-        }
-    }
-
-    fn file(&mut self, piece: Piece) -> &mut [f32; 8] {
-        match piece {
-            Piece::Knight => &mut self.knight_file,
-            Piece::Bishop => &mut self.bishop_file,
-            Piece::Rook => &mut self.rook_file,
-            Piece::Queen => &mut self.queen_file,
-            Piece::King => &mut self.king_file,
-            _ => unreachable!(),
-        }
-    }
 
     pub fn extract(&mut self, board: &Board) {
         self.pawns = [
@@ -101,18 +69,15 @@ impl Features {
                     }
                 }
 
-                match piece {
-                    Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen | Piece::King => {
-                        self.rank(piece)[square.rank() as usize] += inc;
-                        self.file(piece)[square.file() as usize] += inc;
-                    }
-                    Piece::Pawn => {
-                        self.pawn_pst[match board.king(color).file() > File::D {
-                            true => square.flip_file() as usize - 8,
-                            false => square as usize - 8,
-                        }] += inc
-                    }
-                }
+                let pst_sq = match piece {
+                    Piece::Pawn => match board.king(color).file() > File::D {
+                        true => square.flip_file() as usize,
+                        false => square as usize,
+                    },
+                    _ => square as usize,
+                };
+
+                self.pst[piece as usize][pst_sq] += inc;
 
                 let mob = match piece {
                     Piece::Pawn => {

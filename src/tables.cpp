@@ -36,16 +36,10 @@ uint64_t ZOBRIST[25][SQUARE_SPAN];
 void init_tables() {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
-            if (rank > 0 && rank < 7) {
-                PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file-8) + MATERIAL[PAWN];
-            }
-
-            for (int piece = KNIGHT; piece <= KING; piece++) {
-                PST[BLACK | piece][70-10*rank+file] = -(
+            for (int piece = PAWN; piece <= KING; piece++) {
+                PST[BLACK | piece][70-10*rank+file] = (piece == PAWN ? 1 : -1) * (
                     PST[WHITE | piece][10*rank+file] =
-                        get_data(16 + 16*piece + rank) +
-                        get_data(24 + 16*piece + file) +
+                        get_data(64 * (piece - 1) + 8 * rank + file) +
                         MATERIAL[piece]
                 );
             }

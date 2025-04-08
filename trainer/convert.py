@@ -21,6 +21,7 @@ class DataStringer:
             elif c == "\\" or c == "\"":
                 self.data += "\\" + c
             else:
+                if v + 32 > 0xFF: print(v, len(data), smallest, file=sys.stderr)
                 self.data += c
         self.len += len(data)
         return smallest
@@ -64,14 +65,16 @@ def to_evalcpp(last_loss, train_id, param_map):
         defines.append((name, mg_off, eg_off))
 
     print("int MATERIAL[] = {0", end="")
+    mg_stringer.add([mg.popleft() for _ in range(8)])
+    eg_stringer.add([eg.popleft() for _ in range(8)])
     mg_off = mg_stringer.add([mg.popleft() for _ in range(48)], round_smallest=True)
     eg_off = eg_stringer.add([eg.popleft() for _ in range(48)], round_smallest=True)
+    mg_stringer.add([mg.popleft() for _ in range(8)])
+    eg_stringer.add([eg.popleft() for _ in range(8)])
     print(f", S({mg_off}, {eg_off})", end="")
     for i in range(5):
-        mg_off = mg_stringer.add([mg.popleft() for _ in range(8)], round_smallest=True)
-        mg_off += mg_stringer.add([mg.popleft() for _ in range(8)], round_smallest=True)
-        eg_off = eg_stringer.add([eg.popleft() for _ in range(8)], round_smallest=True)
-        eg_off += eg_stringer.add([eg.popleft() for _ in range(8)], round_smallest=True)
+        mg_off = mg_stringer.add([mg.popleft() for _ in range(64)], round_smallest=True)
+        eg_off = eg_stringer.add([eg.popleft() for _ in range(64)], round_smallest=True)
         if i == 4: mg_off = eg_off = 0
         print(f", S({mg_off}, {eg_off})", end="")
     print("};")
