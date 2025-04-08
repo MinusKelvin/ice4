@@ -106,4 +106,4 @@ For performance reasons, mobility and king ring attack terms for the side not to
 ## Acknowledgements
 
 - This follows the TCEC 4K rules: https://wiki.chessdom.org/TCEC_4k_Rules
-- Thanks to Analog for coming up with the name, logo, and various other contributions
+- Thanks to Analog for their many contributions to ice4, including the name and logo

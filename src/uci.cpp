@@ -15,7 +15,7 @@ void uci() {
 #ifdef OPENBENCH
     cout <<
         "id name ice4 v6\r\n"
-        "id author MinusKelvin\n"
+        "id author MinusKelvin and analog-hors\n"
         "option name Hash type spin default 8 min 1 max 67108864\n"
         "option name Threads type spin default 1 min 1 max 2048\n";
 #endif
