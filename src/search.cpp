@@ -20,7 +20,7 @@ typedef int16_t HTable[23][SQUARE_SPAN];
 struct Searcher {
     uint64_t nodes;
     double hard_limit;
-    double soft_limit;
+    double start;
     int16_t evals[256];
     int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[23];
@@ -337,12 +337,13 @@ struct Searcher {
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        hard_limit = now() + time_alotment * 0.0004;
-        soft_limit = now() + time_alotment * 0.000054;
+        start = now();
+        hard_limit = start + time_alotment * 0.0004;
         Move mv;
         int v = 0;
+        int stability = 1;
         try {
-            for (int depth = 1; depth <= MAX_DEPTH; depth++) {
+            for (int depth = 1; depth <= MAX_DEPTH; depth++, stability++) {
                 // Aspiration windows: 23 bytes (v4)
                 // 8.0+0.08: 27.76 +- 2.98    1.21 elo/byte
                 // 60.0+0.6: 18.75 +- 2.63    0.82 elo/byte
@@ -350,6 +351,9 @@ struct Searcher {
                 int lower = v;
                 int upper = v;
                 while (v <= lower || v >= upper) {
+                    if (delta != 9) {
+                        stability = 1;
+                    }
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
@@ -360,7 +364,7 @@ struct Searcher {
                         BEST_MOVE = mv;
                         cout << "info depth " << depth << " score cp " << v << " pv ";
                         mv.put_with_newline();
-                        if (now() > soft_limit) {
+                        if (now() > start + time_alotment * 0.000054 / stability) {
                             return;
                         }
                     }
