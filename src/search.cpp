@@ -351,7 +351,7 @@ struct Searcher {
                 int delta = 9;
                 int lower = v;
                 int upper = v;
-                optimism = 50 * v / (abs(v) + 100);
+                optimism = optimism * 0.5 + 50 * v / (abs(v) + 100) * 0.5;
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
