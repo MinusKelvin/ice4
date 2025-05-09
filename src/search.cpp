@@ -78,9 +78,9 @@ struct Searcher {
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
         int improving = ply > 1 && evals[ply] > evals[ply-2];
 
-        // Reverse Futility Pruning: 16 bytes (bdf2034 vs 98a56ea)
-        // 8.0+0.08: 69.60 +- 5.41 (4085 - 2108 - 3807) 4.35 elo/byte
-        // 60.0+0.6: 39.18 +- 4.81 (3060 - 1937 - 5003) 2.45 elo/byte
+        // Reverse Futility Pruning: 11 bytes (v6)
+        // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
+        // 60.0+0.6: 49.53 +- 4.28     4.50 elo/byte
         if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
             return eval;
         }
@@ -205,6 +205,9 @@ struct Searcher {
             int v;
             int next_depth = depth - 1 + mkmove.check;
 
+            // Repetition detection (note: crashy removal): 86 bytes (v6)
+            // 8.0+0.08: 64.67 +- 3.86     0.75 elo/byte
+            // 8.0+0.08: 60.93 +- 3.37     0.71 elo/byte
             for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                 is_rep |= rep_list[i] == mkmove.zobrist;
             }
@@ -222,12 +225,18 @@ struct Searcher {
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
                 int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
+                // TT capture reduction: 11 bytes (v6)
+                // 8.0+0.08: 5.93 +- 4.78     0.54 elo/byte
+                // 60.0+0.6: 5.35 +- 4.21     0.49 elo/byte
                 reduction += !tt.key && board.board[tt.mv.to];
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
                 reduction -= score[i] / 3842;
                 if (victim) {
+                    // Capture History Reduction: 11 bytes (v6)
+                    // 8.0+0.08:  6.36 +- 4.70     0.58 elo/byte
+                    // 8.0+0.08: 14.71 +- 4.17     1.34 elo/byte
                     reduction = (score[i] - victim * 1e5) / -3842;
                 }
                 if (reduction < 0) {
