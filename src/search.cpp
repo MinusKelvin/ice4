@@ -65,7 +65,6 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
         evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 178
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 198
             + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
             + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 102
@@ -299,9 +298,6 @@ struct Searcher {
                 double weight = min(depth * depth + 2, 93) / 591.0;
                 corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
