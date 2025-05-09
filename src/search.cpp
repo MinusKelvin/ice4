@@ -248,7 +248,7 @@ struct Searcher {
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
-                if (v > alpha && pv) {
+                if (v > alpha && pv && v < beta) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
                     v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
