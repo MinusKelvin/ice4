@@ -46,10 +46,10 @@ struct Searcher {
 
         tt.key ^= board.zobrist;
         if (!tt.key) {
-            if (depth <= tt.depth && (
-                depth*pv <= 1 && tt.bound == BOUND_EXACT ||
-                !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
+            if (!pv && depth <= tt.depth && (
+                tt.bound == BOUND_EXACT ||
+                tt.bound == BOUND_LOWER && tt.eval >= beta ||
+                tt.bound == BOUND_UPPER && tt.eval <= alpha
             )) {
                 bestmv = tt.mv;
                 return tt.eval;
