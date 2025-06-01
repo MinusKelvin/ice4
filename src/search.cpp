@@ -52,7 +52,7 @@ struct Searcher {
                 !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
             )) {
                 bestmv = tt.mv;
-                return tt.eval;
+                return clamp(+tt.eval, -20000, 20000);
             }
         } else if (depth > 3) {
             // Internal Iterative Reductions: 6 bytes (v4)
