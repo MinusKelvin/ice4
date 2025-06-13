@@ -30,7 +30,7 @@ struct Searcher {
     int mobilities[256];
     int optimism;
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, Move excluded = Move()) {
         if (depth < 0) {
             depth = 0;
         }
@@ -45,6 +45,7 @@ struct Searcher {
         int pv = beta > alpha+1;
 
         tt.key ^= board.zobrist;
+        tt.key |= excluded.from;
         if (!tt.key) {
             if (depth <= tt.depth && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
@@ -99,14 +100,14 @@ struct Searcher {
         // Reverse Futility Pruning: 11 bytes (v6)
         // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
         // 60.0+0.6: 49.53 +- 4.28     4.50 elo/byte
-        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
+        if (!excluded.from && !pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
             return eval;
         }
 
         // Null Move Pruning: 51 bytes (fef0130 vs 98a56ea)
         // 8.0+0.08: 123.85 +- 5.69 (4993 - 1572 - 3435) 2.43 elo/byte
         // 60.0+0.6: 184.01 +- 5.62 (5567 - 716 - 3717) 3.61 elo/byte
-        if (!pv && !board.check && eval >= beta && beta > -20000 && depth > 2) {
+        if (!excluded.from && !pv && !board.check && eval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.stm ^= INVALID;
             mkmove.zobrist ^= ZOBRIST[EMPTY][mkmove.ep_square];
@@ -125,7 +126,7 @@ struct Searcher {
         // Razoring: 32 bytes (v6)
         // 8.0+0.08: 12.92 +- 4.68     0.40 elo/byte
         // 60.0+0.6:  7.19 +- 4.18     0.22 elo/byte
-        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
+        if (!excluded.from && !pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -184,6 +185,10 @@ struct Searcher {
             swap(score[i], score[best_so_far]);
 
             int victim = board.board[moves[i].to] & 7;
+
+            if (moves[i].from == excluded.from && moves[i].to == excluded.to) {
+                continue;
+            }
 
             // Pawn Protected Pruning: 45 bytes (v6)
             // 8.0+0.08: 37.82 +- 4.78     0.84 elo/byte
@@ -272,6 +277,21 @@ struct Searcher {
                     v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
                 }
             } else {
+                if (
+                    !ply &&
+                    !tt.key && // includes !excluded.from
+                    score[i] == 1e7 && // hashmove score
+                    depth >= 8 &&
+                    tt.depth >= depth - 3 &&
+                    tt.bound != BOUND_UPPER
+                ) {
+                    int singular_beta = tt.eval - depth * 2;
+                    int score = negamax(board, scratch, singular_beta-1, singular_beta, (depth - 1) / 2, ply, moves[i]);
+                    if (score < singular_beta) {
+                        next_depth++;
+                    }
+                }
+
                 // first legal move is always searched with full window
                 v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
             }
@@ -313,11 +333,11 @@ struct Searcher {
             }
         }
 
-        if (depth && legals == 0 && !board.check) {
+        if (!excluded.from && depth && legals == 0 && !board.check) {
             return 0;
         }
 
-        if ((depth || best != eval) && best > LOST + ply) {
+        if (!excluded.from && (depth || best != eval) && best > LOST + ply) {
             tt.eval = best;
             tt.depth = depth;
             tt.bound =
