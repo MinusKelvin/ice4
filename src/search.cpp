@@ -378,11 +378,12 @@ struct Searcher {
                 int delta = 9;
                 int lower = v;
                 int upper = v;
+                int failhighs = 0;
                 optimism = 50 * v / (abs(v) + 100);
                 while (v <= lower || v >= upper) {
-                    lower = lower > v ? v : lower;
-                    upper = upper < v ? v : upper;
-                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
+                    upper = upper <= v ? failhighs += failhighs < 3, v : upper;
+                    lower = lower >= v ? failhighs = 0, v : lower;
+                    v = negamax(ROOT, mv, lower -= delta, upper += delta, depth - failhighs, 0);
                     delta *= 1.8;
                     lock_guard lock(MUTEX);
                     if (v > lower && FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
