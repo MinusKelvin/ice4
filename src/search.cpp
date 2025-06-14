@@ -380,7 +380,7 @@ struct Searcher {
                 int upper = v;
                 optimism = 50 * v / (abs(v) + 100);
                 while (v <= lower || v >= upper) {
-                    lower = lower > v ? v : lower;
+                    lower = lower >= v ? upper = (lower + upper) / 2, v : lower;
                     upper = upper < v ? v : upper;
                     v = negamax(ROOT, mv, lower -= delta, upper += delta, depth, 0);
                     delta *= 1.8;
