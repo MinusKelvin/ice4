@@ -47,6 +47,7 @@ struct Board {
     uint8_t phase;
     uint8_t pawn_eval_dirty;
     uint8_t check;
+    uint8_t halfmove_clock;
     int32_t inc_eval;
     int32_t pawn_eval;
     uint64_t zobrist;
@@ -128,6 +129,7 @@ struct Board {
 
     int make_move(Move mv, int promo = QUEEN) {
         int piece = mv.promo ? promo | stm : board[mv.from];
+        halfmove_clock = (board[mv.from] & 7) == PAWN || board[mv.to] ? 0 : halfmove_clock + 1;
         #define NSTM (stm ^ INVALID)
         edit(mv.to, piece);
         edit(mv.from, EMPTY);

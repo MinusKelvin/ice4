@@ -46,7 +46,7 @@ struct Searcher {
 
         tt.key ^= board.zobrist;
         if (!tt.key) {
-            if (depth <= tt.depth && (
+            if (depth <= tt.depth && board.halfmove_clock < 75 && (
                 depth*pv <= 1 && tt.bound == BOUND_EXACT ||
                 !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
                 !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
@@ -233,7 +233,7 @@ struct Searcher {
                 is_rep |= PREHISTORY[i] == mkmove.zobrist;
             }
 
-            if (is_rep) {
+            if (is_rep || board.halfmove_clock == 100) {
                 v = 0;
             } else if (legals) {
                 // All reductions: 41 bytes (cedac94 vs b915a59)
