@@ -99,7 +99,7 @@ struct Searcher {
         // Reverse Futility Pruning: 11 bytes (v6)
         // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
         // 60.0+0.6: 49.53 +- 4.28     4.50 elo/byte
-        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
+        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth || ply > 200) {
             return eval;
         }
 
@@ -264,6 +264,7 @@ struct Searcher {
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
                     next_depth -= v < best + next_depth;
+                    next_depth += v > best + 40 + next_depth * 4;
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
                 }
