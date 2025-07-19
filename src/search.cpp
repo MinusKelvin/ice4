@@ -284,12 +284,11 @@ struct Searcher {
             if (v > alpha) {
                 alpha = v;
                 raised_alpha = 1;
-            }
-            if (v >= beta) {
+
                 int bonus = 5.6 * depth * depth;
                 bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
                 int16_t *hist;
-                for (int j = 0; j < i; j++) {
+                for (int j = 0; v >= beta && j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
                         continue;
                     }
@@ -310,7 +309,9 @@ struct Searcher {
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                 }
-                break;
+                if (v >= beta) {
+                    break;
+                }
             }
         }
 
