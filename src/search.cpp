@@ -286,7 +286,7 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                int bonus = 56 * depth;
+                int bonus = 90 * depth;
                 bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
                 int16_t *hist;
                 for (int j = 0; j < i; j++) {
