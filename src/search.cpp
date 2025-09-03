@@ -1,8 +1,40 @@
 #define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 228
-#define CORR_HIST_DIV 456
-#define CORR_HIST_MAX 72
+
+int CORR_HIST_UNIT = 228;
+int CORR_HIST_DIV = 456;
+int CORR_HIST_MAX = 72;
+double HARD_TM = 0.4;
+double SOFT_TM = 0.054;
+int CORR_PAWN_DIV = 178;
+int CORR_MAT_DIV = 198;
+int CORR_NONPAWN_DIV = 256;
+int CORR_1PLY_DIV = 102;
+int CORR_2PLY_DIV = 200;
+int RFP_MARGIN = 43;
+int NMP_MUL = 27;
+int NMP_DIV = 107;
+int NMP_CONST = 438;
+int RAZOR_MUL = 65;
+int RAZOR_CONST = 195;
+double CMHIST_FACTOR = 2;
+double FMHIST_FACTOR = 2.4;
+double LMR_MUL = 0.65;
+double LMR_CONST = 0.33;
+int HRED_DIV = 3842;
+int CAP_HRED_DIV = 3842;
+int HIST_BONUS_MUL = 56;
+int HIST_EXTRA_MARGIN = 42;
+int CORR_WEIGHT_MAX = 93;
+double CORR_WEIGHT_DIV = 591.0;
+int OPT_NUMER_CONST = 50;
+int OPT_DENOM_CONST = 100;
+int DELTA_PROMO = 717;
+int DELTA_PAWN = 100;
+int DELTA_KNIGHT = 423;
+int DELTA_BISHOP = 569;
+int DELTA_ROOK = 755;
+int DELTA_QUEEN = 1280;
 
 double now() {
     timespec t;
@@ -71,24 +103,24 @@ struct Searcher {
             // Pawn Correction History: 17 bytes (v6)
             // 8.0+0.08: 4.72 +- 4.71     0.28 elo/byte
             // 60.0+0.6: 8.51 +- 4.20     0.50 elo/byte
-            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 178
+            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / CORR_PAWN_DIV
             // Material Correction History: 32 bytes (v6)
             // 8.0+0.08: 70.46 +- 5.02     2.20 elo/byte
             // 60.0+0.6: 79.90 +- 4.65     2.50 elo/byte
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 198
+            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / CORR_MAT_DIV
             // Colored Non-Pawn Correction Histories: 43 bytes (v6)
             // 8.0+0.08:  5.35 +- 4.71     0.12 elo/byte
             // 60.0+0.6: 10.67 +- 4.22     0.25 elo/byte
-            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
-            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
+            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / CORR_NONPAWN_DIV
+            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / CORR_NONPAWN_DIV
             // Countermove Correction History: 10 bytes (v6)
             // 8.0+0.08:  9.45 +- 4.64     0.95 elo/byte
             // 60.0+0.6: 11.61 +- 4.11     1.16 elo/byte
-            + (*conthist_stack[ply+1])[0][0] / 102
+            + (*conthist_stack[ply+1])[0][0] / CORR_1PLY_DIV
             // Followup Correction History: 15 bytes (v6)
             // 8.0+0.08: 1.01 +- 4.77     0.07 elo/byte
             // 60.0+0.6: 5.77 +- 4.17     0.38 elo/byte
-            + (*conthist_stack[ply])[1][0] / 200
+            + (*conthist_stack[ply])[1][0] / CORR_2PLY_DIV
             + (ply & 1 ? -optimism : optimism);
         int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
@@ -99,7 +131,7 @@ struct Searcher {
         // Reverse Futility Pruning: 11 bytes (v6)
         // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
         // 60.0+0.6: 49.53 +- 4.28     4.50 elo/byte
-        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
+        if (!pv && !board.check && depth && depth < 8 && eval >= beta + RFP_MARGIN * depth) {
             return eval;
         }
 
@@ -114,7 +146,7 @@ struct Searcher {
 
             conthist_stack[ply + 2] = &conthist[0][0];
 
-            int reduction = (eval - beta + depth * 27 + 438) / 107;
+            int reduction = (eval - beta + depth * NMP_MUL + NMP_CONST) / NMP_DIV;
 
             int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
@@ -125,7 +157,7 @@ struct Searcher {
         // Razoring: 32 bytes (v6)
         // 8.0+0.08: 12.92 +- 4.68     0.40 elo/byte
         // 60.0+0.6:  7.19 +- 4.18     0.22 elo/byte
-        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - 65 * depth - 195) {
+        if (!pv && !board.check && depth && depth < 6 && eval <= alpha - RAZOR_MUL * depth - RAZOR_CONST) {
             int v = negamax(board, scratch, alpha, beta, 0, ply);
             if (v <= alpha) {
                 return v;
@@ -156,11 +188,11 @@ struct Searcher {
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 2 * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + CMHIST_FACTOR * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.4 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + FMHIST_FACTOR * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -205,6 +237,7 @@ struct Searcher {
             // Delta Pruning: 31 bytes (v6)
             // 8.0+0.08: 32.78 +- 4.79     1.06 elo/byte
             // 60.0+0.6: 22.33 +- 4.23     0.72 elo/byte
+            int DELTAS[] = {DELTA_PROMO, DELTA_PAWN, DELTA_KNIGHT, DELTA_BISHOP, DELTA_ROOK, DELTA_QUEEN, 0};
             if (!depth && eval + DELTAS[victim] <= alpha) {
                 continue;
             }
@@ -242,7 +275,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = LOG[legals] * LOG[depth] * 0.65 + 0.33;
+                int reduction = LOG[legals] * LOG[depth] * LMR_MUL + LMR_CONST;
                 // TT capture reduction: 11 bytes (v6)
                 // 8.0+0.08: 5.93 +- 4.78     0.54 elo/byte
                 // 60.0+0.6: 5.35 +- 4.21     0.49 elo/byte
@@ -250,12 +283,12 @@ struct Searcher {
                 // History reduction: 9 bytes (v4)
                 // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
                 // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 3842;
+                reduction -= score[i] / HRED_DIV;
                 if (victim) {
                     // Capture History Reduction: 11 bytes (v6)
                     // 8.0+0.08:  6.36 +- 4.70     0.58 elo/byte
                     // 8.0+0.08: 14.71 +- 4.17     1.34 elo/byte
-                    reduction = (score[i] - victim * 1e5) / -3842;
+                    reduction = (score[i] - victim * 1e5) / -CAP_HRED_DIV;
                 }
                 if (reduction < 0) {
                     reduction = 0;
@@ -286,8 +319,8 @@ struct Searcher {
                 raised_alpha = 1;
             }
             if (v >= beta) {
-                int bonus = 56 * depth;
-                bonus <<= ((eval <= alpha) + (eval <= alpha - 42));
+                int bonus = HIST_BONUS_MUL * depth;
+                bonus <<= ((eval <= alpha) + (eval <= alpha - HIST_EXTRA_MARGIN));
                 int16_t *hist;
                 for (int j = 0; j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
@@ -333,7 +366,7 @@ struct Searcher {
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
-                double weight = min(depth * depth + 2, 93) / 591.0;
+                double weight = min(depth * depth + 2, CORR_WEIGHT_MAX) / CORR_WEIGHT_DIV;
                 corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
                     clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
@@ -367,8 +400,8 @@ struct Searcher {
 #endif
         conthist_stack[0] = &conthist[0][1];
         conthist_stack[1] = &conthist[0][1];
-        hard_limit = now() + time_alotment * 0.0004;
-        soft_limit = now() + time_alotment * 0.000054;
+        hard_limit = now() + time_alotment * 0.001 * HARD_TM;
+        soft_limit = now() + time_alotment * 0.001 * SOFT_TM;
         Move mv;
         int v = 0;
         try {
@@ -379,7 +412,7 @@ struct Searcher {
                 int delta = 9;
                 int lower = v;
                 int upper = v;
-                optimism = 50 * v / (abs(v) + 100);
+                optimism = OPT_NUMER_CONST * v / (abs(v) + OPT_DENOM_CONST);
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
