@@ -335,7 +335,12 @@ struct Searcher {
             return 0;
         }
 
-        if (!skipmv.from && (depth || best != eval) && best > LOST + ply) {
+        if (
+            !skipmv.from &&
+            (depth || best != eval) &&
+            best > LOST + ply &&
+            (!tt.key || pv || depth + 3 > tt.depth)
+        ) {
             tt.eval = best;
             tt.depth = depth;
             tt.bound =
