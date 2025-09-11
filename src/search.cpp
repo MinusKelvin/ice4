@@ -320,15 +320,17 @@ struct Searcher {
 
         if ((depth || best != eval) && best > LOST + ply) {
             tt.eval = best;
-            tt.depth = depth;
             tt.bound =
                 best >= beta ? BOUND_LOWER :
                 raised_alpha ? BOUND_EXACT : BOUND_UPPER;
             if (tt.key || tt.bound != BOUND_UPPER) {
                 tt.mv = bestmv;
             }
-            tt.key = board.zobrist;
-            slot.store(tt, {});
+            if (tt.key || pv || depth + 3 > tt.depth) {
+                tt.key = board.zobrist;
+                tt.depth = depth;
+                slot.store(tt, {});
+            }
             if (!board.board[bestmv.to] && (
                 tt.bound == BOUND_UPPER && best < evals[ply] ||
                 tt.bound == BOUND_LOWER && best > evals[ply]
