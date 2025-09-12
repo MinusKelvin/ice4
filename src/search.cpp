@@ -261,7 +261,7 @@ struct Searcher {
                     reduction = 0;
                 }
 
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction + pv, ply + 1);
                 if (v > alpha && reduction) {
                     next_depth -= v < best + next_depth;
                     // reduced search failed high, re-search at full depth
