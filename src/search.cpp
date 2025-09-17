@@ -242,7 +242,7 @@ struct Searcher {
                 // Base LMR: 10 bytes (v4)
                 // 8.0+0.08: 80.97 +- 5.10     8.10 elo/byte
                 // 60.0+0.6: 83.09 +- 4.65     8.31 elo/byte
-                int reduction = LOG[legals] * LOG[depth] * 0.8 + 0.32;
+                int reduction = LOG[legals + !pv] * LOG[depth] * 0.8 + 0.32;
                 // TT capture reduction: 11 bytes (v6)
                 // 8.0+0.08: 5.93 +- 4.78     0.54 elo/byte
                 // 60.0+0.6: 5.35 +- 4.21     0.49 elo/byte
