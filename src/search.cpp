@@ -198,7 +198,10 @@ struct Searcher {
             // Late Move Pruning (incl. improving): 44 bytes (v6)
             // 8.0+0.08: 122.96 +- 5.14     2.79 elo/byte
             // 60.0+0.6: 134.91 +- 4.71     3.07 elo/byte
-            if (!(quiets_to_check -= !victim)) {
+            if (
+                !(quiets_to_check -= !victim) ||
+                !board.check && !victim && best > -20000 && depth < 5 && eval < alpha - 100 * depth - 100
+            ) {
                 break;
             }
 
