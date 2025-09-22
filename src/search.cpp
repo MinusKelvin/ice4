@@ -15,7 +15,7 @@ mutex MUTEX;
 int FINISHED_DEPTH_AND_SCORE;
 Move BEST_MOVE;
 
-typedef int16_t HTable[23][SQUARE_SPAN];
+typedef int16_t HTable[25][SQUARE_SPAN];
 
 struct Searcher {
     uint64_t nodes;
@@ -23,7 +23,7 @@ struct Searcher {
     double soft_limit;
     int16_t evals[256];
     int16_t corr_hist[2][CORR_HIST_SIZE];
-    HTable history[23];
+    HTable history[25];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
