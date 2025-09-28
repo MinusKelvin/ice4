@@ -211,6 +211,7 @@ struct Searcher {
 
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
+                moves[i].to = 0;
                 continue;
             }
 
