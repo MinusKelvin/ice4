@@ -83,8 +83,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 print(train_id)
 
-for epoch in range(15):
-    if epoch in [8, 12]:
+for epoch in range(30):
+    if epoch in [16, 24]:
         optimizer.param_groups[0]["lr"] /= 10
 
     iters = 0
