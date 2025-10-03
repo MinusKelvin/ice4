@@ -3,7 +3,7 @@ import torch, numpy, ctypes, json, subprocess, convert, os
 from time import time, strftime
 
 BATCH_SIZE = 16384
-DATASET_PATH = "data/frzn-big3.bin"
+DATASET_PATH = "data/sirius-mixed.bin"
 
 subprocess.run(["cargo", "build", "--release", "-p", "trainer"])
 
