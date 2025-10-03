@@ -2,31 +2,31 @@
 
 #define S(a, b) (a + (b * 0x10000))
 
-int MATERIAL[] = {0, S(20, 99), S(117, 427), S(174, 458), S(273, 827), S(655, 1524), S(0, 0)};
-int KING_ATTACK_WEIGHT[] = {0, S(46, 0), S(24, 0), S(32, 0), S(26, 0), S(29, 0), 0};
+int MATERIAL[] = {0, S(18, 86), S(102, 374), S(153, 401), S(238, 724), S(573, 1333), S(0, 0)};
+int KING_ATTACK_WEIGHT[] = {0, S(40, 0), S(21, 0), S(28, 0), S(23, 0), S(26, 0), 0};
 
-#define DATA_STRING L"8ZU<860!<L??;7'\"?EQRN>1'HUabVIA0Ye|ojMC$ ReeB5@fuµ  3>GKMB7M\\]XU\\J  ,+#''4)1 '\"-;<K! (3974-AF>705+  #$%$*/+rqG% IvjlU D9oo 06A'$(&$ %# -+f+% &)1A-b fdhhlW -4Ak2#.:?2324),944-102:0+(.77FD4()0@KafE' 8YY{vo<,8P[ :Zlp[C)+CY^\\Q@  '=@C=7=+11967.  #)8>@RE7;=4.2(  &Sm\177}\177 +;EJC74 /FVhsk+\"BSgTZB D'$ - '%'! 4dçķ cS9./.7J Fgv .;bíș"
+#define DATA_STRING L"5SN853.!8F:;74&!:@KKH:/&CNXZOC<.Q\\|pe`G># K\\\\=2<]kx£  1:BFG=4GUUQNUE  *)\"&%0(/ &\",89F! (1652,<A:4.2*  #$%$)-*hgB$ DkzacN @6ee /3=%#&$# $\" +*])$ $'.=*Z ^\\__bP +2=b0#-8<0102(+722,/.17.*(-55B@2()/<FY^A' 5RRple9+6KT 7SbeS>')?RVTK<  &9<?:4:)//634,  #(5;<LA4791,/&  %Mcsq{s +8AE?52 -AP_ib*!>M^NS> ?&# + &$&! 2[ÏĔ [L6,-,4E B^kv{} -8ZÔǚ"
 
 #define EG_OFFSET 166
 
-#define BISHOP_PAIR S(20, 81)
-#define TEMPO S(14, 22)
-#define ISOLATED_PAWN S(6, 10)
-#define PROTECTED_PAWN S(14, 17)
-#define ROOK_OPEN S(34, 7)
-#define ROOK_SEMIOPEN S(13, 12)
+#define BISHOP_PAIR S(17, 71)
+#define TEMPO S(12, 19)
+#define ISOLATED_PAWN S(5, 9)
+#define PROTECTED_PAWN S(12, 15)
+#define ROOK_OPEN S(30, 6)
+#define ROOK_SEMIOPEN S(12, 11)
 #define PAWN_SHIELD_INDEX 128
-#define PAWN_SHIELD S(-18, -29)
-#define KING_OPEN S(-54, -1)
-#define KING_SEMIOPEN S(-13, 11)
+#define PAWN_SHIELD S(-16, -25)
+#define KING_OPEN S(-48, -1)
+#define KING_SEMIOPEN S(-11, 10)
 #define MOBILITY_INDEX 131
-#define MOBILITY S(-3, -1)
+#define MOBILITY S(-2, -1)
 #define PASSER_RANK_INDEX 137
-#define PASSER_RANK S(-13, -74)
+#define PASSER_RANK S(-11, -65)
 #define OWN_KING_PASSER_DIST_INDEX 144
-#define OWN_KING_PASSER_DIST S(-11, 0)
+#define OWN_KING_PASSER_DIST S(-9, 0)
 #define OPP_KING_PASSER_DIST_INDEX 152
-#define OPP_KING_PASSER_DIST S(-66, -42)
+#define OPP_KING_PASSER_DIST S(-58, -37)
 #define PHALANX_RANK_INDEX 159
 #define PHALANX_RANK S(1, -2)
-#define ATTACKER_NO_QUEEN S(-79, 0)
+#define ATTACKER_NO_QUEEN S(-69, 0)
