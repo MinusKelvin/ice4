@@ -5,7 +5,7 @@
 int MATERIAL[] = {0, S(23, 81), S(128, 343), S(177, 383), S(276, 691), S(580, 1334), S(0, 0)};
 int KING_ATTACK_WEIGHT[] = {0, S(40, 0), S(19, 0), S(28, 0), S(25, 0), S(26, 0), 0};
 
-#define DATA_STRING L"7QM862- :G<851&\";CLIG;-&AMVWPA<.MUwfb]I:&!E[P>=3jv¥  ,39<=5,KVXUQYK  ))$'%.&-!# )654 \"*/500+AGB:591  !\"$$&*'aZ>& :;@GJ9 1-QO *-3'$'%$ \" $/1c'% \"',70Z XY^bdWWefrÄ  (05'+),$&//-(((*/'%\"'/-87+$\"+3;LX:( .CEdf^206<C 7O\\bN?;#8LQOH:  \"11522?&*)/,0*  \"(388DD122-%*% # BZfirg -7>=;52 '6CTb]*%>JTJJ: :  #* '$%! 3W~»ô UG5+---E B^kv| %4V±ȗ"
+#define DATA_STRING L"7QM862- :G<851&\";CLIG;-&AMVWPA<.MUwfb]I:&!E[P>=3jv¥  ,39<=5,KVXUQYK  ))$'%.&-!# )654 \"*/500+AGB:591  !\"$$&*'aZ>& :;@GJ9 1-QO *-3T@SHA \" $/1c'% \"',70Z XY^bdWWefrÄ  (05'+),$&//-(((*/'%\"'/-87+$\"+3;LX:( .CEdf^206<C 7O\\bN?;#8LQOH:  \"11522?&*)/,0*  \"(388DD122-%*% # BZfirg -7>=;52 '6CTb]*%>JTJJ: :  #q W@H' 3W~»ô UG5+---E B^kv| %4V±ȗ"
 
 #define EG_OFFSET 166
 
@@ -20,7 +20,7 @@ int KING_ATTACK_WEIGHT[] = {0, S(40, 0), S(19, 0), S(28, 0), S(25, 0), S(26, 0),
 #define KING_OPEN S(-44, -2)
 #define KING_SEMIOPEN S(-9, 11)
 #define MOBILITY_INDEX 131
-#define MOBILITY S(-3, -1)
+#define MOBILITY S(-23, -8)
 #define PASSER_RANK_INDEX 137
 #define PASSER_RANK S(-13, -60)
 #define OWN_KING_PASSER_DIST_INDEX 144
