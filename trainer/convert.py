@@ -8,6 +8,7 @@ class DataStringer:
     def __init__(self):
         self.data = ""
         self.len = 0
+        self.raw = []
 
     def add(self, data, round_smallest=False):
         smallest = min(data)
@@ -15,6 +16,7 @@ class DataStringer:
             smallest = round(smallest)
         for v in data:
             v = round(v - smallest)
+            self.raw.append(v + 32)
             c = chr(v + 32)
             if v + 32 == 0x7F:
                 self.data += "\\177"
@@ -57,10 +59,12 @@ def to_evalcpp(last_loss, train_id, param_map):
         print(", 0" * trailing_zeros, end="")
         print("};")
 
-    def datastring_param(name, size, *, adjust=0):
+    def datastring_param(name, size, *, adjust=0, scale=1):
         defines.append((f"{name}_INDEX", mg_stringer.len + adjust))
-        mg_off = mg_stringer.add([mg.popleft() for _ in range(size)], round_smallest=True)
-        eg_off = eg_stringer.add([eg.popleft() for _ in range(size)], round_smallest=True)
+        mg_data = [mg.popleft() * scale for _ in range(size)]
+        eg_data = [eg.popleft() * scale for _ in range(size)]
+        mg_off = mg_stringer.add(mg_data, round_smallest=True)
+        eg_off = eg_stringer.add(eg_data, round_smallest=True)
         defines.append((name, mg_off, eg_off))
 
     print("int MATERIAL[] = {0", end="")
@@ -85,7 +89,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     datastring_param("PAWN_SHIELD", 4)
     define_param("KING_OPEN")
     define_param("KING_SEMIOPEN")
-    datastring_param("MOBILITY", 6, adjust=-1)
+    datastring_param("MOBILITY", 6, adjust=-1, scale=160)
     datastring_param("PASSER_RANK", 6, adjust=-1)
     datastring_param("OWN_KING_PASSER_DIST", 8)
     datastring_param("OPP_KING_PASSER_DIST", 8)
