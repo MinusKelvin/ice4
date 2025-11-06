@@ -27,7 +27,6 @@ struct Searcher {
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
-    int mobilities[256];
     int optimism;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
@@ -61,10 +60,10 @@ struct Searcher {
             depth -= 2;
         }
 
-        board.movegen(moves, mvcount, depth, mobilities[ply+1]);
+        board.movegen(moves, mvcount, depth);
 
         rep_list[ply] = board.zobrist;
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+        evals[ply] = board.eval()
             // All Correction Histories: 201 bytes (v6)
             // 8.0+0.08: 124.06 +- 5.29     0.62 elo/byte
             // 60.0+0.6: 185.84 +- 5.44     0.92 elo/byte

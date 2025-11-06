@@ -1,5 +1,3 @@
-int PST[25][SQUARE_SPAN];
-
 int PHASE[] = {0, 0, 1, 1, 2, 4, 0};
 int STARTS[] = {0,0,8,4,0,0,0};
 int ENDS[] = {0,0,16,8,4,8,8};
@@ -10,10 +8,30 @@ int DELTAS[] = {640, 148, 416, 509, 749, 1348, 0};
 
 double LOG[256];
 
-int get_data(int i) {
-    auto data = DATA_STRING;
-    return data[i] + 0x10000 * data[i+EG_OFFSET] - S(32, 32);
-}
+#define HIDDEN 32
+#define QA 255
+#define QB 64
+struct RawNet {
+    float p1[12][HIDDEN];
+    float p2[12][HIDDEN];
+    float f1[8][HIDDEN];
+    float f2[8][HIDDEN];
+    float r1[8][HIDDEN];
+    float r2[8][HIDDEN];
+    float bias[HIDDEN];
+    float h_mg[2][HIDDEN];
+    float h_eg[2][HIDDEN];
+    float h_bias_mg;
+    float h_bias_eg;
+};
+
+int FT[25][SQUARE_SPAN][HIDDEN];
+int BIAS[HIDDEN];
+int HL_MG[2][HIDDEN];
+int HL_MG_B;
+int HL_EG[2][HIDDEN];
+int HL_EG_B;
+int FLIP[SQUARE_SPAN];
 
 #ifdef OPENBENCH
 // Deterministic PRNG for openbench build consistency
@@ -34,23 +52,36 @@ uint64_t rng() {
 uint64_t ZOBRIST[25][SQUARE_SPAN];
 
 void init_tables() {
+    RawNet raw;
+    memcpy(&raw, net_data, sizeof(RawNet));
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
-            if (rank > 0 && rank < 7) {
-                PST[WHITE_PAWN][10*rank+file] = PST[BLACK_PAWN][70-10*rank+file] =
-                    get_data(rank*8+file-8) + MATERIAL[PAWN];
-            }
-
-            for (int piece = KNIGHT; piece <= KING; piece++) {
-                PST[BLACK | piece][70-10*rank+file] = -(
-                    PST[WHITE | piece][10*rank+file] =
-                        get_data(16 + 16*piece + rank) +
-                        get_data(24 + 16*piece + file) +
-                        MATERIAL[piece]
-                );
+            FLIP[rank*10+file+21] = file+91-rank*10;
+            for (int piece = PAWN; piece <= KING; piece++) {
+                for (int i = 0; i < HIDDEN; i++) {
+                    FT[piece | WHITE][rank*10+file+21][i] = (
+                        raw.p1[piece-1][i] * raw.f1[file][i] +
+                        raw.p2[piece-1][i] * raw.r1[rank][i] +
+                        raw.f2[file][i] * raw.r2[rank][i]
+                    ) * QA;
+                    FT[piece | BLACK][rank*10+file+21][i] = (
+                        raw.p1[piece+5][i] * raw.f1[file][i] +
+                        raw.p2[piece+5][i] * raw.r1[rank][i] +
+                        raw.f2[file][i] * raw.r2[rank][i]
+                    ) * QA;
+                }
             }
         }
     }
+    for (int i = 0; i < HIDDEN; i++) {
+        BIAS[i] = raw.bias[i] * QA;
+        HL_MG[0][i] = raw.h_mg[0][i] * QB;
+        HL_MG[1][i] = raw.h_mg[1][i] * QB;
+        HL_EG[0][i] = raw.h_eg[0][i] * QB;
+        HL_EG[1][i] = raw.h_eg[1][i] * QB;
+    }
+    HL_MG_B = raw.h_bias_mg * QA * QB;
+    HL_EG_B = raw.h_bias_eg * QA * QB;
 
     for (int i = 1; i < 256; i++) {
         LOG[i] = log(i);
