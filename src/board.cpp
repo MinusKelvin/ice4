@@ -288,6 +288,7 @@ struct Board {
                 }
             }
         }
+        mobility /= 8;
         mobility += max(attack, 0) * attack / 160;
         #undef OTHER
     }
