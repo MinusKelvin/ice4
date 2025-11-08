@@ -187,9 +187,18 @@ struct Searcher {
         hard_limit = now() + time_alotment * 0.0004;
         soft_limit = now() + time_alotment * 0.000055;
         Move mv;
+        int v = 0;
         try {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
-                int v = negamax(ROOT, mv, LOST, WON, depth, 0);
+                int lower = v;
+                int upper = v;
+                int delta = 20;
+                while (v <= lower || v >= upper) {
+                    lower = min(lower - delta, v);
+                    upper = max(upper + delta, v);
+                    v = negamax(ROOT, mv, lower, upper, depth, 0);
+                    delta *= 2;
+                }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
                     FINISHED_DEPTH = depth;
