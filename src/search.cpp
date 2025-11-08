@@ -91,7 +91,12 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                int reduction = LOG[legals] * LOG[depth] * 0.25;
+
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                if (v > alpha && reduction) {
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
