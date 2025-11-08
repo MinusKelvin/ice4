@@ -45,7 +45,7 @@ struct Searcher {
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         for (int i = 0; i < mvcount; i++) {
-            score[i] = 0;
+            score[i] = board.board[moves[i].to];
         }
 
         int best = depth ? LOST + ply : eval;
