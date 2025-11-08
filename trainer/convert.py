@@ -90,6 +90,7 @@ def to_evalcpp(last_loss, train_id, param_map):
     datastring_param("OWN_KING_PASSER_DIST", 8)
     datastring_param("OPP_KING_PASSER_DIST", 8)
     datastring_param("PHALANX_RANK", 6, adjust=-1)
+    define_param("PAWN_ADVANTAGE")
 
     array_param("KING_ATTACK_WEIGHT", 5, leading_zero=True, trailing_zeros=1)
     define_param("ATTACKER_NO_QUEEN")

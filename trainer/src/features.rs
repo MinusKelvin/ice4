@@ -31,6 +31,7 @@ pub struct Features {
     passer_own_king_dist: [f32; 8],
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
+    pawn_advantage: f32,
     king_attack: [KingAttackFeatures; Color::NUM],
     pawns: [f32; Color::NUM],
 }
@@ -191,6 +192,10 @@ impl Features {
         let pawn_attacks_right = BitBoard((pawns & !File::A.bitboard()).0 >> 9);
         let pawn_attacks_left = BitBoard((pawns & !File::H.bitboard()).0 >> 7);
         self.protected_pawn -= ((pawn_attacks_left | pawn_attacks_right) & pawns).len() as f32;
+
+        let pawn_diff = board.colored_pieces(Color::White, Piece::Pawn).len() as i32
+            - board.colored_pieces(Color::Black, Piece::Pawn).len() as i32;
+        self.pawn_advantage = pawn_diff.cmp(&0) as i32 as f32;
 
         for color in Color::ALL {
             let inc = match color {

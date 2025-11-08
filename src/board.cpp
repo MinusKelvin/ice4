@@ -353,6 +353,7 @@ struct Board {
         if (king_sq[ci] / 10 == first_rank / 10) {
             pawn_eval += get_data(PAWN_SHIELD_INDEX + shield_pawns) + PAWN_SHIELD;
         }
+        pawn_eval += PAWN_ADVANTAGE * (piece_counts[own_pawn] > piece_counts[opp_pawn]);
     }
 
     int eval(int stm_eval) {
