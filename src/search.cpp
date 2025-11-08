@@ -23,7 +23,7 @@ struct Searcher {
     double soft_limit;
     uint64_t rep_list[256];
     int mobilities[256];
-    int optimism;
+    HTable history;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         if (depth < 0) {
@@ -45,7 +45,8 @@ struct Searcher {
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
         for (int i = 0; i < mvcount; i++) {
-            score[i] = board.board[moves[i].to];
+            score[i] = board.board[moves[i].to] ? board.board[moves[i].to] * 1e5 :
+                history[board.board[moves[i].from]][moves[i].to];
         }
 
         int best = depth ? LOST + ply : eval;
@@ -109,6 +110,17 @@ struct Searcher {
                 alpha = v;
             }
             if (v >= beta) {
+                int bonus = 32 * depth;
+                if (!victim) {
+                    for (int j = 0; j < i; j++) {
+                        if (!board.board[moves[j].to]) {
+                            int16_t *hist = &history[board.board[moves[j].from]][moves[j].to];
+                            *hist -= bonus + bonus * *hist / MAX_HIST;
+                        }
+                    }
+                    int16_t *hist = &history[board.board[moves[i].from]][moves[i].to];
+                    *hist += bonus + bonus * *hist / MAX_HIST;
+                }
                 break;
             }
         }
