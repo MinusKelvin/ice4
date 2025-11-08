@@ -125,7 +125,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = LOG[legals] * LOG[depth] * 0.25;
+                int reduction = LOG[legals] * LOG[depth] * 0.5 + 0.5;
 
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
