@@ -40,6 +40,14 @@ struct Searcher {
         int pv = beta > alpha+1;
 
         tt.key ^= board.zobrist;
+        if (!tt.key) {
+            if (!pv && depth <= tt.depth && (
+                tt.bound & BOUND_LOWER && tt.score >= beta ||
+                tt.bound & BOUND_UPPER && tt.score <= alpha
+            )) {
+                return tt.score;
+            }
+        }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
@@ -58,6 +66,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
+        int orig_alpha = alpha;
         int legals = 0;
 
         if (best >= beta) {
@@ -143,6 +152,11 @@ struct Searcher {
         }
 
         if (depth && best > LOST + ply) {
+            tt.depth = depth;
+            tt.score = best;
+            tt.bound = best <= orig_alpha ? BOUND_UPPER
+                : best >= beta ? BOUND_LOWER
+                : BOUND_EXACT;
             tt.mv = bestmv;
             tt.key = board.zobrist;
             slot.store(tt, {});
