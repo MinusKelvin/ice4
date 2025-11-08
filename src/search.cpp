@@ -44,6 +44,10 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
+        if (!pv && !board.check && depth < 5 && eval > beta + depth * 50) {
+            return eval;
+        }
+
         for (int i = 0; i < mvcount; i++) {
             score[i] = board.board[moves[i].to] ? board.board[moves[i].to] * 1e5 :
                 history[board.board[moves[i].from]][moves[i].to];
