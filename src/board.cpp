@@ -237,7 +237,7 @@ struct Board {
                 if (!board[sq + dir]) {
                     mobility += mob;
                     attack += king_ring[sq + dir] * KING_ATTACK_WEIGHT[piece];
-                    if (quiets || promo || board[sq + dir + dir + dir] == INVALID) {
+                    if (quiets) {
                         list[count++] = create_move(sq, sq + dir, promo);
                     }
                     if (board[sq - dir - dir] == INVALID && !board[sq + dir + dir]) {

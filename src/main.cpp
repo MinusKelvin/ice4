@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < 64; i++) {
             ROOT = parse_fen(stream);
             Searcher s{};
-            s.iterative_deepening(INT_MAX, 15);
+            s.iterative_deepening(INT_MAX, 4);
             nodes += s.nodes;
         }
         clock_gettime(CLOCK_MONOTONIC, &end);
