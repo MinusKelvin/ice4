@@ -17,7 +17,14 @@ void uci() {
         "id name ice4 v6.1\r\n"
         "id author MinusKelvin and analog-hors\n"
         "option name Hash type spin default 8 min 1 max 67108864\n"
-        "option name Threads type spin default 1 min 1 max 2048\n";
+        "option name Threads type spin default 1 min 1 max 2048\n"
+        "option name RFP_MARGIN type string default 50\n"
+        "option name LMP_CONSTANT type string default 10\n"
+        "option name AW_DELTA type string default 20\n"
+        "option name AW_EXPAND type string default 2.0\n"
+        "option name LMR_FACTOR type string default 0.5\n"
+        "option name LMR_CONSTANT type string default 0.5\n"
+        "option name LMP_FACTOR type string default 1.0\n";
 #endif
 
     cout << "uciok\n";
@@ -48,6 +55,13 @@ void uci() {
                 if (token == "Threads") {
                     tokens >> token >> THREADS; // value <value>
                 }
+                if (token == "RFP_MARGIN") { tokens >> token >> RFP_MARGIN; }
+                if (token == "LMP_CONSTANT") { tokens >> token >> LMP_CONSTANT; }
+                if (token == "AW_DELTA") { tokens >> token >> AW_DELTA; }
+                if (token == "AW_EXPAND") { tokens >> token >> AW_EXPAND; }
+                if (token == "LMR_FACTOR") { tokens >> token >> LMR_FACTOR; }
+                if (token == "LMR_CONSTANT") { tokens >> token >> LMR_CONSTANT; }
+                if (token == "LMP_FACTOR") { tokens >> token >> LMP_FACTOR; }
                 break;
 #endif
             case 'p': // position

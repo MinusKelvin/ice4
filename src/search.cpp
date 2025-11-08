@@ -17,6 +17,14 @@ Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
 
+int RFP_MARGIN = 50;
+int LMP_CONSTANT = 10;
+int AW_DELTA = 20;
+double AW_EXPAND = 2.0;
+double LMR_FACTOR = 0.5;
+double LMR_CONSTANT = 0.5;
+double LMP_FACTOR = 1.0;
+
 struct Searcher {
     uint64_t nodes;
     double hard_limit;
@@ -54,7 +62,7 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
-        if (!pv && !board.check && depth < 5 && eval > beta + depth * 50) {
+        if (!pv && !board.check && depth < 5 && eval > beta + depth * RFP_MARGIN) {
             return eval;
         }
 
@@ -78,7 +86,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
-        int quiets_to_check = depth * depth + 10;
+        int quiets_to_check = LMP_FACTOR * depth * depth + LMP_CONSTANT;
         int orig_alpha = alpha;
         int legals = 0;
 
@@ -125,7 +133,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = LOG[legals] * LOG[depth] * 0.5 + 0.5;
+                int reduction = LOG[legals] * LOG[depth] * LMR_FACTOR + LMR_CONSTANT;
 
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
                 if (v > alpha && reduction) {
@@ -199,12 +207,12 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 20;
+                int delta = AW_DELTA;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
-                    delta *= 2;
+                    delta *= AW_EXPAND;
                 }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
