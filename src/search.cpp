@@ -174,7 +174,9 @@ struct Searcher {
             tt.bound = best <= orig_alpha ? BOUND_UPPER
                 : best >= beta ? BOUND_LOWER
                 : BOUND_EXACT;
-            tt.mv = bestmv;
+            tt.mv = tt.bound != BOUND_UPPER ? bestmv
+                : tt.key ? Move{}
+                : tt.mv;
             tt.key = board.zobrist;
             slot.store(tt, {});
         }
