@@ -64,7 +64,9 @@ struct Searcher {
             mkmove.zobrist ^= ZOBRIST[EMPTY][mkmove.ep_square];
             mkmove.ep_square = 0;
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 5, ply + 1);
+            int reduction = 4 + depth / 4;
+
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
                 return v;
             }
