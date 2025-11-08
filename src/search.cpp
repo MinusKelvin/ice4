@@ -78,6 +78,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
+        int quiets_to_check = depth * depth + 10;
         int orig_alpha = alpha;
         int legals = 0;
 
@@ -100,6 +101,10 @@ struct Searcher {
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
+            }
+
+            if (!victim && !(quiets_to_check -= 1)) {
+                break;
             }
 
             if (!(++nodes & 0xFFF) && (ABORT || now() > hard_limit)) {
