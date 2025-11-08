@@ -39,6 +39,8 @@ struct Searcher {
         int mvcount;
         int pv = beta > alpha+1;
 
+        tt.key ^= board.zobrist;
+
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         rep_list[ply] = board.zobrist;
@@ -49,8 +51,10 @@ struct Searcher {
         }
 
         for (int i = 0; i < mvcount; i++) {
-            score[i] = board.board[moves[i].to] ? board.board[moves[i].to] * 1e5 :
-                history[board.board[moves[i].from]][moves[i].to];
+            score[i] =
+                !tt.key && tt.mv.from == moves[i].from && tt.mv.to == moves[i].to ? 1e7
+                : board.board[moves[i].to] ? board.board[moves[i].to] * 1e5
+                : history[board.board[moves[i].from]][moves[i].to];
         }
 
         int best = depth ? LOST + ply : eval;
@@ -136,6 +140,12 @@ struct Searcher {
 
         if (depth && legals == 0 && !board.check) {
             return 0;
+        }
+
+        if (depth && best > LOST + ply) {
+            tt.mv = bestmv;
+            tt.key = board.zobrist;
+            slot.store(tt, {});
         }
 
         return best;
