@@ -31,6 +31,7 @@ pub struct Features {
     passer_own_king_dist: [f32; 8],
     passer_enemy_king_dist: [f32; 8],
     phalanx_pawn_rank: [f32; 6],
+    pawn_islands: [f32; 5],
     king_attack: [KingAttackFeatures; Color::NUM],
     pawns: [f32; Color::NUM],
 }
@@ -224,6 +225,14 @@ impl Features {
             for phalanx in phalanx_pawns {
                 self.phalanx_pawn_rank[phalanx.rank().relative_to(color) as usize - 1] += inc;
             }
+
+            let pawn_files = board
+                .colored_pieces(color, Piece::Pawn)
+                .iter()
+                .map(|sq| 1u32 << sq.file() as usize)
+                .fold(0, |a, b| a | b);
+            let islands = (pawn_files & !pawn_files >> 1).count_ones();
+            self.pawn_islands[islands as usize] += inc;
 
             let king = board.king(color);
             if king.rank() == Rank::First.relative_to(color) {

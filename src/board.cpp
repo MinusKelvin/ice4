@@ -296,12 +296,14 @@ struct Board {
         int shield_pawns = 0;
         int own_pawn = PAWN | color;
         int opp_pawn = own_pawn ^ INVALID;
+        int islands = 0;
         // King on (semi-)open file: 23 bytes (v5)
         // 8.0+0.08: 11.02 +- 4.70 [319, 1331, 1950, 1148, 252] 0.48 elo/byte
         if (!piece_file_counts[own_pawn][king_sq[ci] % 10]) {
             pawn_eval += piece_file_counts[opp_pawn][king_sq[ci] % 10] ? KING_SEMIOPEN : KING_OPEN;
         }
         for (int file = 1; file < 9; file++) {
+            islands += piece_file_counts[own_pawn][file] && !piece_file_counts[own_pawn][file-1];
             // Isolated pawns: 17 bytes (v5)
             // 8.0+0.08: 11.88 +- 4.85 [381, 1311, 1835, 1217, 257] 0.70 elo/byte
             if (!piece_file_counts[own_pawn][file-1] && !piece_file_counts[own_pawn][file+1]) {
@@ -353,6 +355,7 @@ struct Board {
         if (king_sq[ci] / 10 == first_rank / 10) {
             pawn_eval += get_data(PAWN_SHIELD_INDEX + shield_pawns) + PAWN_SHIELD;
         }
+        pawn_eval += PAWN_ISLANDS[islands];
     }
 
     int eval(int stm_eval) {
