@@ -130,7 +130,9 @@ struct Searcher {
             } else if (legals) {
                 int reduction = LOG[legals] * LOG[depth] * 0.69 - 0.11;
 
-                if (victim) {
+                reduction -= improving;
+
+                if (victim || reduction < 0) {
                     reduction = 0;
                 }
 
