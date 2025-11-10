@@ -103,7 +103,7 @@ struct Searcher {
                 continue;
             }
 
-            if (!victim && !(quiets_to_check -= 1)) {
+            if (!pv && !victim && !(quiets_to_check -= 1)) {
                 break;
             }
 
