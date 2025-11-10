@@ -124,7 +124,7 @@ struct Searcher {
 
             if (is_rep) {
                 v = 0;
-            } else if (legals) {
+            } else if (depth && legals) {
                 int reduction = LOG[legals] * LOG[depth] * 0.69 - 0.11;
 
                 if (victim) {
