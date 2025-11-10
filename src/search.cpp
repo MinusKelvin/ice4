@@ -54,7 +54,7 @@ struct Searcher {
         rep_list[ply] = board.zobrist;
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
 
-        if (!pv && !board.check && depth < 5 && eval > beta + depth * 50) {
+        if (!pv && !board.check && depth < 5 && eval > beta + depth * 38) {
             return eval;
         }
 
@@ -78,7 +78,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
-        int quiets_to_check = depth * depth + 10;
+        int quiets_to_check = 1.1 * depth * depth + 3;
         int orig_alpha = alpha;
         int legals = 0;
 
@@ -125,7 +125,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = LOG[legals] * LOG[depth] * 0.5 + 0.5;
+                int reduction = LOG[legals] * LOG[depth] * 0.69 - 0.11;
 
                 if (victim) {
                     reduction = 0;
@@ -203,12 +203,12 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 20;
+                int delta = 3;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
-                    delta *= 2;
+                    delta *= 2.7;
                 }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
