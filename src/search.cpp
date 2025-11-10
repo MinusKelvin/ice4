@@ -113,7 +113,7 @@ struct Searcher {
             }
             conthist_stack[ply + 2] = &conthist[board.board[moves[i].from] - WHITE_PAWN][moves[i].to];
 
-            if (!pv && !victim && !(quiets_to_check -= 1)) {
+            if (!pv && !board.check && !victim && !(quiets_to_check -= 1)) {
                 break;
             }
 
