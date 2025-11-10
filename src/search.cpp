@@ -23,6 +23,7 @@ struct Searcher {
     double soft_limit;
     uint64_t rep_list[256];
     int mobilities[256];
+    int evals[256];
     HTable history;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
@@ -51,10 +52,12 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
-        rep_list[ply] = board.zobrist;
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        int improving = ply > 1 && !board.check && eval > evals[ply-2];
+        evals[ply] = board.check ? WON : eval;
+        rep_list[ply] = board.zobrist;
 
-        if (!pv && !board.check && depth < 5 && eval > beta + depth * 38) {
+        if (!pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 38) {
             return eval;
         }
 
