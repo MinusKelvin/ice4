@@ -24,7 +24,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
     int evals[256];
-    HTable history;
+    HTable history[7];
     HTable *conthist_stack[256];
     HTable conthist[14][SQUARE_SPAN];
 
@@ -81,7 +81,8 @@ struct Searcher {
             score[i] =
                 !tt.key && tt.mv.from == moves[i].from && tt.mv.to == moves[i].to ? 1e7
                 : board.board[moves[i].to] ? board.board[moves[i].to] * 1e5
-                : history[board.board[moves[i].from]][moves[i].to]
+                    + history[board.board[moves[i].to] & 7][board.board[moves[i].from]][moves[i].to]
+                : history[0][board.board[moves[i].from]][moves[i].to]
                     + (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to]
                     + (*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
         }
@@ -164,19 +165,22 @@ struct Searcher {
             }
             if (v >= beta) {
                 int bonus = 32 * depth;
-                if (!victim) {
-                    for (int j = 0; j < i; j++) {
-                        if (!board.board[moves[j].to]) {
-                            int16_t *hist = &history[board.board[moves[j].from]][moves[j].to];
-                            *hist -= bonus + bonus * *hist / MAX_HIST;
-                            hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
-                            *hist -= bonus + bonus * *hist / MAX_HIST;
-                            hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
-                            *hist -= bonus + bonus * *hist / MAX_HIST;
-                        }
+                for (int j = 0; j < i; j++) {
+                    if (victim && !board.board[moves[j].to]) {
+                        continue;
                     }
-                    int16_t *hist = &history[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
+                    int16_t *hist = &history[board.board[moves[j].to] & 7][board.board[moves[j].from]][moves[j].to];
+                    *hist -= bonus + bonus * *hist / MAX_HIST;
+                    if (!board.board[moves[j].to]) {
+                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                        hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                    }
+                }
+                int16_t *hist = &history[victim][board.board[moves[i].from]][moves[i].to];
+                *hist += bonus - bonus * *hist / MAX_HIST;
+                if (!victim) {
                     hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
                     *hist += bonus - bonus * *hist / MAX_HIST;
                     hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
