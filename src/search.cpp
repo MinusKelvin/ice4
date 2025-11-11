@@ -64,7 +64,7 @@ struct Searcher {
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         rep_list[ply] = board.zobrist;
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+        int static_eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             // All Correction Histories: 201 bytes (v6)
             // 8.0+0.08: 124.06 +- 5.29     0.62 elo/byte
             // 60.0+0.6: 185.84 +- 5.44     0.92 elo/byte
@@ -90,11 +90,12 @@ struct Searcher {
             // 60.0+0.6: 5.77 +- 4.17     0.38 elo/byte
             + (*conthist_stack[ply])[1][0] / 214
             + (ply & 1 ? -optimism : optimism);
-        int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
+        evals[ply] = board.check ? WON : static_eval;
+        int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : static_eval;
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
         // 60.0+0.6: 29.46 +- 4.55 (2656 - 1810 - 5534) 0.98 elo/byte
-        int improving = ply > 1 && evals[ply] > evals[ply-2];
+        int improving = ply > 1 && static_eval > evals[ply-2];
 
         // Reverse Futility Pruning: 11 bytes (v6)
         // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
@@ -330,28 +331,28 @@ struct Searcher {
             tt.key = board.zobrist;
             slot.store(tt, {});
             if (!board.board[bestmv.to] && (
-                tt.bound == BOUND_UPPER && best < evals[ply] ||
-                tt.bound == BOUND_LOWER && best > evals[ply]
+                tt.bound == BOUND_UPPER && best < static_eval ||
+                tt.bound == BOUND_LOWER && best > static_eval
             )) {
                 double weight = min(depth * depth + 2, 62) / 596.0;
                 corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] =
                     corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 (*conthist_stack[ply+1])[0][0] =
                     (*conthist_stack[ply+1])[0][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
                 (*conthist_stack[ply])[1][0] =
                     (*conthist_stack[ply])[1][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                    clamp(best - static_eval, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
             }
         }
 
