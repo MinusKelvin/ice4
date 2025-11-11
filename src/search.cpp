@@ -46,19 +46,14 @@ struct Searcher {
 
         tt.key ^= board.zobrist;
         if (!tt.key) {
-            if (depth <= tt.depth && (
-                depth*pv <= 1 && tt.bound == BOUND_EXACT ||
-                !pv && tt.bound == BOUND_LOWER && tt.eval >= beta ||
-                !pv && tt.bound == BOUND_UPPER && tt.eval <= alpha
+            if (depth <= tt.depth && !pv && (
+                tt.bound == BOUND_EXACT ||
+                tt.bound == BOUND_LOWER && tt.eval >= beta ||
+                tt.bound == BOUND_UPPER && tt.eval <= alpha
             )) {
                 bestmv = tt.mv;
                 return tt.eval;
             }
-        } else if (depth > 3) {
-            // Internal Iterative Reductions: 6 bytes (v4)
-            // 8.0+0.08: 36.52 +- 3.00    6.09 elo/byte
-            // 60.0+0.6: 40.34 +- 2.64    6.72 elo/byte
-            depth -= 2;
         }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
@@ -156,11 +151,11 @@ struct Searcher {
                     // Countermove history: 21 bytes (42a57f7 vs 4cabdf1)
                     // 8.0+0.08: 17.98 +- 5.12 (3084 - 2567 - 4349) 0.86 elo/byte
                     // 60.0+0.6: 21.64 +- 4.51 (2508 - 1886 - 5606) 1.03 elo/byte
-                    + 1.9 * (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
+                    + (*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to]
                     // Followup history: 22 bytes (ae6f9fa vs 4cabdf1)
                     // 8.0+0.08: 9.07 +- 5.06 (2893 - 2632 - 4475) 0.41 elo/byte
                     // 60.0+0.6: 13.42 +- 4.52 (2396 - 2010 - 5594) 0.61 elo/byte
-                    + 2.4 * (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
+                    + (*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
             }
         }
 
@@ -247,10 +242,6 @@ struct Searcher {
                 // 8.0+0.08: 5.93 +- 4.78     0.54 elo/byte
                 // 60.0+0.6: 5.35 +- 4.21     0.49 elo/byte
                 reduction += !tt.key && board.board[tt.mv.to];
-                // History reduction: 9 bytes (v4)
-                // 8.0+0.08: 26.28 +- 2.98     2.92 elo/byte
-                // 60.0+0.6: 37.09 +- 2.65     4.12 elo/byte
-                reduction -= score[i] / 5450;
                 if (victim) {
                     // Capture History Reduction: 11 bytes (v6)
                     // 8.0+0.08:  6.36 +- 4.70     0.58 elo/byte
@@ -287,7 +278,6 @@ struct Searcher {
             }
             if (v >= beta) {
                 int bonus = 64 * depth;
-                bonus <<= ((eval <= alpha) + (eval <= alpha - 35));
                 int16_t *hist;
                 for (int j = 0; j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
