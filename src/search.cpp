@@ -50,6 +50,8 @@ struct Searcher {
             )) {
                 return tt.score;
             }
+        } else if (!excluded.from && depth > 3) {
+            depth--;
         }
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
