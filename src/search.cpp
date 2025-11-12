@@ -1,8 +1,4 @@
 #define MAX_HIST 16384
-#define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 280
-#define CORR_HIST_DIV 486
-#define CORR_HIST_MAX 81
 
 double now() {
     timespec t;
@@ -22,13 +18,11 @@ struct Searcher {
     double hard_limit;
     double soft_limit;
     int16_t evals[256];
-    int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[23];
     HTable conthist[14][SQUARE_SPAN];
     HTable *conthist_stack[256];
     uint64_t rep_list[256];
     int mobilities[256];
-    int optimism;
 
     int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply) {
         if (depth < 0) {
@@ -59,32 +53,7 @@ struct Searcher {
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         rep_list[ply] = board.zobrist;
-        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            // All Correction Histories: 201 bytes (v6)
-            // 8.0+0.08: 124.06 +- 5.29     0.62 elo/byte
-            // 60.0+0.6: 185.84 +- 5.44     0.92 elo/byte
-            // Pawn Correction History: 17 bytes (v6)
-            // 8.0+0.08: 4.72 +- 4.71     0.28 elo/byte
-            // 60.0+0.6: 8.51 +- 4.20     0.50 elo/byte
-            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 198
-            // Material Correction History: 32 bytes (v6)
-            // 8.0+0.08: 70.46 +- 5.02     2.20 elo/byte
-            // 60.0+0.6: 79.90 +- 4.65     2.50 elo/byte
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 239
-            // Colored Non-Pawn Correction Histories: 43 bytes (v6)
-            // 8.0+0.08:  5.35 +- 4.71     0.12 elo/byte
-            // 60.0+0.6: 10.67 +- 4.22     0.25 elo/byte
-            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 202
-            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 202
-            // Countermove Correction History: 10 bytes (v6)
-            // 8.0+0.08:  9.45 +- 4.64     0.95 elo/byte
-            // 60.0+0.6: 11.61 +- 4.11     1.16 elo/byte
-            + (*conthist_stack[ply+1])[0][0] / 116
-            // Followup Correction History: 15 bytes (v6)
-            // 8.0+0.08: 1.01 +- 4.77     0.07 elo/byte
-            // 60.0+0.6: 5.77 +- 4.17     0.38 elo/byte
-            + (*conthist_stack[ply])[1][0] / 214
-            + (ply & 1 ? -optimism : optimism);
+        evals[ply] = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
         int eval = !tt.key && tt.eval < 20000 && tt.eval > -20000 ? tt.eval : evals[ply];
         // Improving (only used for LMP): 30 bytes (98fcc8a vs b5fdb00)
         // 8.0+0.08: 28.55 +- 5.11 (3220 - 2400 - 4380) 0.95 elo/byte
@@ -319,30 +288,6 @@ struct Searcher {
             }
             tt.key = board.zobrist;
             slot.store(tt, {});
-            if (!board.board[bestmv.to] && (
-                tt.bound == BOUND_UPPER && best < evals[ply] ||
-                tt.bound == BOUND_LOWER && best > evals[ply]
-            )) {
-                double weight = min(depth * depth + 2, 62) / 596.0;
-                corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                (*conthist_stack[ply+1])[0][0] =
-                    (*conthist_stack[ply+1])[0][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                (*conthist_stack[ply])[1][0] =
-                    (*conthist_stack[ply])[1][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-            }
         }
 
         return best;
@@ -369,7 +314,6 @@ struct Searcher {
                 int delta = 9;
                 int lower = v;
                 int upper = v;
-                optimism = 56 * v / (abs(v) + 95);
                 while (v <= lower || v >= upper) {
                     lower = lower > v ? v : lower;
                     upper = upper < v ? v : upper;
