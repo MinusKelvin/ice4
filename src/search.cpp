@@ -73,7 +73,9 @@ struct Searcher {
 
             conthist_stack[ply + 2] = &conthist[0][0];
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 5, ply + 1);
+            int reduction = (eval - beta + 30 * depth + 480) / 120;
+
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - reduction, ply + 1);
             if (v >= beta) {
                 return v;
             }
