@@ -130,7 +130,7 @@ struct Searcher {
 
             int is_rep = 0;
             int v;
-            int next_depth = depth - 1;
+            int next_depth = depth - 1 + mkmove.check;
 
             for (int i = ply-1; depth && !is_rep && i >= 0; i -= 2) {
                 is_rep |= rep_list[i] == mkmove.zobrist;
