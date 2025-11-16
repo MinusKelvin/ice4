@@ -248,12 +248,12 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 3;
+                int delta = 10;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
-                    delta *= 2.7;
+                    delta *= 2;
                 }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
