@@ -61,7 +61,7 @@ struct Searcher {
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
 
-        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 38) {
+        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 49) {
             return eval;
         }
 
@@ -90,7 +90,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
-        int quiets_to_check = (depth * depth + 3) >> !improving;
+        int quiets_to_check = (depth * depth + 5) >> !improving;
         int orig_alpha = alpha;
         int legals = 0;
 
@@ -142,7 +142,7 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = LOG[legals] * LOG[depth] * 0.69 - 0.11;
+                int reduction = LOG[legals] * LOG[depth] * 0.67 - 0.41;
 
                 if (victim) {
                     reduction = 0;
@@ -166,7 +166,7 @@ struct Searcher {
                     tt.bound != BOUND_UPPER &&
                     tt.score < 20000 && tt.score > -20000
                 ) {
-                    int s_beta = tt.score - 2 * depth;
+                    int s_beta = tt.score - 1.7 * depth;
                     int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, moves[i]);
                     if (score < s_beta) {
                         next_depth++;
@@ -248,12 +248,12 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 3;
+                int delta = 2;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
-                    delta *= 2.7;
+                    delta *= 2.3;
                 }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
