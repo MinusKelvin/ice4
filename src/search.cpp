@@ -250,8 +250,8 @@ struct Searcher {
                 int upper = v;
                 int delta = 3;
                 while (v <= lower || v >= upper) {
-                    lower = min(lower - delta, v);
-                    upper = max(upper + delta, v);
+                    lower = min(lower, v) - delta;
+                    upper = max(upper, v) + delta;
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
                     delta *= 2.7;
                 }
