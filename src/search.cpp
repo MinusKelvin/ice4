@@ -249,10 +249,13 @@ struct Searcher {
                 int lower = v;
                 int upper = v;
                 int delta = 3;
+                int failhighs = 0;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
-                    v = negamax(ROOT, mv, lower, upper, depth, 0);
+                    v = negamax(ROOT, mv, lower, upper, depth - failhighs, 0);
+                    failhighs *= v > lower;
+                    failhighs += v >= upper;
                     delta *= 2.7;
                 }
                 lock_guard lock(MUTEX);
