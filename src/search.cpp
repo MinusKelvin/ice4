@@ -61,7 +61,7 @@ struct Searcher {
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
 
-        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 38) {
+        if (!excluded.from && !pv && !board.check && depth < 9 && eval > beta + max(0, depth - improving) * 38) {
             return eval;
         }
 
