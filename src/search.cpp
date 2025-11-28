@@ -142,9 +142,11 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = LOG[legals] * LOG[depth] * 0.69 - 0.11;
+                int reduction = -0.11
+                    + 0.69 * LOG[legals] * LOG[depth]
+                    - mkmove.check;
 
-                if (victim) {
+                if (victim || reduction < 0) {
                     reduction = 0;
                 }
 
