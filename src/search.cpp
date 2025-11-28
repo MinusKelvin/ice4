@@ -170,6 +170,9 @@ struct Searcher {
                     int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, moves[i]);
                     if (score < s_beta) {
                         next_depth++;
+                    } else if (s_beta >= beta) {
+                        bestmv = moves[i];
+                        return s_beta;
                     }
                 }
 
