@@ -231,11 +231,14 @@ struct Searcher {
             tt.key = board.zobrist;
             slot.store(tt, {});
 
-            int bonus = tt.bound == BOUND_UPPER ? -32 * depth
-                : tt.bound == BOUND_LOWER ? 32 * depth
-                : 0;
-            int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
-            *hist += bonus - abs(bonus) * *hist / MAX_HIST;
+            if (!board.check && !board.board[bestmv.to] && (
+                best < beta && best <= eval
+                || best > orig_alpha && best >= eval
+            )) {
+                int bonus = (best - eval) * depth;
+                int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
+                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
+            }
         }
 
         return best;
