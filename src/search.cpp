@@ -1,8 +1,5 @@
 #define MAX_HIST 16384
 #define CORR_HIST_SIZE 16384
-#define CORR_HIST_UNIT 280
-#define CORR_HIST_DIV 486
-#define CORR_HIST_MAX 81
 
 double now() {
     timespec t;
@@ -24,6 +21,7 @@ struct Searcher {
     uint64_t rep_list[256];
     int mobilities[256];
     int evals[256];
+    int16_t corr_hist[2][CORR_HIST_SIZE];
     HTable history[7];
     HTable *conthist_stack[256];
     HTable conthist[14][SQUARE_SPAN];
@@ -56,7 +54,8 @@ struct Searcher {
 
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
-        int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO);
+        int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
+            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 256;
         int improving = ply > 1 && !board.check && eval > evals[ply-2];
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
@@ -231,6 +230,12 @@ struct Searcher {
                 : tt.mv;
             tt.key = board.zobrist;
             slot.store(tt, {});
+
+            int bonus = tt.bound == BOUND_UPPER ? -32 * depth
+                : tt.bound == BOUND_LOWER ? 32 * depth
+                : 0;
+            int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
+            *hist += bonus - abs(bonus) * *hist / MAX_HIST;
         }
 
         return best;
