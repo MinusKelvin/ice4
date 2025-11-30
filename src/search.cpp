@@ -231,8 +231,8 @@ struct Searcher {
             tt.key = board.zobrist;
             slot.store(tt, {});
 
-            int bonus = tt.bound == BOUND_UPPER ? -32 * depth
-                : tt.bound == BOUND_LOWER ? 32 * depth
+            int bonus = tt.bound == BOUND_UPPER && best < eval ? -32 * depth
+                : tt.bound == BOUND_LOWER && best > eval ? 32 * depth
                 : 0;
             int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
             *hist += bonus - abs(bonus) * *hist / MAX_HIST;
