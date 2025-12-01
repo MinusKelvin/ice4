@@ -56,7 +56,8 @@ struct Searcher {
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
             + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 256
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 256;
+            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 256
+            + (*conthist_stack[ply+1])[0][0] / 256;
         int improving = ply > 1 && !board.check && eval > evals[ply-2];
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
@@ -240,6 +241,8 @@ struct Searcher {
                 int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
                 *hist += bonus - abs(bonus) * *hist / MAX_HIST;
                 hist = &corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE];
+                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
+                hist = &(*conthist_stack[ply+1])[0][0];
                 *hist += bonus - abs(bonus) * *hist / MAX_HIST;
             }
         }
