@@ -91,7 +91,7 @@ struct Searcher {
                 !tt.key && tt.mv.from == moves[i].from && tt.mv.to == moves[i].to ? 1e7
                 : board.board[moves[i].to] ? board.board[moves[i].to] * 1e5
                     + history[board.board[moves[i].to] & 7][board.board[moves[i].from]][moves[i].to]
-                : history[0][board.board[moves[i].from]][moves[i].to]
+                : history[0][board.board[moves[i].from]][moves[i].to] / 2
                     + (*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to]
                     + (*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
         }
