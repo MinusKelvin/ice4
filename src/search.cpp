@@ -7,6 +7,10 @@ double now() {
     return t.tv_sec + t.tv_nsec / 1e9;
 }
 
+void update_history(int16_t& hist, int bonus) {
+    hist += bonus - abs(bonus) * hist / MAX_HIST;
+}
+
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
@@ -198,22 +202,16 @@ struct Searcher {
                     if (victim && !board.board[moves[j].to]) {
                         continue;
                     }
-                    int16_t *hist = &history[board.board[moves[j].to] & 7][board.board[moves[j].from]][moves[j].to];
-                    *hist -= bonus + bonus * *hist / MAX_HIST;
+                    update_history(history[board.board[moves[j].to] & 7][board.board[moves[j].from]][moves[j].to], -bonus);
                     if (!board.board[moves[j].to]) {
-                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
-                        hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                        update_history((*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to], -bonus);
+                        update_history((*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to], -bonus);
                     }
                 }
-                int16_t *hist = &history[victim][board.board[moves[i].from]][moves[i].to];
-                *hist += bonus - bonus * *hist / MAX_HIST;
+                update_history(history[victim][board.board[moves[i].from]][moves[i].to], bonus);
                 if (!victim) {
-                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
+                    update_history((*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to], bonus);
+                    update_history((*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to], bonus);
                 }
                 break;
             }
@@ -240,16 +238,11 @@ struct Searcher {
                 || best > orig_alpha && best >= eval
             )) {
                 int bonus = (best - eval) * depth;
-                int16_t *hist = &corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE];
-                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
-                hist = &corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE];
-                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
-                hist = &corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE];
-                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
-                hist = &corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE];
-                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
-                hist = &(*conthist_stack[ply+1])[0][0];
-                *hist += bonus - abs(bonus) * *hist / MAX_HIST;
+                update_history(corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE], bonus);
+                update_history(corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE], bonus);
+                update_history(corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE], bonus);
+                update_history(corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE], bonus);
+                update_history((*conthist_stack[ply+1])[0][0], bonus);
             }
         }
 
