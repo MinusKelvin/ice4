@@ -183,6 +183,8 @@ struct Searcher {
                     } else if (s_beta >= beta) {
                         bestmv = moves[i];
                         return s_beta;
+                    } else if (tt.score >= beta) {
+                        next_depth--;
                     }
                 }
 
