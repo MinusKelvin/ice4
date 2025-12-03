@@ -121,6 +121,10 @@ struct Searcher {
 
             int victim = board.board[moves[i].to] & 7;
 
+            if (depth < 3 && eval < alpha - 100 * depth && score[i] < 1e5) {
+                break;
+            }
+
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
