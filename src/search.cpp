@@ -96,7 +96,9 @@ struct Searcher {
                     + (*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
         }
 
-        int best = depth ? LOST + ply : eval;
+        int best = depth ? LOST + ply
+            : !tt.key && abs(tt.score) < 20000 ? tt.score
+            : eval;
         int quiets_to_check = (depth * depth + 3) >> !improving;
         int orig_alpha = alpha;
         int legals = 0;
