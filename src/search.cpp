@@ -64,6 +64,7 @@ struct Searcher {
             + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
             + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
             + (*conthist_stack[ply+1])[0][0] / 256;
+        int tteval = !tt.key && abs(tt.score) < 20000 ? tt.score : eval;
         int improving = ply > 1 && !board.check && eval > evals[ply-2];
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
@@ -72,7 +73,7 @@ struct Searcher {
             return eval;
         }
 
-        if (!excluded.from && !pv && !board.check && eval >= beta && beta > -20000 && depth > 2) {
+        if (!excluded.from && !pv && !board.check && tteval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.stm ^= INVALID;
             mkmove.zobrist ^= ZOBRIST[EMPTY][mkmove.ep_square];
