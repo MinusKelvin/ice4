@@ -200,7 +200,7 @@ struct Searcher {
                 alpha = v;
             }
             if (v >= beta) {
-                int bonus = 32 * depth;
+                int bonus = 32 * depth << (eval < orig_alpha);
                 for (int j = 0; j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
                         continue;
