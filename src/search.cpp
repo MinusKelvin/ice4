@@ -275,6 +275,9 @@ struct Searcher {
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
                     delta *= 2.7;
+                    if (v <= lower) {
+                        upper = (lower + upper) / 2;
+                    }
                 }
                 lock_guard lock(MUTEX);
                 if (FINISHED_DEPTH < depth) {
