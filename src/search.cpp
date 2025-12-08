@@ -224,7 +224,7 @@ struct Searcher {
             return 0;
         }
 
-        if (!excluded.from && depth && best > LOST + ply) {
+        if (!excluded.from && best > (depth ? LOST + ply : eval)) {
             tt.depth = depth;
             tt.score = best;
             tt.bound = best <= orig_alpha ? BOUND_UPPER
