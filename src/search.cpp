@@ -240,7 +240,7 @@ struct Searcher {
                 best < beta && best <= eval
                 || best > orig_alpha && best >= eval
             )) {
-                int bonus = (best - eval) * depth;
+                int bonus = clamp(best - eval, -256, 256) * depth;
                 update_history(corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE], bonus);
