@@ -17,7 +17,21 @@ void uci() {
         "id name ice4 v6.1\r\n"
         "id author MinusKelvin and analog-hors\n"
         "option name Hash type spin default 8 min 1 max 67108864\n"
-        "option name Threads type spin default 1 min 1 max 2048\n";
+        "option name Threads type spin default 1 min 1 max 2048\n"
+        "option name CORR_PAWN_DIV type string default 256\n"
+        "option name CORR_MAT_DIV type string default 256\n"
+        "option name CORR_NONPAWN_DIV type string default 256\n"
+        "option name CORR_CONT1_DIV type string default 256\n"
+        "option name RFP_MARGIN type string default 38\n"
+        "option name LMP_BASE type string default 3\n"
+        "option name LMR_BASE type string default -0.11\n"
+        "option name LMR_FACTOR type string default 0.69\n"
+        "option name LMR_HISTORY type string default 2048\n"
+        "option name SINGULAR_MARGIN type string default 2.0\n"
+        "option name HISTORY_UPDATE type string default 32\n"
+        "option name CORRECTION_MAX type string default 256\n"
+        "option name AW_INITIAL type string default 3\n"
+        ;
 #endif
 
     cout << "uciok\n";
@@ -48,6 +62,19 @@ void uci() {
                 if (token == "Threads") {
                     tokens >> token >> THREADS; // value <value>
                 }
+                if (token == "CORR_PAWN_DIV") { tokens >> token >> CORR_PAWN_DIV; }
+                if (token == "CORR_MAT_DIV") { tokens >> token >> CORR_MAT_DIV; }
+                if (token == "CORR_NONPAWN_DIV") { tokens >> token >> CORR_NONPAWN_DIV; }
+                if (token == "CORR_CONT1_DIV") { tokens >> token >> CORR_CONT1_DIV; }
+                if (token == "RFP_MARGIN") { tokens >> token >> RFP_MARGIN; }
+                if (token == "LMP_BASE") { tokens >> token >> LMP_BASE; }
+                if (token == "LMR_BASE") { tokens >> token >> LMR_BASE; }
+                if (token == "LMR_FACTOR") { tokens >> token >> LMR_FACTOR; }
+                if (token == "LMR_HISTORY") { tokens >> token >> LMR_HISTORY; }
+                if (token == "SINGULAR_MARGIN") { tokens >> token >> SINGULAR_MARGIN; }
+                if (token == "HISTORY_UPDATE") { tokens >> token >> HISTORY_UPDATE; }
+                if (token == "CORRECTION_MAX") { tokens >> token >> CORRECTION_MAX; }
+                if (token == "AW_INITIAL") { tokens >> token >> AW_INITIAL; }
                 break;
 #endif
             case 'p': // position

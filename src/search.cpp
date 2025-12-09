@@ -11,6 +11,20 @@ void update_history(int16_t& hist, int bonus) {
     hist += bonus - abs(bonus) * hist / MAX_HIST;
 }
 
+int CORR_PAWN_DIV = 256;
+int CORR_MAT_DIV = 256;
+int CORR_NONPAWN_DIV = 256;
+int CORR_CONT1_DIV = 256;
+int RFP_MARGIN = 38;
+int LMP_BASE = 3;
+double LMR_BASE = -0.11;
+double LMR_FACTOR = 0.69;
+int LMR_HISTORY = 2048;
+double SINGULAR_MARGIN = 2.0;
+int HISTORY_UPDATE = 32;
+int CORRECTION_MAX = 256;
+int AW_INITIAL = 3;
+
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH;
@@ -59,16 +73,16 @@ struct Searcher {
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 256
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 256
-            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 256
-            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 256
-            + (*conthist_stack[ply+1])[0][0] / 256;
+            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / CORR_PAWN_DIV
+            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / CORR_MAT_DIV
+            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / CORR_NONPAWN_DIV
+            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / CORR_NONPAWN_DIV
+            + (*conthist_stack[ply+1])[0][0] / CORR_CONT1_DIV;
         int improving = ply > 1 && !board.check && eval > evals[ply-2];
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
 
-        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 38) {
+        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * RFP_MARGIN) {
             return eval;
         }
 
@@ -97,7 +111,7 @@ struct Searcher {
         }
 
         int best = depth ? LOST + ply : eval;
-        int quiets_to_check = (depth * depth + 3) >> !improving;
+        int quiets_to_check = (depth * depth + LMP_BASE) >> !improving;
         int orig_alpha = alpha;
         int legals = 0;
 
@@ -149,10 +163,10 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = -0.11
-                    + 0.69 * LOG[legals] * LOG[depth]
+                int reduction = LMR_BASE
+                    + LMR_FACTOR * LOG[legals] * LOG[depth]
                     - mkmove.check
-                    - score[i] / 2048;
+                    - score[i] / LMR_HISTORY;
 
                 if (victim || reduction < 0) {
                     reduction = 0;
@@ -176,7 +190,7 @@ struct Searcher {
                     tt.bound != BOUND_UPPER &&
                     tt.score < 20000 && tt.score > -20000
                 ) {
-                    int s_beta = tt.score - 2 * depth;
+                    int s_beta = tt.score - SINGULAR_MARGIN * depth;
                     int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, moves[i]);
                     if (score < s_beta) {
                         next_depth++;
@@ -200,7 +214,7 @@ struct Searcher {
                 alpha = v;
             }
             if (v >= beta) {
-                int bonus = 32 * depth;
+                int bonus = HISTORY_UPDATE * depth;
                 for (int j = 0; j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
                         continue;
@@ -240,7 +254,7 @@ struct Searcher {
                 best < beta && best <= eval
                 || best > orig_alpha && best >= eval
             )) {
-                int bonus = clamp(best - eval, -256, 256) * depth;
+                int bonus = clamp(best - eval, -CORRECTION_MAX, CORRECTION_MAX) * depth;
                 update_history(corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE], bonus);
@@ -269,7 +283,7 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 3;
+                int delta = AW_INITIAL;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
