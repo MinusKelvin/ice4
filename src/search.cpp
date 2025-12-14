@@ -151,6 +151,7 @@ struct Searcher {
             } else if (legals) {
                 int reduction = -0.76
                     + 0.76 * LOG[legals] * LOG[depth]
+                    + !pv
                     - mkmove.check
                     - score[i] / 2254;
 
