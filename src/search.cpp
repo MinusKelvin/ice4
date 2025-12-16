@@ -59,16 +59,16 @@ struct Searcher {
         board.movegen(moves, mvcount, depth, mobilities[ply+1]);
 
         int eval = board.eval(mobilities[ply+1] - mobilities[ply] + TEMPO)
-            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 242
-            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 216
-            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 206
-            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 206
-            + (*conthist_stack[ply+1])[0][0] / 231;
+            + corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] / 250
+            + corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] / 250
+            + corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] / 176
+            + corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] / 176
+            + (*conthist_stack[ply+1])[0][0] / 176;
         int improving = ply > 1 && !board.check && eval > evals[ply-2];
         evals[ply] = board.check ? WON : eval;
         rep_list[ply] = board.zobrist;
 
-        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 54) {
+        if (!excluded.from && !pv && !board.check && depth < 5 && eval > beta + max(0, depth - improving) * 58) {
             return eval;
         }
 
@@ -149,10 +149,10 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = -0.76
+                int reduction = -0.78
                     + 0.76 * LOG[legals] * LOG[depth]
                     - mkmove.check
-                    - score[i] / 2254;
+                    - score[i] / 2438;
 
                 if (victim || reduction < 0) {
                     reduction = 0;
@@ -200,7 +200,7 @@ struct Searcher {
                 alpha = v;
             }
             if (v >= beta) {
-                int bonus = 47 * depth;
+                int bonus = 55 * depth;
                 for (int j = 0; j < i; j++) {
                     if (victim && !board.board[moves[j].to]) {
                         continue;
@@ -240,7 +240,7 @@ struct Searcher {
                 best < beta && best <= eval
                 || best > orig_alpha && best >= eval
             )) {
-                int bonus = clamp(best - eval, -312, 312) * depth;
+                int bonus = clamp(best - eval, -335, 335) * depth;
                 update_history(corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE], bonus);
                 update_history(corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE], bonus);
@@ -269,7 +269,7 @@ struct Searcher {
             for (int depth = 1; depth <= MAX_DEPTH; depth++) {
                 int lower = v;
                 int upper = v;
-                int delta = 3;
+                int delta = 2;
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
