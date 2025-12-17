@@ -149,9 +149,10 @@ struct Searcher {
             if (is_rep) {
                 v = 0;
             } else if (legals) {
-                int reduction = -0.78
+                int reduction = 0.22
                     + 0.76 * LOG[legals] * LOG[depth]
                     - mkmove.check
+                    - improving
                     - score[i] / 2438;
 
                 if (victim || reduction < 0) {
