@@ -13,7 +13,7 @@ void update_history(int16_t& hist, int bonus) {
 
 atomic_bool ABORT;
 mutex MUTEX;
-int FINISHED_DEPTH;
+int FINISHED_DEPTH_AND_SCORE;
 Move BEST_MOVE;
 
 typedef int16_t HTable[23][SQUARE_SPAN];
@@ -275,15 +275,16 @@ struct Searcher {
                     upper = max(upper + delta, v);
                     v = negamax(ROOT, mv, lower, upper, depth, 0);
                     delta *= 2.7;
-                }
-                lock_guard lock(MUTEX);
-                if (FINISHED_DEPTH < depth) {
-                    FINISHED_DEPTH = depth;
-                    BEST_MOVE = mv;
-                    cout << "info depth " << depth << " score cp " << v << " pv ";
-                    mv.put_with_newline();
-                    if (now() > soft_limit) {
-                        return;
+
+                    lock_guard lock(MUTEX);
+                    if (v > lower && FINISHED_DEPTH_AND_SCORE < (depth << 20) + v) {
+                        FINISHED_DEPTH_AND_SCORE = (depth << 20) + v;
+                        BEST_MOVE = mv;
+                        cout << "info depth " << depth << " score cp " << v << " pv ";
+                        mv.put_with_newline();
+                        if (now() > soft_limit) {
+                            return;
+                        }
                     }
                 }
             }
