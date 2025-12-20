@@ -152,7 +152,7 @@ struct Searcher {
                 int reduction = -0.78
                     + 0.76 * LOG[legals] * LOG[depth]
                     - mkmove.check
-                    + cutnode
+                    + 2 * cutnode
                     - score[i] / 2438;
 
                 if (victim || reduction < 0) {
