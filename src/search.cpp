@@ -52,7 +52,7 @@ struct Searcher {
             )) {
                 return tt.score;
             }
-        } else if (!excluded.from && depth > 3) {
+        } else if (!excluded.from && depth > 3 && (pv || cutnode)) {
             depth--;
         }
 
