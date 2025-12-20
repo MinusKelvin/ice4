@@ -30,7 +30,7 @@ struct Searcher {
     HTable *conthist_stack[256];
     HTable conthist[14][SQUARE_SPAN];
 
-    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, Move excluded = Move()) {
+    int negamax(Board &board, Move &bestmv, int alpha, int beta, int depth, int ply, int cutnode, Move excluded = Move()) {
         if (depth < 0) {
             depth = 0;
         }
@@ -80,7 +80,7 @@ struct Searcher {
 
             conthist_stack[ply + 2] = &conthist[0][0];
 
-            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 5, ply + 1);
+            int v = -negamax(mkmove, scratch, -beta, -alpha, depth - 5, ply + 1, !cutnode);
             if (v >= beta) {
                 return v;
             }
@@ -152,20 +152,21 @@ struct Searcher {
                 int reduction = -0.78
                     + 0.76 * LOG[legals] * LOG[depth]
                     - mkmove.check
+                    + cutnode
                     - score[i] / 2438;
 
                 if (victim || reduction < 0) {
                     reduction = 0;
                 }
 
-                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
+                v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1, 1);
                 if (v > alpha && reduction) {
-                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1, !cutnode);
                 }
                 if (v > alpha && pv) {
                     // at pv nodes, we need to re-search with full window when move raises alpha
                     // at non-pv nodes, this would be equivalent to the previous search, so skip it
-                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                    v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1, !cutnode && !pv);
                 }
             } else {
                 if (
@@ -177,7 +178,7 @@ struct Searcher {
                     tt.score < 20000 && tt.score > -20000
                 ) {
                     int s_beta = tt.score - 0.5 * depth;
-                    int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, moves[i]);
+                    int score = negamax(board, scratch, s_beta-1, s_beta, depth / 2, ply, cutnode, moves[i]);
                     if (score < s_beta) {
                         next_depth++;
                     } else if (s_beta >= beta) {
@@ -189,7 +190,7 @@ struct Searcher {
                 }
 
                 // first legal move is always searched with full window
-                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1);
+                v = -negamax(mkmove, scratch, -beta, -alpha, next_depth, ply + 1, !cutnode && !pv);
             }
             legals++;
             if (v > best) {
@@ -273,7 +274,7 @@ struct Searcher {
                 while (v <= lower || v >= upper) {
                     lower = min(lower - delta, v);
                     upper = max(upper + delta, v);
-                    v = negamax(ROOT, mv, lower, upper, depth, 0);
+                    v = negamax(ROOT, mv, lower, upper, depth, 0, 0);
                     delta *= 2.7;
 
                     lock_guard lock(MUTEX);
