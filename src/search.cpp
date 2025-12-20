@@ -186,6 +186,7 @@ struct Searcher {
                         return s_beta;
                     } else if (tt.score >= beta) {
                         next_depth--;
+                        cutnode = 1;
                     }
                 }
 
