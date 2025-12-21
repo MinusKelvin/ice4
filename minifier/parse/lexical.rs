@@ -94,7 +94,7 @@ impl ParsedNumber {
 }
 
 impl Token {
-    pub fn as_str(&self) -> Cow<str> {
+    pub fn as_str(&self) -> Cow<'_, str> {
         match self {
             Token::Identifier(w) => w,
             Token::Typename(w) => w,
