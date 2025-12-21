@@ -72,7 +72,7 @@ struct Searcher {
             return eval;
         }
 
-        if (!excluded.from && !pv && !board.check && eval >= beta && beta > -20000 && depth > 2) {
+        if (!excluded.from && !pv && !board.check && cutnode && eval >= beta && beta > -20000 && depth > 2) {
             Board mkmove = board;
             mkmove.stm ^= INVALID;
             mkmove.zobrist ^= ZOBRIST[EMPTY][mkmove.ep_square];
