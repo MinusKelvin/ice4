@@ -153,9 +153,9 @@ struct Searcher {
                     + 0.76 * LOG[legals] * LOG[depth]
                     - mkmove.check
                     + cutnode
-                    - score[i] / 2438;
+                    - (victim ? (score[i] - board.board[moves[i].to] * 1e5) / 2438 : score[i] / 2438);
 
-                if (victim || reduction < 0) {
+                if (reduction < 0) {
                     reduction = 0;
                 }
 
