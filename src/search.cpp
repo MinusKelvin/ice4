@@ -121,6 +121,10 @@ struct Searcher {
 
             int victim = board.board[moves[i].to] & 7;
 
+            if (!depth && eval + DELTAS[victim] < alpha) {
+                continue;
+            }
+
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
