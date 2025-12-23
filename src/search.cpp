@@ -159,7 +159,11 @@ struct Searcher {
                     + cutnode
                     - score[i] / 2438;
 
-                if (victim || reduction < 0) {
+                if (victim) {
+                    reduction = (score[i] - board.board[moves[i].to] * 1e5) / -2438;
+                }
+
+                if (reduction < 0) {
                     reduction = 0;
                 }
 
