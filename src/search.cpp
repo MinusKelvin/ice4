@@ -125,6 +125,14 @@ struct Searcher {
                 continue;
             }
 
+            int dir = board.stm & WHITE ? 10 : -10;
+            if (ply && (
+                board.board[moves[i].to + dir + 1] == ((board.stm ^ INVALID) | PAWN) ||
+                board.board[moves[i].to + dir - 1] == ((board.stm ^ INVALID) | PAWN)
+            ) && (board.board[moves[i].from] & 7) > victim + depth / 2) {
+                continue;
+            }
+
             Board mkmove = board;
             if (mkmove.make_move(moves[i])) {
                 continue;
