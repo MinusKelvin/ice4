@@ -99,7 +99,7 @@ struct Searcher {
         // Reverse Futility Pruning: 11 bytes (v6)
         // 8.0+0.08: 58.21 +- 4.86     5.29 elo/byte
         // 60.0+0.6: 49.53 +- 4.28     4.50 elo/byte
-        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth) {
+        if (!pv && !board.check && depth && depth < 8 && eval >= beta + 43 * depth || ply > 250) {
             return eval;
         }
 
