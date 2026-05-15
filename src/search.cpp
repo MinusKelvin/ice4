@@ -258,11 +258,11 @@ struct Searcher {
                     reduction = (score[i] - victim * 1e5) / -2480;
                 }
                 if (reduction < 0) {
-                    reduction = 0;
+                    reduction = -pv;
                 }
 
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
-                if (v > alpha && reduction) {
+                if (v > alpha && reduction > 0) {
                     next_depth -= v < best + next_depth;
                     // reduced search failed high, re-search at full depth
                     v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth, ply + 1);
