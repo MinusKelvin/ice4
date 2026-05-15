@@ -258,7 +258,7 @@ struct Searcher {
                     reduction = (score[i] - victim * 1e5) / -2480;
                 }
                 if (reduction < 0) {
-                    reduction = 0;
+                    reduction = -pv;
                 }
 
                 v = -negamax(mkmove, scratch, -alpha-1, -alpha, next_depth - reduction, ply + 1);
