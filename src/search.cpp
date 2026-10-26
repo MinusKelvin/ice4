@@ -10,6 +10,14 @@ double now() {
     return t.tv_sec + t.tv_nsec / 1e9;
 }
 
+void correct(int16_t& hist, double weight, int error) {
+    hist = hist * (1 - weight) + clamp(error, -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+}
+
+void update_history(int16_t& hist, int bonus) {
+    hist += bonus - abs(bonus) * hist / MAX_HIST;
+}
+
 atomic_bool ABORT;
 mutex MUTEX;
 int FINISHED_DEPTH_AND_SCORE;
@@ -132,6 +140,11 @@ struct Searcher {
             }
         }
 
+        int best = depth ? LOST + ply : eval;
+        if (best >= beta) {
+            return best;
+        }
+
         for (int j = 0; j < mvcount; j++) {
             if (!tt.key && tt.mv.from == moves[j].from && tt.mv.to == moves[j].to) {
                 score[j] = 1e7;
@@ -164,14 +177,10 @@ struct Searcher {
             }
         }
 
-        int best = depth ? LOST + ply : eval;
         int quiets_to_check = pv ? -1 : (depth*depth + 10) >> (!improving + 1);
         int raised_alpha = 0;
         int legals = 0;
 
-        if (best >= beta) {
-            return best;
-        }
 
         for (int i = 0; i < mvcount; i++) {
             int best_so_far = i;
@@ -288,27 +297,14 @@ struct Searcher {
             if (v >= beta) {
                 int bonus = 64 * depth;
                 bonus <<= ((eval <= alpha) + (eval <= alpha - 35));
-                int16_t *hist;
-                for (int j = 0; j < i; j++) {
-                    if (victim && !board.board[moves[j].to]) {
-                        continue;
-                    }
-                    hist = &history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to];
-                    *hist -= bonus + bonus * *hist / MAX_HIST;
+                for (int j = 0; j <= i; j++) {
+                    if (victim && !board.board[moves[j].to]) { continue; }
+                    int change = j == i ? bonus : -bonus;
+                    update_history(history[board.board[moves[j].to]][board.board[moves[j].from]][moves[j].to], change);
                     if (!board.board[moves[j].to]) {
-                        hist = &(*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
-                        hist = &(*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to];
-                        *hist -= bonus + bonus * *hist / MAX_HIST;
+                        update_history((*conthist_stack[ply + 1])[board.board[moves[j].from]][moves[j].to], change);
+                        update_history((*conthist_stack[ply])[board.board[moves[j].from]][moves[j].to], change);
                     }
-                }
-                hist = &history[board.board[moves[i].to]][board.board[moves[i].from]][moves[i].to];
-                *hist += bonus - bonus * *hist / MAX_HIST;
-                if (!victim) {
-                    hist = &(*conthist_stack[ply + 1])[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
-                    hist = &(*conthist_stack[ply])[board.board[moves[i].from]][moves[i].to];
-                    *hist += bonus - bonus * *hist / MAX_HIST;
                 }
                 break;
             }
@@ -334,24 +330,12 @@ struct Searcher {
                 tt.bound == BOUND_LOWER && best > evals[ply]
             )) {
                 double weight = min(depth * depth + 2, 62) / 596.0;
-                corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] =
-                    corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                (*conthist_stack[ply+1])[0][0] =
-                    (*conthist_stack[ply+1])[0][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
-                (*conthist_stack[ply])[1][0] =
-                    (*conthist_stack[ply])[1][0] * (1 - weight) +
-                    clamp(best - evals[ply], -CORR_HIST_MAX, CORR_HIST_MAX) * CORR_HIST_UNIT * weight;
+                correct(corr_hist[ply & 1][board.pawn_hash % CORR_HIST_SIZE], weight, best - evals[ply]);
+                correct(corr_hist[ply & 1][board.material_hash % CORR_HIST_SIZE], weight, best - evals[ply]);
+                correct(corr_hist[ply & 1][board.nonpawn_hash[1] % CORR_HIST_SIZE], weight, best - evals[ply]);
+                correct(corr_hist[ply & 1][board.nonpawn_hash[2] % CORR_HIST_SIZE], weight, best - evals[ply]);
+                correct((*conthist_stack[ply+1])[0][0], weight, best - evals[ply]);
+                correct((*conthist_stack[ply])[1][0], weight, best - evals[ply]);
             }
         }
 

@@ -98,6 +98,7 @@ void uci() {
                 tokens >> token >> wtime >> token >> btime; // wtime <wtime> btime <btime>
 #endif
                 int time_alotment = ROOT.stm == WHITE ? wtime : btime;
+                ROOT.eval(0);
                 ABORT = 0;
                 FINISHED_DEPTH_AND_SCORE = 0;
 #ifdef OPENBENCH
